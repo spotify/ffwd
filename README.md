@@ -2,117 +2,18 @@
 
 This is a Java implementation of [ffwd](https://github.com/spotify/ffwd)
 
-# TODO
+This project is currently: __experimental__, use at your own risk.
 
-## Output Plugins
-
-* Outgoing connections.
-  * Need to be able to reconnect (with back-off)
-  * Retain unsent data.
-    * Temporary slowdowns should not cause drops.
-    * Some protocols prefer batches for performance reasons.
-    * On disk serialization similar to kafka?
-
-## Riemann
-* Input plugin
-* Output plugin
-  * Make batch size configurable.
-  * Allow multiple simultaneous batches (tracked by ack's), make this
-    configurable.
-
-## Kafka
-
-* Output plugin
-  * Very high level, take care to implement back-off and assert (somehow)
-    that date is being sent.
-
-## collectd
-
-* Input plugin, see
-  [ruby implementation](https://github.com/spotify/ffwd/blob/master/plugins/ffwd-collectd/lib/ffwd/plugin/collectd/parser.rb)
-  for details on how to decode frames.
-
-## Debug protocol
-Allow connections to 'sniff' what is going on internally, make sure to follow
-the previous protocol to allow existing clients to keep working until
-replacements can be built.
-
-Message structure is:
-
-```json
-{"id": "identifier", "type": "'metric' or 'event'", "data": {}}
-```
-
-## Instrumentation
-
-* On a per input plugin basis.
-  * Measure errors.
-  * Measure dropped events/metrics.
-  * Measure failed events/metrics.
-  * Measure received events/metrics.
-* On an application basis.
-  * Measure events.
-  * Measure metrics.
-* On a per output plugin basis.
-  * Measure sent events/metrics.
-  * Measure dropped events/metrics.
-  * Measure queue time in ms for events/messages.
-  * Measure queue size and rate-of-growth for events/messages.
-
-## On-disk serialization (WIP)
-
-For work in progress, see:
-[QLogManager](core/src/main/java/com/spotify/ffwd/qlog/QLogManagerImpl.java)
-
-Serialize centrally in `OutputManager` to a log file, which is being tailed
-asynchronously by each output plugin.
-`OutputManager` will also be responsible for truncating this queue to asssert
-that a size limitations are respected.
-
-This should allow for temporary loss of network.
-
-Log files consists of sized chunks distinctly smaller than a given size, and
-are named according to the following scheme:
-
-```
-<name>/########
-```
-
-Incoming events and metrics are written to the log file serially.
-After they have been written they are dispatched to all sinks, this will
-include the message and the offset in the log that they have.
-Each output plugin keeps track of which offset they are sending and retains a
-reference to the corresponding log file that the offset belongs to.
-
-A scheduled process scans all log files in order, if a file has zero references
-it will be unlinked.
-It also writes all the output plugins and their corresponding offsets to a
-state file so that they can be restored at a later point in time.
-The id of an output plugin must be explicitly set in the configuration file so
-that offsets can be recorded and restored.
-
-Each log file contains the following structures:
-
-```
-magic    | 4 | 4 byte magic, making up "FFLG" (0x46 0x46 0x4c 0x47) in ASCII.
-version  | 2 | Unsigned 2-byte short, indicating the current version of the log
-               format.
-offset   | 8 | Unsigned offset in number of messages that is the start of this
-               log
-...
-size     | 4 | An unsigned integer indicating the size of the next entry.
-blob     | n | A byte blob with the above size.
-... other entries until EOF.
-```
+* [On-disk Persistent Queue (WIP)](docs/on-disk-queue.md)
 
 # Components
 
-# Module
+#### Module
 
 A module is a loadable component that extends the functionality of FastForward.
 When a module is loaded it typically registers a set of plugins.
 
-# Plugin
+#### Plugin
 
 Either an input, or an output plugin.
 
@@ -120,7 +21,7 @@ This provides the implementation to read, or send data from the agent.
 A plugin can have multiple _instances_ with different configurations (like
 which port to listen to).
 
-### Early Injector
+#### Early Injector
 
 The early injector is setup by AgentCore and is intended to provide the basic
 facilities to perform module setup.
@@ -133,7 +34,7 @@ purpose.
 * _com.fasterxml.jackson.databind.ObjectMapper (application/yaml+config)_
   ObjectMapper used to parse provided configuration file.
 
-### Primary Injector
+#### Primary Injector
 
 The primary injector contains the dependencies which are available after
 modules have been registered and the initial bootstrap is done.
