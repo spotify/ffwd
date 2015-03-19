@@ -36,11 +36,15 @@ public class ProtocolFactory {
     private final String type;
     private final String host;
     private final Integer port;
+    private final Integer receiveBufferSize;
 
     @JsonCreator
-    public static ProtocolFactory build(@JsonProperty("type") String type, @JsonProperty("host") String host,
-            @JsonProperty("port") Integer port) {
-        return new ProtocolFactory(type, host, port);
+    public ProtocolFactory(@JsonProperty("type") String type, @JsonProperty("host") String host,
+            @JsonProperty("port") Integer port, @JsonProperty("receiveBufferSize") Integer receiveBufferSize) {
+        this.type = type;
+        this.host = host;
+        this.port = port;
+        this.receiveBufferSize = receiveBufferSize;
     }
 
     /**
@@ -52,7 +56,7 @@ public class ProtocolFactory {
         return new Supplier<ProtocolFactory>() {
             @Override
             public ProtocolFactory get() {
-                return new ProtocolFactory(null, null, null);
+                return new ProtocolFactory(null, null, null, null);
             }
         };
     }
@@ -75,7 +79,7 @@ public class ProtocolFactory {
     public Protocol protocol(ProtocolType defaultType, int defaultPort, String defaultHost) {
         final ProtocolType t = parseProtocolType(type, defaultType);
         final InetSocketAddress address = parseSocketAddress(host, port, defaultPort, defaultHost);
-        return new Protocol(t, address);
+        return new Protocol(t, address, receiveBufferSize);
     }
 
     private InetSocketAddress parseSocketAddress(String host, Integer port, int defaultPort, String defaultHost) {

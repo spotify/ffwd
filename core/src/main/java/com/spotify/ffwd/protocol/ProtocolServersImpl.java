@@ -68,6 +68,10 @@ public class ProtocolServersImpl implements ProtocolServers {
         b.childHandler(server.initializer());
 
         b.option(ChannelOption.SO_BACKLOG, 128);
+        
+        if (protocol.getReceiveBufferSize() != null)
+            b.option(ChannelOption.SO_RCVBUF, protocol.getReceiveBufferSize());
+            
         b.childOption(ChannelOption.SO_KEEPALIVE, true);
 
         final String host = protocol.getAddress().getHostString();

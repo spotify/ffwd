@@ -15,6 +15,7 @@ input:
     - type: protobuf
       protocol:
         type: udp
+        receiveBufferSize: 100000
     - type: protobuf
       protocol:
         type: tcp

@@ -24,4 +24,5 @@ import lombok.Data;
 public class Protocol {
     private final ProtocolType type;
     private final InetSocketAddress address;
+    private final Integer receiveBufferSize;
 }
