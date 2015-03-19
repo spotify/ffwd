@@ -53,6 +53,10 @@ public class OutputManagerImpl implements OutputManager {
     @Inject
     @Named("tags")
     private Set<String> tags;
+    
+    @Inject
+    @Named("host")
+    private String host;
 
     @Inject
     @Named("ttl")
@@ -142,6 +146,7 @@ public class OutputManagerImpl implements OutputManager {
         if (attributes.isEmpty() && tags.isEmpty() && ttl == 0)
             return event;
 
+        final String host = event.getHost() != null ? event.getHost() : this.host;
         final Map<String, String> a = Maps.newHashMap(attributes);
         a.putAll(event.getAttributes());
 
@@ -152,7 +157,7 @@ public class OutputManagerImpl implements OutputManager {
         final Long ttl = event.getTtl() != 0 ? event.getTtl() : this.ttl;
 
         return new Event(event.getKey(), event.getValue(), time, ttl, event.getState(), event.getDescription(),
-                event.getHost(), t, a);
+                host, t, a);
     }
 
     /**
@@ -162,6 +167,8 @@ public class OutputManagerImpl implements OutputManager {
         if (attributes.isEmpty() && tags.isEmpty())
             return metric;
 
+        final String host = metric.getHost() != null ? metric.getHost() : this.host;
+        
         final Map<String, String> a = Maps.newHashMap(attributes);
         a.putAll(metric.getAttributes());
 
@@ -170,6 +177,6 @@ public class OutputManagerImpl implements OutputManager {
 
         final Date time = metric.getTime() != null ? metric.getTime() : new Date();
 
-        return new Metric(metric.getKey(), metric.getValue(), time, metric.getHost(), t, a, metric.getProc());
+        return new Metric(metric.getKey(), metric.getValue(), time, host, t, a, metric.getProc());
     }
 }

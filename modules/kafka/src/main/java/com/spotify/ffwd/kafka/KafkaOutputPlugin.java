@@ -49,7 +49,7 @@ public class KafkaOutputPlugin implements OutputPlugin {
             @JsonProperty("flushInterval") Long flushInterval, @JsonProperty("router") KafkaRouter router,
             @JsonProperty("partitioner") KafkaPartitioner partitioner, @JsonProperty("serializer") Serializer serializer) {
         this.router = Optional.fromNullable(router).or(KafkaRouter.Attribute.supplier());
-        this.partitioner = Optional.fromNullable(partitioner).or(KafkaPartitioner.Attribute.supplier());
+        this.partitioner = Optional.fromNullable(partitioner).or(KafkaPartitioner.Host.supplier());
         this.flushInterval = Optional.fromNullable(flushInterval).orNull();
         this.properties = Optional.fromNullable(properties).or(new HashMap<String, String>());
         this.serializer = Optional.fromNullable(serializer).orNull();

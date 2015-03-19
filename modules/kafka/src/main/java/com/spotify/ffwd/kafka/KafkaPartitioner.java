@@ -27,11 +27,37 @@ import com.spotify.ffwd.model.Metric;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({ @JsonSubTypes.Type(value = KafkaPartitioner.Attribute.class, name = "attribute"),
-        @JsonSubTypes.Type(value = KafkaPartitioner.Hashed.class, name = "static") })
+    @JsonSubTypes.Type(value = KafkaPartitioner.Hashed.class, name = "static"),
+    @JsonSubTypes.Type(value = KafkaPartitioner.Host.class, name = "host")})
 public interface KafkaPartitioner {
     public String partition(final Event event);
 
     public String partition(final Metric metric);
+    
+    public static class Host implements KafkaPartitioner {
+        @JsonCreator
+        public Host() {
+        }
+
+        @Override
+        public String partition(final Event event) {
+            return event.getHost();
+        }
+
+        @Override
+        public String partition(final Metric metric) {
+            return metric.getHost();
+        }
+
+        public static Supplier<KafkaPartitioner> supplier() {
+            return new Supplier<KafkaPartitioner>() {
+                @Override
+                public KafkaPartitioner get() {
+                    return new Host();
+                }
+            };
+        }
+    }
 
     public static class Attribute implements KafkaPartitioner {
         private static final String DEFAULT_ATTRIBUTE = "site";
