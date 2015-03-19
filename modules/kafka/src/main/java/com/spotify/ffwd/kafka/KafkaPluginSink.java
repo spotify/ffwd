@@ -53,8 +53,8 @@ public class KafkaPluginSink implements BatchedPluginSink {
     private Serializer serializer;
 
     @Override
-    public AsyncFuture<Void> sendEvent(final Event event) {
-        return async.call(new Callable<Void>() {
+    public void sendEvent(final Event event) {
+        async.call(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
                 producer.send(messageFor(event));
@@ -64,8 +64,8 @@ public class KafkaPluginSink implements BatchedPluginSink {
     }
 
     @Override
-    public AsyncFuture<Void> sendMetric(final Metric metric) {
-        return async.call(new Callable<Void>() {
+    public void sendMetric(final Metric metric) {
+        async.call(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
                 producer.send(messageFor(metric));

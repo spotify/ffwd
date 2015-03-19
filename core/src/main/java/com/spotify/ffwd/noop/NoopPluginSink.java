@@ -14,9 +14,10 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  **/
-package com.spotify.ffwd.debug;
+package com.spotify.ffwd.noop;
 
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicLong;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,37 +30,49 @@ import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 
 @Slf4j
-public class DebugPluginSink implements BatchedPluginSink {
+public class NoopPluginSink implements BatchedPluginSink {
+    private final AtomicLong date = new AtomicLong();
+    private final AtomicLong last = new AtomicLong();
+    private final AtomicLong total = new AtomicLong();
+
     @Inject
     private AsyncFramework async;
 
     @Override
     public void sendEvent(Event event) {
-        log.info("E: {}", event);
     }
 
     @Override
     public void sendMetric(Metric metric) {
-        log.info("M: {}", metric);
     }
 
     @Override
     public AsyncFuture<Void> sendEvents(Collection<Event> events) {
-        int i = 0;
-
-        for (final Event e : events)
-            log.info("E#{}: {}", i++, e);
-
-        return async.resolved(null);
+        return count(events.size());
     }
 
     @Override
     public AsyncFuture<Void> sendMetrics(Collection<Metric> metrics) {
-        int i = 0;
+        return count(metrics.size());
+    }
 
-        for (final Metric m : metrics)
-            log.info("E#{}: {}", i++, m);
+    private AsyncFuture<Void> count(int size) {
+        final long now = System.currentTimeMillis();
+        final long then = this.date.getAndSet(now);
+        final long total = this.total.addAndGet(size);
 
+        final double rate;
+
+        final long diff = (now - then) / 1000;
+
+        if (then != 0 && diff != 0) {
+            final long seen = total - this.last.getAndSet(total);
+            rate = Math.round((double)seen / (double)diff);
+        } else {
+            rate = Double.NaN;
+        }
+
+        log.info("{} things/s (total: {})", rate, total);
         return async.resolved(null);
     }
 

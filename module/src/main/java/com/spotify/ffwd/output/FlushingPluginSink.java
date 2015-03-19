@@ -60,7 +60,7 @@ public class FlushingPluginSink implements PluginSink {
     private final long flushInterval;
 
     @Override
-    public AsyncFuture<Void> sendMetric(final Metric metric) {
+    public void sendMetric(final Metric metric) {
         synchronized ($lock) {
             final Batch batch = next.get();
 
@@ -68,12 +68,11 @@ public class FlushingPluginSink implements PluginSink {
                 throw new IllegalStateException("no batch available");
 
             batch.metrics.add(metric);
-            return batch.future;
         }
     }
 
     @Override
-    public AsyncFuture<Void> sendEvent(Event event) {
+    public void sendEvent(Event event) {
         synchronized ($lock) {
             final Batch batch = next.get();
 
@@ -81,7 +80,6 @@ public class FlushingPluginSink implements PluginSink {
                 throw new IllegalStateException("no batch available");
 
             batch.events.add(event);
-            return batch.future;
         }
     }
 

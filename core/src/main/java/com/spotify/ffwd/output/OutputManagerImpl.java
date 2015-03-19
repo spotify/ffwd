@@ -64,54 +64,20 @@ public class OutputManagerImpl implements OutputManager {
 
     @Override
     public void sendEvent(Event event) {
-        final List<AsyncFuture<Void>> futures = new ArrayList<>();
-
         final Event filtered = filter(event);
 
         for (final PluginSink s : sinks)
             if (s.isReady())
-                futures.add(s.sendEvent(filtered));
-
-        async.collectAndDiscard(futures).onAny(new FutureDone<Void>() {
-            @Override
-            public void failed(Throwable cause) throws Exception {
-                log.info("Failed to send event to all sinks", cause);
-            }
-
-            @Override
-            public void resolved(Void result) throws Exception {
-            }
-
-            @Override
-            public void cancelled() throws Exception {
-            }
-        });
+                s.sendEvent(filtered);
     }
 
     @Override
     public void sendMetric(Metric metric) {
-        final List<AsyncFuture<Void>> futures = new ArrayList<>();
-
         final Metric filtered = filter(metric);
 
         for (final PluginSink s : sinks)
             if (s.isReady())
-                futures.add(s.sendMetric(filtered));
-
-        async.collectAndDiscard(futures).onAny(new FutureDone<Void>() {
-            @Override
-            public void failed(Throwable cause) throws Exception {
-                log.info("Failed to send metric to all sinks", cause);
-            }
-
-            @Override
-            public void resolved(Void result) throws Exception {
-            }
-
-            @Override
-            public void cancelled() throws Exception {
-            }
-        });
+                s.sendMetric(filtered);
     }
 
     @Override

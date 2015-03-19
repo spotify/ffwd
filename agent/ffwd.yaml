@@ -15,7 +15,7 @@ input:
     - type: protobuf
       protocol:
         type: udp
-        receiveBufferSize: 100000
+        receiveBufferSize: 106214400
     - type: protobuf
       protocol:
         type: tcp
@@ -28,26 +28,23 @@ input:
 
 output:
   plugins:
-    #- type: riemann
-    #  flushInterval: 10000
-    #  protocol:
-    #    type: tcp
-    #    host: localhost
+    - type: noop
+      flushInterval: 10000
     #- type: debug
     #  flushInterval: 10000
-    - type: kafka
-      flushInterval: 10000
-      serializer:
-        type: spotify100
-      router:
-        type: attribute
-        attribute: pod
-      partitioner:
-        type: host
-      producer:
-        metadata.broker.list: localhost:9092
-        request.required.acks: 1
-        request.timeout.ms: 1000
+    #- type: kafka
+    #  flushInterval: 10000
+    #  serializer:
+    #    type: spotify100
+    #  router:
+    #    type: attribute
+    #    attribute: pod
+    #  partitioner:
+    #    type: host
+    #  producer:
+    #    metadata.broker.list: localhost:9092
+    #    request.required.acks: 1
+    #    request.timeout.ms: 1000
 
 
 qlog: ./queue/

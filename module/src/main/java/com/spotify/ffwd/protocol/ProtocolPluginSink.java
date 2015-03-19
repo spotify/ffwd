@@ -52,23 +52,23 @@ public class ProtocolPluginSink implements BatchedPluginSink {
     private final AtomicReference<ProtocolConnection> connection = new AtomicReference<>();
 
     @Override
-    public AsyncFuture<Void> sendEvent(Event event) {
+    public void sendEvent(Event event) {
         final ProtocolConnection c = connection.get();
 
         if (c == null)
-            return async.failed(new IllegalStateException("not connected to " + protocol));
+            return;
 
-        return c.send(event);
+        c.send(event);
     }
 
     @Override
-    public AsyncFuture<Void> sendMetric(Metric metric) {
+    public void sendMetric(Metric metric) {
         final ProtocolConnection c = connection.get();
 
         if (c == null)
-            return async.failed(new IllegalStateException("not connected to " + protocol));
+            return;
 
-        return c.send(metric);
+        c.send(metric);
     }
 
     @Override

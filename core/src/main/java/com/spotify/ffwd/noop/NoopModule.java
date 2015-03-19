@@ -14,18 +14,18 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  **/
-package com.spotify.ffwd.protocol;
+package com.spotify.ffwd.noop;
 
-import java.util.Collection;
+import com.google.inject.Inject;
+import com.spotify.ffwd.module.FastForwardModule;
+import com.spotify.ffwd.module.PluginContext;
 
-import eu.toolchain.async.AsyncFuture;
+public class NoopModule implements FastForwardModule {
+    @Inject
+    private PluginContext context;
 
-public interface ProtocolConnection {
-    public void send(Object message);
-
-    public AsyncFuture<Void> stop();
-
-    public AsyncFuture<Void> sendAll(Collection<? extends Object> batch);
-
-    public boolean isConnected();
+    @Override
+    public void setup() throws Exception {
+        context.registerOutput("noop", NoopOutputPlugin.class);
+    }
 }

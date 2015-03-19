@@ -25,18 +25,22 @@ public interface PluginSink {
     /**
      * Send the given collection of events.
      *
+     * This method is fire-and-forget, because tracking each individual send is too expensive.
+     *
      * @param events Collection of events to send.
      * @return A future that will be resolved when the events have been sent.
      */
-    public AsyncFuture<Void> sendEvent(Event event);
+    public void sendEvent(Event event);
 
     /**
      * Send the given collection of metrics.
      *
+     * This method is fire-and-forget, because tracking each individual send is too expensive.
+     *
      * @param metrics Metrics to send.
      * @return A future that will be resolved when the metrics have been sent.
      */
-    public AsyncFuture<Void> sendMetric(Metric metric);
+    public void sendMetric(Metric metric);
 
     public AsyncFuture<Void> start();
 

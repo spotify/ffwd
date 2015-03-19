@@ -149,7 +149,17 @@ public class RetryingProtocolConnection implements ProtocolConnection {
     }
 
     @Override
-    public AsyncFuture<Void> send(Object message) {
+    public void send(Object message) {
+        final Channel c = channel.get();
+
+        if (c == null)
+            return;
+
+        c.writeAndFlush(message);
+    }
+
+    @Override
+    public AsyncFuture<Void> sendAll(Collection<? extends Object> batch) {
         final Channel c = channel.get();
 
         if (c == null)
@@ -157,7 +167,7 @@ public class RetryingProtocolConnection implements ProtocolConnection {
 
         final ResolvableFuture<Void> future = async.future();
 
-        c.writeAndFlush(message).addListener(new ChannelFutureListener() {
+        c.writeAndFlush(batch).addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture f) throws Exception {
                 try {
@@ -169,11 +179,6 @@ public class RetryingProtocolConnection implements ProtocolConnection {
         });
 
         return future;
-    }
-
-    @Override
-    public AsyncFuture<Void> sendAll(Collection<? extends Object> batch) {
-        return send(batch);
     }
 
     @Override
