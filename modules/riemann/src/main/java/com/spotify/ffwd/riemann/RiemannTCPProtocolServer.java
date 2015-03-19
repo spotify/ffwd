@@ -20,8 +20,8 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelInitializer;
 
-import com.google.common.base.Supplier;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.spotify.ffwd.protocol.ProtocolServer;
 
 /**
@@ -42,7 +42,7 @@ public class RiemannTCPProtocolServer implements ProtocolServer {
     private RiemannResponder responder;
 
     @Inject
-    private Supplier<RiemannFrameDecoder> frameDecoder;
+    private Provider<RiemannFrameDecoder> frameDecoder;
 
     @Override
     public final ChannelInitializer<Channel> initializer() {

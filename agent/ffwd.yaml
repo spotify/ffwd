@@ -18,9 +18,9 @@ input:
     - type: protobuf
       protocol:
         type: tcp
-    #- type: riemann
-    #  protocol:
-    #    type: tcp
+    - type: riemann
+      protocol:
+        type: tcp
     - type: riemann
       protocol:
         type: udp

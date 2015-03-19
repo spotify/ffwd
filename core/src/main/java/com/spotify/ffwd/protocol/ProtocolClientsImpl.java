@@ -78,7 +78,7 @@ public class ProtocolClientsImpl implements ProtocolClients {
 
                     @Override
                     public String toString() {
-                        return String.format("connecting to tcp://%s:%d", host, port);
+                        return String.format("connect tcp://%s:%d", host, port);
                     }
                 });
 
