@@ -36,9 +36,9 @@ import com.spotify.ffwd.output.OutputManagerModule;
 
 @Data
 public class AgentConfig {
-    public static final int DEFAULT_ASYNC_THREADS = 20;
-    public static final int DEFAULT_BOSS_THREADS = 4;
-    public static final int DEFAULT_WORKER_THREADS = 20;
+    public static final int DEFAULT_ASYNC_THREADS = 4;
+    public static final int DEFAULT_BOSS_THREADS = 2;
+    public static final int DEFAULT_WORKER_THREADS = 4;
 
     public static final Map<String, String> DEFAULT_ATTRIBUTES = Maps.newHashMap();
     public static final Set<String> DEFAULT_TAGS = Sets.newHashSet();
