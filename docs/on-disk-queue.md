@@ -2,28 +2,27 @@
 
 Write to a serial, peristed queue in `OutputManager`.
 `OutputManager` will also be responsible for truncating this queue to asssert
-that a size limitations are respected.
+that any size limitations are respected.
 
 This would allow for a temporary loss of network, without losing data.
 
 #### Operation
 
 The entire queue is serialized into a set of files (`segments`) which are
-limited in size according to `maxLogSize`, with the default being `100 MB`.
+limited in size according to `maxSegmentSize`, with the default being `100 MB`.
 
-Each segment is according to a zero-padded, hex-encoded base offset of that
-segment (example: `00000000ff`)
+Each segment is named according to a hex-encoded, zero-padded base offset of that
+segment (example: `00000000ff`).
 
-Incoming events and metrics are written to the `tail` segment linearly, until
-it would be forced to grow larger than `maxLogSize`.
+Incoming data is written to the `tail` segment linearly, until
+it would be forced to grow larger than `maxSegmentSize`.
 When this happens a new tail `segment` is allocated and the blob will be written
 to the newly allocated tail `segment`.
 
-A consumer maintains its `position` in the queue, and this is maintained in the
-binary `index` file.
+A consumer maintains its `position` in the queue in the `index` file.
 At a regular interval, a process will scan the current offset of all consumers
 and trim the head of the queue.
-Trimming involves unlinking all `segments` prior to a given `position`.
+Trimming involves unlinking all whole `segments` prior to a given `position`, partial `segments` where the trim `position` is in the middle of the segment will be kept.
 
 #### Files
 
