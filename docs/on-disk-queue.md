@@ -4,7 +4,7 @@ Write to a serial, peristed queue in `OutputManager`.
 `OutputManager` will also be responsible for truncating this queue to asssert
 that a size limitations are respected.
 
-This would allow for a temporary loss of network, without loosing data.
+This would allow for a temporary loss of network, without losing data.
 
 #### Operation
 
