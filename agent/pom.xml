@@ -34,6 +34,10 @@
       <groupId>com.spotify.ffwd</groupId>
       <artifactId>ffwd-module-riemann</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.spotify.ffwd</groupId>
+      <artifactId>ffwd-module-carbon</artifactId>
+    </dependency>
 
     <!-- logging -->
     <dependency>
