@@ -67,7 +67,7 @@ public class OutputManagerModule {
             public Set<String> tags(AgentConfig config) {
                 return config.getTags();
             }
-            
+
             @Provides
             @Singleton
             @Named("host")
@@ -84,7 +84,7 @@ public class OutputManagerModule {
 
             @Override
             protected void configure() {
-                bind(OutputManager.class).to(OutputManagerImpl.class).in(Scopes.SINGLETON);
+                bind(OutputManager.class).to(CoreOutputManager.class).in(Scopes.SINGLETON);
                 expose(OutputManager.class);
 
                 bindPlugins();

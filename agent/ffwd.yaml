@@ -1,3 +1,5 @@
+debug: {}
+
 attributes:
   role: test
 

@@ -17,6 +17,7 @@
 package com.spotify.ffwd;
 
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,6 +45,7 @@ public class AgentConfig {
     public static final Set<String> DEFAULT_TAGS = Sets.newHashSet();
     public static final String DEFAULT_QLOG = "./qlog/";
 
+    private final Optional<Debug> debug;
     private final String host;
     private final Map<String, String> attributes;
     private final Set<String> tags;
@@ -56,13 +58,14 @@ public class AgentConfig {
     private final Path qlog;
 
     @JsonCreator
-    public AgentConfig(@JsonProperty("host") String host,
+    public AgentConfig(@JsonProperty("debug") Debug debug, @JsonProperty("host") String host,
             @JsonProperty("attributes") Map<String, String> attributes, @JsonProperty("tags") Set<String> tags,
-            @JsonProperty("input") InputManagerModule input,
-            @JsonProperty("output") OutputManagerModule output, @JsonProperty("asyncThreads") Integer asyncThreads,
-            @JsonProperty("bossThreads") Integer bossThreads, @JsonProperty("workerThreads") Integer workerThreads,
-            @JsonProperty("ttl") Long ttl, @JsonProperty("qlog") String qlog) {
-        this.host = Optional.fromNullable(host).or(hostProvider());
+            @JsonProperty("input") InputManagerModule input, @JsonProperty("output") OutputManagerModule output,
+            @JsonProperty("asyncThreads") Integer asyncThreads, @JsonProperty("bossThreads") Integer bossThreads,
+            @JsonProperty("workerThreads") Integer workerThreads, @JsonProperty("ttl") Long ttl,
+            @JsonProperty("qlog") String qlog) {
+        this.debug = Optional.fromNullable(debug);
+        this.host = Optional.fromNullable(host).or(this.defaultHostSupplier());
         this.attributes = Optional.fromNullable(attributes).or(DEFAULT_ATTRIBUTES);
         this.tags = Optional.fromNullable(tags).or(DEFAULT_TAGS);
         this.input = Optional.fromNullable(input).or(InputManagerModule.supplyDefault());
@@ -74,16 +77,38 @@ public class AgentConfig {
         this.qlog = Paths.get(Optional.fromNullable(qlog).or(DEFAULT_QLOG));
     }
 
-    private Supplier<String> hostProvider() {
+    private Supplier<String> defaultHostSupplier() {
         return new Supplier<String>() {
             @Override
             public String get() {
-                try {
-                    return InetAddress.getLocalHost().getHostName();
-                } catch (UnknownHostException e) {
-                    throw new RuntimeException("unable to get local host", e);
-                }
+                return buildDefaultHost();
             }
         };
+    }
+
+    private String buildDefaultHost() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            throw new RuntimeException("unable to get local host", e);
+        }
+    }
+
+    @Data
+    public static final class Debug {
+        public static final String DEFAULT_HOST = "localhost";
+        public static final int DEFAULT_PORT = 19001;
+
+        private final InetSocketAddress localAddress;
+
+        @JsonCreator
+        public Debug(@JsonProperty("host") String host, @JsonProperty("port") Integer port) {
+            this.localAddress = buildLocalAddress(Optional.fromNullable(host).or(DEFAULT_HOST),
+                    Optional.fromNullable(port).or(DEFAULT_PORT));
+        }
+
+        private InetSocketAddress buildLocalAddress(String host, Integer port) {
+            return new InetSocketAddress(host, port);
+        }
     }
 }

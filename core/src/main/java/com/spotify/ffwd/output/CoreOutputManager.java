@@ -30,16 +30,18 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
+import com.spotify.ffwd.debug.DebugServer;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.Collector;
-import eu.toolchain.async.FutureDone;
 
 @Slf4j
-public class OutputManagerImpl implements OutputManager {
+public class CoreOutputManager implements OutputManager {
+    private final String DEBUG_ID = "core.output";
+
     @Inject
     private List<PluginSink> sinks;
 
@@ -53,7 +55,7 @@ public class OutputManagerImpl implements OutputManager {
     @Inject
     @Named("tags")
     private Set<String> tags;
-    
+
     @Inject
     @Named("host")
     private String host;
@@ -62,9 +64,14 @@ public class OutputManagerImpl implements OutputManager {
     @Named("ttl")
     private long ttl;
 
+    @Inject
+    private DebugServer debug;
+
     @Override
     public void sendEvent(Event event) {
         final Event filtered = filter(event);
+
+        debug.inspectEvent(DEBUG_ID, filtered);
 
         for (final PluginSink s : sinks)
             if (s.isReady())
@@ -74,6 +81,8 @@ public class OutputManagerImpl implements OutputManager {
     @Override
     public void sendMetric(Metric metric) {
         final Metric filtered = filter(metric);
+
+        debug.inspectMetric(DEBUG_ID, filtered);
 
         for (final PluginSink s : sinks)
             if (s.isReady())
@@ -122,8 +131,8 @@ public class OutputManagerImpl implements OutputManager {
         final Date time = event.getTime() != null ? event.getTime() : new Date();
         final Long ttl = event.getTtl() != 0 ? event.getTtl() : this.ttl;
 
-        return new Event(event.getKey(), event.getValue(), time, ttl, event.getState(), event.getDescription(),
-                host, t, a);
+        return new Event(event.getKey(), event.getValue(), time, ttl, event.getState(), event.getDescription(), host,
+                t, a);
     }
 
     /**
@@ -134,7 +143,7 @@ public class OutputManagerImpl implements OutputManager {
             return metric;
 
         final String host = metric.getHost() != null ? metric.getHost() : this.host;
-        
+
         final Map<String, String> a = Maps.newHashMap(attributes);
         a.putAll(metric.getAttributes());
 

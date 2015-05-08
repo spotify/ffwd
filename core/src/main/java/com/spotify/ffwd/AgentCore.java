@@ -2,14 +2,17 @@
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
- * The contents of this file are licensed under the Apache License, Version 2.0 (the "License"); you may not use this
- * file except in compliance with the License. You may obtain a copy of the License at
+ * The contents of this file are licensed under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
  **/
 package com.spotify.ffwd;
 
@@ -50,6 +53,9 @@ import com.google.inject.Scopes;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
+import com.spotify.ffwd.debug.DebugServer;
+import com.spotify.ffwd.debug.NettyDebugServer;
+import com.spotify.ffwd.debug.NoopDebugServer;
 import com.spotify.ffwd.input.InputManager;
 import com.spotify.ffwd.module.FastForwardModule;
 import com.spotify.ffwd.module.PluginContext;
@@ -118,6 +124,7 @@ public class AgentCore {
     private void start(final Injector primary) throws Exception, InterruptedException, ExecutionException {
         final InputManager input = primary.getInstance(InputManager.class);
         final OutputManager output = primary.getInstance(OutputManager.class);
+        final DebugServer debug = primary.getInstance(DebugServer.class);
 
         final AsyncFramework async = primary.getInstance(AsyncFramework.class);
         final ArrayList<AsyncFuture<Void>> startup = Lists.newArrayList();
@@ -126,13 +133,15 @@ public class AgentCore {
 
         startup.add(input.start());
         startup.add(output.start());
+        startup.add(debug.start());
 
-        async.collect(startup).get();
+        async.collectAndDiscard(startup).get();
     }
 
     private void stop(final Injector primary) throws Exception {
         final InputManager input = primary.getInstance(InputManager.class);
         final OutputManager output = primary.getInstance(OutputManager.class);
+        final DebugServer debug = primary.getInstance(DebugServer.class);
 
         final AsyncFramework async = primary.getInstance(AsyncFramework.class);
         final ArrayList<AsyncFuture<Void>> shutdown = Lists.newArrayList();
@@ -141,8 +150,9 @@ public class AgentCore {
 
         shutdown.add(input.stop());
         shutdown.add(output.stop());
+        shutdown.add(debug.stop());
 
-        async.collect(shutdown).get();
+        async.collectAndDiscard(shutdown).get();
     }
 
     /**
@@ -192,6 +202,18 @@ public class AgentCore {
      */
     private Injector setupPrimaryInjector(final Injector early, final AgentConfig config) {
         final List<Module> modules = Lists.newArrayList();
+
+        modules.add(new AbstractModule() {
+            @Override
+            protected void configure() {
+                if (config.getDebug().isPresent()) {
+                    final AgentConfig.Debug debug = config.getDebug().get();
+                    bind(DebugServer.class).toInstance(new NettyDebugServer(debug.getLocalAddress()));
+                } else {
+                    bind(DebugServer.class).toInstance(new NoopDebugServer());
+                }
+            }
+        });
 
         modules.add(new AbstractModule() {
             @Singleton

@@ -55,7 +55,7 @@ public class InputManagerModule {
             protected void configure() {
                 bind(ChannelInboundHandler.class).to(InputChannelInboundHandler.class);
 
-                bind(InputManager.class).to(InputManagerImpl.class).in(Scopes.SINGLETON);
+                bind(InputManager.class).to(CoreInputManager.class).in(Scopes.SINGLETON);
                 expose(InputManager.class);
 
                 bindPlugins();
