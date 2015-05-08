@@ -51,13 +51,10 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.spotify.ffwd.input.InputManager;
-import com.spotify.ffwd.input.InputPlugin;
 import com.spotify.ffwd.module.FastForwardModule;
-import com.spotify.ffwd.module.FasterXmlSubTypeMixIn;
 import com.spotify.ffwd.module.PluginContext;
 import com.spotify.ffwd.module.PluginContextImpl;
 import com.spotify.ffwd.output.OutputManager;
-import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.protocol.ProtocolClients;
 import com.spotify.ffwd.protocol.ProtocolClientsImpl;
 import com.spotify.ffwd.protocol.ProtocolServers;
@@ -164,17 +161,12 @@ public class AgentCore {
             @Named("application/yaml+config")
             public SimpleModule configModule() {
                 final SimpleModule module = new SimpleModule();
-
-                // Make InputPlugin, and OutputPlugin sub-type aware through the 'type' attribute.
-                module.setMixInAnnotation(InputPlugin.class, FasterXmlSubTypeMixIn.class);
-                module.setMixInAnnotation(OutputPlugin.class, FasterXmlSubTypeMixIn.class);
-
                 return module;
             }
 
             @Override
             protected void configure() {
-                bind(PluginContext.class).to(PluginContextImpl.class).in(Scopes.SINGLETON);
+                bind(PluginContext.class).toInstance(new PluginContextImpl());
             }
         });
 
@@ -302,7 +294,6 @@ public class AgentCore {
             }
 
             injector.injectMembers(m);
-
             modules.add(m);
         }
 

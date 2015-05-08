@@ -13,6 +13,7 @@
  **/
 package com.spotify.ffwd;
 
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,14 @@ import com.spotify.ffwd.module.FastForwardModule;
 @Slf4j
 public class FastForwardAgent {
     public static void main(String argv[]) {
+        Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                log.error("Uncaught exception in thread {}, exiting (status = 2)", t.getName(), e);
+                System.exit(2);
+            }
+        });
+
         final List<Class<? extends FastForwardModule>> modules = new ArrayList<>();
 
         // built-in core
