@@ -68,10 +68,10 @@ public class ProtocolServersImpl implements ProtocolServers {
         b.childHandler(server.initializer());
 
         b.option(ChannelOption.SO_BACKLOG, 128);
-        
+
         if (protocol.getReceiveBufferSize() != null)
-            b.option(ChannelOption.SO_RCVBUF, protocol.getReceiveBufferSize());
-            
+            b.childOption(ChannelOption.SO_RCVBUF, protocol.getReceiveBufferSize());
+
         b.childOption(ChannelOption.SO_KEEPALIVE, true);
 
         final String host = protocol.getAddress().getHostString();
@@ -100,6 +100,9 @@ public class ProtocolServersImpl implements ProtocolServers {
         b.group(worker);
         b.channel(NioDatagramChannel.class);
         b.handler(server.initializer());
+
+        if (protocol.getReceiveBufferSize() != null)
+            b.option(ChannelOption.SO_RCVBUF, protocol.getReceiveBufferSize());
 
         final String host = protocol.getAddress().getHostString();
         final int port = protocol.getAddress().getPort();
