@@ -32,6 +32,7 @@ output:
   plugins:
     - type: noop
       flushInterval: 10000
+    - type: template
     #- type: debug
     #  flushInterval: 10000
     #- type: kafka

@@ -20,6 +20,7 @@
     <module>modules/kafka</module>
     <module>modules/riemann</module>
     <module>modules/carbon</module>
+    <module>modules/template</module>
   </modules>
 
   <licenses>
@@ -82,6 +83,11 @@
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-protobuf250</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.spotify.ffwd</groupId>
+        <artifactId>ffwd-module-template</artifactId>
         <version>${project.version}</version>
       </dependency>
 

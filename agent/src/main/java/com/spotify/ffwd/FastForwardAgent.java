@@ -46,6 +46,7 @@ public class FastForwardAgent {
         modules.add(com.spotify.ffwd.kafka.KafkaModule.class);
         modules.add(com.spotify.ffwd.riemann.RiemannModule.class);
         modules.add(com.spotify.ffwd.carbon.CarbonModule.class);
+        modules.add(com.spotify.ffwd.template.TemplateOutputModule.class);
 
         final AgentCore.Builder builder = AgentCore.builder().modules(modules);
 
