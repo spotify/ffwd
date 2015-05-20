@@ -155,7 +155,13 @@ public class RetryingProtocolConnection implements ProtocolConnection {
         if (c == null)
             return;
 
-        c.writeAndFlush(message);
+        c.writeAndFlush(message).addListener(new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture future) throws Exception {
+                if (!future.isSuccess())
+                    log.error("failed to send metric", future.cause());
+            }
+        });
     }
 
     @Override
