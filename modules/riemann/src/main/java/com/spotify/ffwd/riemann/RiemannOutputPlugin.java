@@ -18,8 +18,6 @@ package com.spotify.ffwd.riemann;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
@@ -74,14 +72,12 @@ public class RiemannOutputPlugin implements OutputPlugin {
                 bind(Protocol.class).toInstance(protocol);
                 bind(RiemannMessageDecoder.class).in(Scopes.SINGLETON);
                 bind(ProtocolClient.class).to(protocolClient).in(Scopes.SINGLETON);
-                bind(RetryPolicy.class).toInstance(retry);
-                bind(Logger.class).toInstance(log);
 
                 if (flushInterval != null && flushInterval > 0) {
-                    bind(BatchedPluginSink.class).to(ProtocolPluginSink.class).in(Scopes.SINGLETON);
+                    bind(BatchedPluginSink.class).toInstance(new ProtocolPluginSink(retry, log));
                     bind(key).toInstance(new FlushingPluginSink(flushInterval));
                 } else {
-                    bind(key).to(ProtocolPluginSink.class).in(Scopes.SINGLETON);
+                    bind(key).toInstance(new ProtocolPluginSink(retry, log));
                 }
 
                 expose(key);

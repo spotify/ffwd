@@ -22,7 +22,7 @@ import com.spotify.ffwd.protocol.ProtocolClient;
 
 public class TemplateOutputProtocolClient implements ProtocolClient {
     @Inject
-    private TemplateOutputEncoder encoder;
+    private TemplateOutputEncoder outputEncoder;
 
     private final StringEncoder stringEncoder = new StringEncoder();
 
@@ -31,7 +31,7 @@ public class TemplateOutputProtocolClient implements ProtocolClient {
         return new ChannelInitializer<Channel>() {
             @Override
             protected void initChannel(final Channel ch) throws Exception {
-                ch.pipeline().addLast(stringEncoder, encoder);
+                ch.pipeline().addLast(stringEncoder, outputEncoder);
             }
         };
     }

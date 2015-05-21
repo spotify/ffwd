@@ -15,15 +15,12 @@ package com.spotify.ffwd.template;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.PrivateModule;
-import com.google.inject.Scopes;
 import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.output.PluginSink;
 import com.spotify.ffwd.protocol.Protocol;
@@ -58,12 +55,7 @@ public class TemplateOutputPlugin implements OutputPlugin {
                 bind(Protocol.class).toInstance(protocol);
                 bind(ProtocolClient.class).toInstance(new TemplateOutputProtocolClient());
 
-                // Required components for ProtocolPluginSink.
-                bind(RetryPolicy.class).toInstance(retry);
-                bind(Logger.class).toInstance(log);
-
-                bind(key).to(ProtocolPluginSink.class).in(Scopes.SINGLETON);
-
+                bind(key).toInstance(new ProtocolPluginSink(retry, log));
                 expose(key);
             }
         };

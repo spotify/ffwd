@@ -19,6 +19,8 @@ package com.spotify.ffwd.protocol;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
 
+import lombok.RequiredArgsConstructor;
+
 import org.slf4j.Logger;
 
 import com.google.inject.Inject;
@@ -30,6 +32,7 @@ import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.LazyTransform;
 
+@RequiredArgsConstructor
 public class ProtocolPluginSink implements BatchedPluginSink {
     @Inject
     private AsyncFramework async;
@@ -43,11 +46,8 @@ public class ProtocolPluginSink implements BatchedPluginSink {
     @Inject
     private ProtocolClient client;
 
-    @Inject
-    private RetryPolicy retry;
-
-    @Inject
-    private Logger log;
+    private final RetryPolicy retry;
+    private final Logger log;
 
     private final AtomicReference<ProtocolConnection> connection = new AtomicReference<>();
 

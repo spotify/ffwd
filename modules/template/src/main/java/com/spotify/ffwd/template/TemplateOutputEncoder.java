@@ -19,6 +19,9 @@ import io.netty.handler.codec.MessageToMessageEncoder;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Sharable
 public class TemplateOutputEncoder extends MessageToMessageEncoder<Object> {
     @Override
