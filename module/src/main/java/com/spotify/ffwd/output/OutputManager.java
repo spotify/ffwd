@@ -32,7 +32,7 @@ public interface OutputManager {
      */
     public void sendMetric(Metric metric);
 
-    public AsyncFuture<Void> start() throws Exception;
+    public AsyncFuture<Void> start();
 
     public AsyncFuture<Void> stop();
 }

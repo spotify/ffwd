@@ -65,12 +65,12 @@ public class DebugPluginSink implements BatchedPluginSink {
 
     @Override
     public AsyncFuture<Void> start() {
-        return async.resolved(null);
+        return async.resolved();
     }
 
     @Override
     public AsyncFuture<Void> stop() {
-        return async.resolved(null);
+        return async.resolved();
     }
 
     @Override

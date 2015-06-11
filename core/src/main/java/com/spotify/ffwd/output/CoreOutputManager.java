@@ -17,7 +17,6 @@
 package com.spotify.ffwd.output;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +35,6 @@ import com.spotify.ffwd.model.Metric;
 
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
-import eu.toolchain.async.Collector;
 
 @Slf4j
 public class CoreOutputManager implements OutputManager {
@@ -90,7 +88,7 @@ public class CoreOutputManager implements OutputManager {
     }
 
     @Override
-    public AsyncFuture<Void> start() throws Exception {
+    public AsyncFuture<Void> start() {
         final ArrayList<AsyncFuture<Void>> futures = Lists.newArrayList();
 
         for (final PluginSink s : sinks)
@@ -106,12 +104,7 @@ public class CoreOutputManager implements OutputManager {
         for (final PluginSink s : sinks)
             futures.add(s.stop());
 
-        return async.collect(futures, new Collector<Void, Void>() {
-            @Override
-            public Void collect(Collection<Void> results) throws Exception {
-                return null;
-            }
-        });
+        return async.collectAndDiscard(futures);
     }
 
     /**

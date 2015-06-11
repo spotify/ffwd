@@ -116,14 +116,14 @@ public class FlushingPluginSink implements PluginSink {
                 scheduler.shutdown();
                 return null;
             }
-        }).transform(new LazyTransform<Void, Void>() {
+        }).lazyTransform(new LazyTransform<Void, Void>() {
             @Override
             public AsyncFuture<Void> transform(Void result) throws Exception {
                 // flush remaining items and set batch to null.
                 // nulling the batch will prevent any future queueing.
                 return flush(null);
             }
-        }).transform(new LazyTransform<Void, Void>() {
+        }).lazyTransform(new LazyTransform<Void, Void>() {
             @Override
             public AsyncFuture<Void> transform(Void result) throws Exception {
                 return sink.stop();
@@ -155,6 +155,7 @@ public class FlushingPluginSink implements PluginSink {
         return async.collectAndDiscard(futures).on(new FutureDone<Void>() {
             @Override
             public void failed(Throwable cause) throws Exception {
+                log.error("Failed to send batch", cause);
                 batch.future.fail(cause);
             }
 

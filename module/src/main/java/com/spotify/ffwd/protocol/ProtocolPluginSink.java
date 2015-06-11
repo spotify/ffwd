@@ -93,7 +93,8 @@ public class ProtocolPluginSink implements BatchedPluginSink {
 
     @Override
     public AsyncFuture<Void> start() {
-        return clients.connect(log, protocol, client, retry).transform(new LazyTransform<ProtocolConnection, Void>() {
+        return clients.connect(log, protocol, client, retry).lazyTransform(
+                new LazyTransform<ProtocolConnection, Void>() {
             @Override
             public AsyncFuture<Void> transform(ProtocolConnection result) throws Exception {
                 if (!connection.compareAndSet(null, result))
