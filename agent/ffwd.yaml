@@ -8,6 +8,8 @@ tags:
 
 input:
   plugins:
+    - type: generated
+      sameHost: true
     - type: json
       protocol:
         type: tcp
