@@ -59,11 +59,13 @@ public class KafkaOutputPlugin implements OutputPlugin {
     public Module module(final Key<PluginSink> key) {
         return new PrivateModule() {
             @Provides
-            public Producer<byte[], byte[]> producer() {
+            public Producer<Integer, byte[]> producer() {
                 final Properties props = new Properties();
                 props.putAll(properties);
+                props.put("partitioner.class", IntegerPartitioner.class.getCanonicalName());
+                props.put("key.serializer.class", IntegerEncoder.class.getCanonicalName());
                 final ProducerConfig config = new ProducerConfig(props);
-                return new Producer<byte[], byte[]>(config);
+                return new Producer<Integer, byte[]>(config);
             }
 
             @Override

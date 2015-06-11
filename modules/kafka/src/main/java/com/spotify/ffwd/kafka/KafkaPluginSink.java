@@ -35,13 +35,15 @@ import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 
 public class KafkaPluginSink implements BatchedPluginSink {
+    private static final byte[] EMPTY_KEY = new byte[0];
+
     private static final Charset UTF8 = Charset.forName("UTF-8");
 
     @Inject
     private AsyncFramework async;
 
     @Inject
-    private Producer<byte[], byte[]> producer;
+    private Producer<Integer, byte[]> producer;
 
     @Inject
     private KafkaRouter router;
@@ -122,9 +124,9 @@ public class KafkaPluginSink implements BatchedPluginSink {
         return true;
     }
 
-    private <T> List<KeyedMessage<byte[], byte[]>> messagesForMetrics(final Collection<Metric> metrics)
+    private <T> List<KeyedMessage<Integer, byte[]>> messagesForMetrics(final Collection<Metric> metrics)
             throws Exception {
-        final List<KeyedMessage<byte[], byte[]>> messages = new ArrayList<>(metrics.size());
+        final List<KeyedMessage<Integer, byte[]>> messages = new ArrayList<>(metrics.size());
 
         for (final Metric metric : metrics)
             messages.add(messageFor(metric));
@@ -132,8 +134,8 @@ public class KafkaPluginSink implements BatchedPluginSink {
         return messages;
     }
 
-    private <T> List<KeyedMessage<byte[], byte[]>> messagesForEvents(final Collection<Event> events) throws Exception {
-        final List<KeyedMessage<byte[], byte[]>> messages = new ArrayList<>(events.size());
+    private <T> List<KeyedMessage<Integer, byte[]>> messagesForEvents(final Collection<Event> events) throws Exception {
+        final List<KeyedMessage<Integer, byte[]>> messages = new ArrayList<>(events.size());
 
         for (final Event event : events)
             messages.add(messageFor(event));
@@ -141,17 +143,17 @@ public class KafkaPluginSink implements BatchedPluginSink {
         return messages;
     }
 
-    private KeyedMessage<byte[], byte[]> messageFor(final Metric metric) throws Exception {
+    private KeyedMessage<Integer, byte[]> messageFor(final Metric metric) throws Exception {
         final String topic = router.route(metric);
-        final String partition = partitioner.partition(metric);
+        final int partition = partitioner.partition(metric);
         final byte[] payload = serializer.serialize(metric);
-        return new KeyedMessage<>(topic, partition.getBytes(), payload);
+        return new KeyedMessage<>(topic, partition, payload);
     }
 
-    private KeyedMessage<byte[], byte[]> messageFor(final Event event) throws Exception {
+    private KeyedMessage<Integer, byte[]> messageFor(final Event event) throws Exception {
         final String topic = router.route(event);
-        final String partition = partitioner.partition(event);
+        final int partition = partitioner.partition(event);
         final byte[] payload = serializer.serialize(event);
-        return new KeyedMessage<byte[], byte[]>(topic, partition.getBytes(UTF8), payload);
+        return new KeyedMessage<>(topic, partition, payload);
     }
 }
