@@ -52,6 +52,12 @@ public class CoreInputManager implements InputManager {
     private DebugServer debug;
 
     @Override
+    public void init() {
+        for (final PluginSource s : sources)
+            s.init();
+    }
+
+    @Override
     public void receiveEvent(Event event) {
         debug.inspectEvent(DEBUG_ID, event);
         output.sendEvent(event);

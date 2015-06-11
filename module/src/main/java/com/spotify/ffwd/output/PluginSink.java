@@ -16,12 +16,13 @@
  **/
 package com.spotify.ffwd.output;
 
+import com.spotify.ffwd.Initializable;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 
 import eu.toolchain.async.AsyncFuture;
 
-public interface PluginSink {
+public interface PluginSink extends Initializable {
     /**
      * Send the given collection of events.
      *

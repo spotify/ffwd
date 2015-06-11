@@ -52,6 +52,10 @@ public class JsonPluginSource implements PluginSource {
     private final AtomicReference<ProtocolConnection> connection = new AtomicReference<>();
 
     @Override
+    public void init() {
+    }
+
+    @Override
     public AsyncFuture<Void> start() {
         return servers.bind(log, protocol, server, policy).transform(new Transform<ProtocolConnection, Void>() {
             @Override

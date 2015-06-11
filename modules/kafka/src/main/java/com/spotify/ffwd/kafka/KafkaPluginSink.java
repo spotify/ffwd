@@ -53,6 +53,10 @@ public class KafkaPluginSink implements BatchedPluginSink {
     private Serializer serializer;
 
     @Override
+    public void init() {
+    }
+
+    @Override
     public void sendEvent(final Event event) {
         async.call(new Callable<Void>() {
             @Override

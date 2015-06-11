@@ -31,6 +31,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -128,11 +129,14 @@ public class AgentCore {
 
         log.info("Waiting for all components to start...");
 
-        startup.add(input.start());
         startup.add(output.start());
+        startup.add(input.start());
         startup.add(debug.start());
 
-        async.collectAndDiscard(startup).get();
+        async.collectAndDiscard(startup).get(10, TimeUnit.SECONDS);
+
+        input.init();
+        output.init();
     }
 
     private void stop(final Injector primary) throws Exception {

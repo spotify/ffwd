@@ -16,9 +16,11 @@
  **/
 package com.spotify.ffwd.input;
 
+import com.spotify.ffwd.Initializable;
+
 import eu.toolchain.async.AsyncFuture;
 
-public interface PluginSource {
+public interface PluginSource extends Initializable {
     public AsyncFuture<Void> start();
 
     public AsyncFuture<Void> stop();

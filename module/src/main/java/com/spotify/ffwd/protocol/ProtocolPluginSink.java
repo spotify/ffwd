@@ -52,6 +52,10 @@ public class ProtocolPluginSink implements BatchedPluginSink {
     private final AtomicReference<ProtocolConnection> connection = new AtomicReference<>();
 
     @Override
+    public void init() {
+    }
+
+    @Override
     public void sendEvent(Event event) {
         final ProtocolConnection c = connection.get();
 

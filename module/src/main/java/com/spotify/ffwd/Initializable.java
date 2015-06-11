@@ -14,26 +14,17 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  **/
-package com.spotify.ffwd.input;
+package com.spotify.ffwd;
 
-import com.spotify.ffwd.Initializable;
-import com.spotify.ffwd.model.Event;
-import com.spotify.ffwd.model.Metric;
-
-import eu.toolchain.async.AsyncFuture;
-
-public interface InputManager extends Initializable {
+/**
+ * Interface to implement when you require post-start initialization of a component (e.g. guarantee that everything else
+ * has started).
+ *
+ * @author udoprog
+ */
+public interface Initializable {
     /**
-     * Receive a single event.
+     * Initialize a component, will be called synchronously after everything has been started.
      */
-    public void receiveEvent(Event event);
-
-    /**
-     * Receive a single metric.
-     */
-    public void receiveMetric(Metric metric);
-
-    public AsyncFuture<Void> start();
-
-    public AsyncFuture<Void> stop();
+    void init();
 }

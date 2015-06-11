@@ -49,6 +49,10 @@ public class ProtocolPluginSource implements PluginSource {
     private final AtomicReference<ProtocolConnection> connection = new AtomicReference<>();
 
     @Override
+    public void init() {
+    }
+
+    @Override
     public AsyncFuture<Void> start() {
         return servers.bind(log, protocol, server, retry).transform(new Transform<ProtocolConnection, Void>() {
             @Override
