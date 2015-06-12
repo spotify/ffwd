@@ -16,12 +16,13 @@
  **/
 package com.spotify.ffwd.input;
 
+import com.spotify.ffwd.Initializable;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 
 import eu.toolchain.async.AsyncFuture;
 
-public interface InputManager {
+public interface InputManager extends Initializable {
     /**
      * Receive a single event.
      */

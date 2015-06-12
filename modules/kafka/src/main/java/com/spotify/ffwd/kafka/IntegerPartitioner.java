@@ -14,26 +14,19 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  **/
-package com.spotify.ffwd.output;
+package com.spotify.ffwd.kafka;
 
-import com.spotify.ffwd.Initializable;
-import com.spotify.ffwd.model.Event;
-import com.spotify.ffwd.model.Metric;
+import kafka.producer.Partitioner;
+import kafka.utils.VerifiableProperties;
 
-import eu.toolchain.async.AsyncFuture;
 
-public interface OutputManager extends Initializable {
-    /**
-     * Send a collection of events to all output plugins.
-     */
-    public void sendEvent(Event event);
+public class IntegerPartitioner implements Partitioner {
+    public IntegerPartitioner(VerifiableProperties properties) {
+    }
 
-    /**
-     * Send a collection of metrics to all output plugins.
-     */
-    public void sendMetric(Metric metric);
-
-    public AsyncFuture<Void> start();
-
-    public AsyncFuture<Void> stop();
+    @Override
+    public int partition(Object o, int partitions) {
+        int i = Math.abs((int) o);
+        return i % partitions;
+    }
 }

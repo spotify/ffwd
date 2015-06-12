@@ -30,23 +30,23 @@ import com.spotify.ffwd.model.Metric;
     @JsonSubTypes.Type(value = KafkaPartitioner.Hashed.class, name = "static"),
     @JsonSubTypes.Type(value = KafkaPartitioner.Host.class, name = "host")})
 public interface KafkaPartitioner {
-    public String partition(final Event event);
+    public int partition(final Event event);
 
-    public String partition(final Metric metric);
-    
+    public int partition(final Metric metric);
+
     public static class Host implements KafkaPartitioner {
         @JsonCreator
         public Host() {
         }
 
         @Override
-        public String partition(final Event event) {
-            return event.getHost();
+        public int partition(final Event event) {
+            return event.getHost().hashCode();
         }
 
         @Override
-        public String partition(final Metric metric) {
-            return metric.getHost();
+        public int partition(final Metric metric) {
+            return metric.getHost().hashCode();
         }
 
         public static Supplier<KafkaPartitioner> supplier() {
@@ -70,21 +70,21 @@ public interface KafkaPartitioner {
         }
 
         @Override
-        public String partition(final Event event) {
+        public int partition(final Event event) {
             final String attr = event.getAttributes().get(attribute);
 
             if (attr != null)
-                return attr;
+                return attr.hashCode();
 
             throw new IllegalArgumentException(String.format("missing attribute '%s' for event %s", attribute, event));
         }
 
         @Override
-        public String partition(final Metric metric) {
+        public int partition(final Metric metric) {
             final String attr = metric.getAttributes().get(attribute);
 
             if (attr != null)
-                return attr;
+                return attr.hashCode();
 
             throw new IllegalArgumentException(String.format("missing attribute '%s' for metric %s", attribute, metric));
         }
@@ -105,13 +105,13 @@ public interface KafkaPartitioner {
         }
 
         @Override
-        public String partition(final Event event) {
-            return Integer.toHexString(event.hashCode());
+        public int partition(final Event event) {
+            return event.hashCode();
         }
 
         @Override
-        public String partition(final Metric metric) {
-            return Integer.toHexString(metric.hashCode());
+        public int partition(final Metric metric) {
+            return metric.hashCode();
         }
 
         public static Supplier<KafkaPartitioner> supplier() {

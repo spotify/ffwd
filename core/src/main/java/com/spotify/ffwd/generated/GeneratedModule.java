@@ -14,26 +14,18 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  **/
-package com.spotify.ffwd.output;
+package com.spotify.ffwd.generated;
 
-import com.spotify.ffwd.Initializable;
-import com.spotify.ffwd.model.Event;
-import com.spotify.ffwd.model.Metric;
+import com.google.inject.Inject;
+import com.spotify.ffwd.module.FastForwardModule;
+import com.spotify.ffwd.module.PluginContext;
 
-import eu.toolchain.async.AsyncFuture;
+public class GeneratedModule implements FastForwardModule {
+    @Inject
+    private PluginContext context;
 
-public interface OutputManager extends Initializable {
-    /**
-     * Send a collection of events to all output plugins.
-     */
-    public void sendEvent(Event event);
-
-    /**
-     * Send a collection of metrics to all output plugins.
-     */
-    public void sendMetric(Metric metric);
-
-    public AsyncFuture<Void> start();
-
-    public AsyncFuture<Void> stop();
+    @Override
+    public void setup() throws Exception {
+        context.registerInput("generated", GeneratedInputPlugin.class);
+    }
 }

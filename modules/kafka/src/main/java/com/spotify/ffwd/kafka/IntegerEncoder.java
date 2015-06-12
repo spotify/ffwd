@@ -14,26 +14,19 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  **/
-package com.spotify.ffwd.output;
+package com.spotify.ffwd.kafka;
 
-import com.spotify.ffwd.Initializable;
-import com.spotify.ffwd.model.Event;
-import com.spotify.ffwd.model.Metric;
+import kafka.serializer.Encoder;
+import kafka.utils.VerifiableProperties;
 
-import eu.toolchain.async.AsyncFuture;
 
-public interface OutputManager extends Initializable {
-    /**
-     * Send a collection of events to all output plugins.
-     */
-    public void sendEvent(Event event);
+public class IntegerEncoder implements Encoder<Integer> {
+    public IntegerEncoder(VerifiableProperties properties) {
+    }
 
-    /**
-     * Send a collection of metrics to all output plugins.
-     */
-    public void sendMetric(Metric metric);
-
-    public AsyncFuture<Void> start();
-
-    public AsyncFuture<Void> stop();
+    @Override
+    public byte[] toBytes(Integer o) {
+        final int i = o;
+        return new byte[]{(byte)(i & 0xff), (byte)((i << 8) & 0xff), (byte)((i << 16) & 0xff), (byte)((i << 24) & 0xff)};
+    }
 }

@@ -66,6 +66,12 @@ public class CoreOutputManager implements OutputManager {
     private DebugServer debug;
 
     @Override
+    public void init() {
+        for (final PluginSink s : sinks)
+            s.init();
+    }
+
+    @Override
     public void sendEvent(Event event) {
         final Event filtered = filter(event);
 

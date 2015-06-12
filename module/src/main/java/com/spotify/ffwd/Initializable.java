@@ -14,26 +14,17 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  **/
-package com.spotify.ffwd.output;
+package com.spotify.ffwd;
 
-import com.spotify.ffwd.Initializable;
-import com.spotify.ffwd.model.Event;
-import com.spotify.ffwd.model.Metric;
-
-import eu.toolchain.async.AsyncFuture;
-
-public interface OutputManager extends Initializable {
+/**
+ * Interface to implement when you require post-start initialization of a component (e.g. guarantee that everything else
+ * has started).
+ *
+ * @author udoprog
+ */
+public interface Initializable {
     /**
-     * Send a collection of events to all output plugins.
+     * Initialize a component, will be called synchronously after everything has been started.
      */
-    public void sendEvent(Event event);
-
-    /**
-     * Send a collection of metrics to all output plugins.
-     */
-    public void sendMetric(Metric metric);
-
-    public AsyncFuture<Void> start();
-
-    public AsyncFuture<Void> stop();
+    void init();
 }

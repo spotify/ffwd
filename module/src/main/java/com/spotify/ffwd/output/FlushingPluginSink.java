@@ -60,6 +60,10 @@ public class FlushingPluginSink implements PluginSink {
     private final long flushInterval;
 
     @Override
+    public void init() {
+    }
+
+    @Override
     public void sendMetric(final Metric metric) {
         synchronized ($lock) {
             final Batch batch = next.get();

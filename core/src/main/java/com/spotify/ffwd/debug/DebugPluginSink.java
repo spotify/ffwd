@@ -34,6 +34,10 @@ public class DebugPluginSink implements BatchedPluginSink {
     private AsyncFramework async;
 
     @Override
+    public void init() {
+    }
+
+    @Override
     public void sendEvent(Event event) {
         log.info("E: {}", event);
     }
