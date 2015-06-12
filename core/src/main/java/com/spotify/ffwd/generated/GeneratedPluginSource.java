@@ -63,7 +63,7 @@ public class GeneratedPluginSource implements PluginSource {
 
     @Override
     public void init() {
-        async.call(new Callable<Void>() {
+        task = async.call(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
                 generate();
