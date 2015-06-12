@@ -1,0 +1,14 @@
+#!/bin/bash
+
+find_java_files() {
+    find . -type d \
+      \( -path "./protobuf250" \
+      -o -path "./modules/riemann/src/main/java/com/aphyr" \
+      \) -prune -o -type f -name '*.java' -print
+}
+
+while read p; do
+    if ! tools/java-license check $p; then
+        tools/java-license patch $p
+    fi
+done < <(find_java_files)

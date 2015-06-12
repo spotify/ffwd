@@ -17,8 +17,9 @@
 package com.spotify.ffwd.input;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+
+import lombok.ToString;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
@@ -29,13 +30,13 @@ import com.spotify.ffwd.output.OutputManager;
 
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
-import eu.toolchain.async.Collector;
 
 /**
  * Responsible for receiving, logging and transforming the event.
  *
  * @author udoprog
  */
+@ToString(of = { "sources" })
 public class CoreInputManager implements InputManager {
     private static final String DEBUG_ID = "core.input";
 
@@ -70,12 +71,7 @@ public class CoreInputManager implements InputManager {
         for (final PluginSource s : sources)
             futures.add(s.start());
 
-        return async.collect(futures, new Collector<Void, Void>() {
-            @Override
-            public Void collect(Collection<Void> results) throws Exception {
-                return null;
-            }
-        });
+        return async.collectAndDiscard(futures);
     }
 
     @Override
@@ -85,11 +81,6 @@ public class CoreInputManager implements InputManager {
         for (final PluginSource s : sources)
             futures.add(s.stop());
 
-        return async.collect(futures, new Collector<Void, Void>() {
-            @Override
-            public Void collect(Collection<Void> results) throws Exception {
-                return null;
-            }
-        });
+        return async.collectAndDiscard(futures);
     }
 }
