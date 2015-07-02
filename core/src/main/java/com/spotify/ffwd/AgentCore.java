@@ -33,6 +33,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
@@ -223,8 +224,16 @@ public class AgentCore {
             @Singleton
             @Provides
             private ExecutorService executor() {
-                return Executors.newFixedThreadPool(config.getAsyncThreads(),
-                        new ThreadFactoryBuilder().setNameFormat("ffwd-async-%d").build());
+                final ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat("ffwd-async-%d").build();
+                return Executors.newFixedThreadPool(config.getAsyncThreads(), factory);
+            }
+
+            @Singleton
+            @Provides
+            private ScheduledExecutorService scheduledExecutor() {
+                final ThreadFactory factory = new ThreadFactoryBuilder()
+                        .setNameFormat("ffwd-scheduler-%d").build();
+                return Executors.newScheduledThreadPool(config.getSchedulerThreads(), factory);
             }
 
             @Singleton
