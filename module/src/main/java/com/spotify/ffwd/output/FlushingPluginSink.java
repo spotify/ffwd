@@ -25,7 +25,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
+import org.slf4j.Logger;
 
 import com.google.inject.Inject;
 import com.spotify.ffwd.model.Event;
@@ -44,7 +45,6 @@ import eu.toolchain.async.Transform;
  *
  * @author udoprog
  */
-@Slf4j
 @RequiredArgsConstructor
 public class FlushingPluginSink implements PluginSink {
     @Inject
@@ -52,6 +52,9 @@ public class FlushingPluginSink implements PluginSink {
 
     @Inject
     private BatchedPluginSink sink;
+
+    @Inject
+    Logger log;
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
     private final Object $lock = new Object();

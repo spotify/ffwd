@@ -46,8 +46,10 @@ public class ProtocolPluginSink implements BatchedPluginSink {
     @Inject
     private ProtocolClient client;
 
+    @Inject
+    private Logger log;
+
     private final RetryPolicy retry;
-    private final Logger log;
 
     private final AtomicReference<ProtocolConnection> connection = new AtomicReference<>();
 

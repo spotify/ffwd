@@ -23,6 +23,9 @@ import java.util.Properties;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.ProducerConfig;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
@@ -70,6 +73,7 @@ public class KafkaOutputPlugin implements OutputPlugin {
 
             @Override
             protected void configure() {
+                bind(Logger.class).toInstance(LoggerFactory.getLogger(getClass().getPackage().getName()));
                 bind(KafkaRouter.class).toInstance(router);
                 bind(KafkaPartitioner.class).toInstance(partitioner);
 

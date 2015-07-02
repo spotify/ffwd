@@ -18,6 +18,9 @@ package com.spotify.ffwd.template;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
@@ -54,11 +57,12 @@ public class TemplateOutputPlugin implements OutputPlugin {
         return new PrivateModule() {
             @Override
             protected void configure() {
+                bind(Logger.class).toInstance(LoggerFactory.getLogger(getClass().getPackage().getName()));
                 bind(TemplateOutputEncoder.class).toInstance(new TemplateOutputEncoder());
                 bind(Protocol.class).toInstance(protocol);
                 bind(ProtocolClient.class).toInstance(new TemplateOutputProtocolClient());
 
-                bind(key).toInstance(new ProtocolPluginSink(retry, log));
+                bind(key).toInstance(new ProtocolPluginSink(retry));
                 expose(key);
             }
         };

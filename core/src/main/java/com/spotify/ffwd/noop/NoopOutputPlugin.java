@@ -18,6 +18,9 @@ package com.spotify.ffwd.noop;
 
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
@@ -45,6 +48,8 @@ public class NoopOutputPlugin implements OutputPlugin {
         return new PrivateModule() {
             @Override
             protected void configure() {
+                bind(Logger.class).toInstance(LoggerFactory.getLogger(getClass().getPackage().getName()));
+
                 if (flushInterval != null) {
                     bind(BatchedPluginSink.class).to(NoopPluginSink.class).in(Scopes.SINGLETON);
                     bind(key).toInstance(new FlushingPluginSink(flushInterval));

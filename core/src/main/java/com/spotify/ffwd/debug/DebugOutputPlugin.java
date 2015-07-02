@@ -16,6 +16,9 @@
  **/
 package com.spotify.ffwd.debug;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.Key;
@@ -40,6 +43,8 @@ public class DebugOutputPlugin implements OutputPlugin {
         return new PrivateModule() {
             @Override
             protected void configure() {
+                bind(Logger.class).toInstance(LoggerFactory.getLogger(getClass().getPackage().getName()));
+
                 if (flushInterval != null) {
                     bind(BatchedPluginSink.class).to(DebugPluginSink.class);
                     bind(key).toInstance(new FlushingPluginSink(flushInterval));

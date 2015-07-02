@@ -38,6 +38,7 @@ import com.spotify.ffwd.output.OutputManagerModule;
 @Data
 public class AgentConfig {
     public static final int DEFAULT_ASYNC_THREADS = 4;
+    public static final int DEFAULT_SCHEDULER_THREADS = 4;
     public static final int DEFAULT_BOSS_THREADS = 2;
     public static final int DEFAULT_WORKER_THREADS = 4;
 
@@ -51,6 +52,7 @@ public class AgentConfig {
     private final Set<String> tags;
     private final InputManagerModule input;
     private final OutputManagerModule output;
+    private final int schedulerThreads;
     private final int asyncThreads;
     private final int bossThreads;
     private final int workerThreads;
@@ -61,7 +63,9 @@ public class AgentConfig {
     public AgentConfig(@JsonProperty("debug") Debug debug, @JsonProperty("host") String host,
             @JsonProperty("attributes") Map<String, String> attributes, @JsonProperty("tags") Set<String> tags,
             @JsonProperty("input") InputManagerModule input, @JsonProperty("output") OutputManagerModule output,
-            @JsonProperty("asyncThreads") Integer asyncThreads, @JsonProperty("bossThreads") Integer bossThreads,
+            @JsonProperty("asyncThreads") Integer asyncThreads,
+            @JsonProperty("schedulerThreads") Integer schedulerThreads,
+            @JsonProperty("bossThreads") Integer bossThreads,
             @JsonProperty("workerThreads") Integer workerThreads, @JsonProperty("ttl") Long ttl,
             @JsonProperty("qlog") String qlog) {
         this.debug = Optional.fromNullable(debug);
@@ -71,6 +75,7 @@ public class AgentConfig {
         this.input = Optional.fromNullable(input).or(InputManagerModule.supplyDefault());
         this.output = Optional.fromNullable(output).or(OutputManagerModule.supplyDefault());
         this.asyncThreads = Optional.fromNullable(asyncThreads).or(DEFAULT_ASYNC_THREADS);
+        this.schedulerThreads = Optional.fromNullable(schedulerThreads).or(DEFAULT_SCHEDULER_THREADS);
         this.bossThreads = Optional.fromNullable(workerThreads).or(DEFAULT_BOSS_THREADS);
         this.workerThreads = Optional.fromNullable(workerThreads).or(DEFAULT_WORKER_THREADS);
         this.ttl = Optional.fromNullable(ttl).or(0l);

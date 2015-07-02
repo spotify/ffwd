@@ -16,7 +16,8 @@
  **/
 package com.spotify.ffwd.riemann;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -36,7 +37,6 @@ import com.spotify.ffwd.protocol.ProtocolPluginSink;
 import com.spotify.ffwd.protocol.ProtocolType;
 import com.spotify.ffwd.protocol.RetryPolicy;
 
-@Slf4j
 public class RiemannOutputPlugin implements OutputPlugin {
     private static final ProtocolType DEFAULT_PROTOCOL = ProtocolType.TCP;
     private static final int DEFAULT_PORT = 5555;
@@ -69,15 +69,16 @@ public class RiemannOutputPlugin implements OutputPlugin {
         return new PrivateModule() {
             @Override
             protected void configure() {
+                bind(Logger.class).toInstance(LoggerFactory.getLogger(getClass().getPackage().getName()));
                 bind(Protocol.class).toInstance(protocol);
                 bind(RiemannMessageDecoder.class).in(Scopes.SINGLETON);
                 bind(ProtocolClient.class).to(protocolClient).in(Scopes.SINGLETON);
 
                 if (flushInterval != null && flushInterval > 0) {
-                    bind(BatchedPluginSink.class).toInstance(new ProtocolPluginSink(retry, log));
+                    bind(BatchedPluginSink.class).toInstance(new ProtocolPluginSink(retry));
                     bind(key).toInstance(new FlushingPluginSink(flushInterval));
                 } else {
-                    bind(key).toInstance(new ProtocolPluginSink(retry, log));
+                    bind(key).toInstance(new ProtocolPluginSink(retry));
                 }
 
                 expose(key);
