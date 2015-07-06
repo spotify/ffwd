@@ -20,4 +20,6 @@ public interface CoreStatistics {
     public InputManagerStatistics newInputManager();
 
     public OutputManagerStatistics newOutputManager();
+
+    public OutputPluginStatistics newOutputPlugin(String id);
 }

@@ -17,4 +17,5 @@
 package com.spotify.ffwd.statistics;
 
 public interface InputManagerStatistics {
+    public void reportReceived(int received);
 }

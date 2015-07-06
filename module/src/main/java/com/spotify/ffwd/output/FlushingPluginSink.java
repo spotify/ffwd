@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import com.google.inject.Inject;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.statistics.OutputPluginStatistics;
 
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
@@ -63,6 +64,9 @@ public class FlushingPluginSink implements PluginSink {
 
     @Inject
     Logger log;
+
+    @Inject
+    OutputPluginStatistics statistics;
 
     /**
      * future associated with the timing of the next flush
@@ -338,6 +342,7 @@ public class FlushingPluginSink implements PluginSink {
             synchronized ($pendingLock) {
                 if (pending.size() >= maxPendingFlushes) {
                     log.warn("Max number of pending flushes reached, dropping {} metric(s) and event(s)", batch.size());
+                    statistics.reportDropped(batch.size());
                     return async.resolved();
                 }
             }

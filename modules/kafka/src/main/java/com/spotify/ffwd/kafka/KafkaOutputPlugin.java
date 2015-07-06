@@ -40,6 +40,8 @@ import com.spotify.ffwd.output.FlushingPluginSink;
 import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.output.PluginSink;
 import com.spotify.ffwd.serializer.Serializer;
+import com.spotify.ffwd.statistics.CoreStatistics;
+import com.spotify.ffwd.statistics.OutputPluginStatistics;
 
 public class KafkaOutputPlugin implements OutputPlugin {
     private final KafkaRouter router;
@@ -62,6 +64,12 @@ public class KafkaOutputPlugin implements OutputPlugin {
     @Override
     public Module module(final Key<PluginSink> key, final String id) {
         return new PrivateModule() {
+            @Provides
+            @Singleton
+            public OutputPluginStatistics statistics(CoreStatistics statistics) {
+                return statistics.newOutputPlugin(id);
+            }
+
             @Provides
             @Singleton
             public Producer<Integer, byte[]> producer() {

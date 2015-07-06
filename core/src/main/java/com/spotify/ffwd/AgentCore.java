@@ -69,6 +69,8 @@ import com.spotify.ffwd.protocol.ProtocolServers;
 import com.spotify.ffwd.protocol.ProtocolServersImpl;
 import com.spotify.ffwd.serializer.Serializer;
 import com.spotify.ffwd.serializer.ToStringSerializer;
+import com.spotify.ffwd.statistics.CoreStatistics;
+import com.spotify.ffwd.statistics.NoopCoreStatistics;
 
 import eu.toolchain.async.AsyncCaller;
 import eu.toolchain.async.AsyncFramework;
@@ -80,10 +82,12 @@ import eu.toolchain.async.TinyAsync;
 public class AgentCore {
     private final List<Class<? extends FastForwardModule>> modules;
     private final Path config;
+    private final CoreStatistics statistics;
 
-    private AgentCore(final List<Class<? extends FastForwardModule>> modules, Path config) {
+    private AgentCore(final List<Class<? extends FastForwardModule>> modules, Path config, CoreStatistics statistics) {
         this.modules = modules;
         this.config = config;
+        this.statistics = statistics;
     }
 
     public void run() throws Exception {
@@ -223,6 +227,12 @@ public class AgentCore {
         modules.add(new AbstractModule() {
             @Singleton
             @Provides
+            private CoreStatistics statistics() {
+                return statistics;
+            }
+
+            @Singleton
+            @Provides
             private ExecutorService executor() {
                 final ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat("ffwd-async-%d").build();
                 return Executors.newFixedThreadPool(config.getAsyncThreads(), factory);
@@ -342,6 +352,7 @@ public class AgentCore {
     public static final class Builder {
         private List<Class<? extends FastForwardModule>> modules = Lists.newArrayList();
         private Path config = Paths.get("ffwd.yaml");
+        private CoreStatistics statistics = NoopCoreStatistics.get();
 
         public Builder config(Path config) {
             if (config == null)
@@ -359,8 +370,16 @@ public class AgentCore {
             return this;
         }
 
+        public Builder statistics(CoreStatistics statistics) {
+            if (statistics == null)
+                throw new NullPointerException("'statistics' most not be null");
+
+            this.statistics = statistics;
+            return this;
+        }
+
         public AgentCore build() {
-            return new AgentCore(modules, config);
+            return new AgentCore(modules, config, statistics);
         }
     }
 }
