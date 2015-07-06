@@ -67,8 +67,9 @@ public class InputManagerModule {
                 int i = 0;
 
                 for (final InputPlugin p : plugins) {
-                    final Key<PluginSource> k = Key.get(PluginSource.class, Names.named(String.valueOf(i++)));
-                    install(p.module(k));
+                    final String id = p.id(i++);
+                    final Key<PluginSource> k = Key.get(PluginSource.class, Names.named(id));
+                    install(p.module(k, id));
                     sources.addBinding().to(k);
                 }
             }

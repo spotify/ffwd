@@ -25,4 +25,9 @@ public class Protocol {
     private final ProtocolType type;
     private final InetSocketAddress address;
     private final Integer receiveBufferSize;
+
+    @Override
+    public String toString() {
+        return String.format("%s://%s:%d", type.toString().toLowerCase(), address.getHostName(), address.getPort());
+    }
 }

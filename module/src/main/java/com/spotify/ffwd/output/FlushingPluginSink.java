@@ -337,7 +337,6 @@ public class FlushingPluginSink implements PluginSink {
         if (maxPendingFlushes > 0) {
             synchronized ($pendingLock) {
                 if (pending.size() >= maxPendingFlushes) {
-                    // TODO: instrument as dropped metric.
                     log.warn("Max number of pending flushes reached, dropping {} metric(s) and event(s)", batch.size());
                     return async.resolved();
                 }

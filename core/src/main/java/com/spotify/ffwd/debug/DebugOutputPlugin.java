@@ -39,11 +39,11 @@ public class DebugOutputPlugin implements OutputPlugin {
     }
 
     @Override
-    public Module module(final Key<PluginSink> key) {
+    public Module module(final Key<PluginSink> key, final String id) {
         return new PrivateModule() {
             @Override
             protected void configure() {
-                bind(Logger.class).toInstance(LoggerFactory.getLogger(getClass().getPackage().getName()));
+                bind(Logger.class).toInstance(LoggerFactory.getLogger(id));
 
                 if (flushInterval != null) {
                     bind(BatchedPluginSink.class).to(DebugPluginSink.class);
@@ -55,5 +55,10 @@ public class DebugOutputPlugin implements OutputPlugin {
                 expose(key);
             }
         };
+    }
+
+    @Override
+    public String id(int index) {
+        return String.format("%s[%d]", getClass().getPackage().getName(), index);
     }
 }

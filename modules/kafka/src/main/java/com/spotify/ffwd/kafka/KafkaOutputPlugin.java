@@ -33,6 +33,7 @@ import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import com.google.inject.name.Names;
 import com.spotify.ffwd.output.BatchedPluginSink;
 import com.spotify.ffwd.output.FlushingPluginSink;
@@ -59,9 +60,10 @@ public class KafkaOutputPlugin implements OutputPlugin {
     }
 
     @Override
-    public Module module(final Key<PluginSink> key) {
+    public Module module(final Key<PluginSink> key, final String id) {
         return new PrivateModule() {
             @Provides
+            @Singleton
             public Producer<Integer, byte[]> producer() {
                 final Properties props = new Properties();
                 props.putAll(properties);
@@ -73,7 +75,7 @@ public class KafkaOutputPlugin implements OutputPlugin {
 
             @Override
             protected void configure() {
-                bind(Logger.class).toInstance(LoggerFactory.getLogger(getClass().getPackage().getName()));
+                bind(Logger.class).toInstance(LoggerFactory.getLogger(id));
                 bind(KafkaRouter.class).toInstance(router);
                 bind(KafkaPartitioner.class).toInstance(partitioner);
 
@@ -94,5 +96,10 @@ public class KafkaOutputPlugin implements OutputPlugin {
                 expose(key);
             }
         };
+    }
+
+    @Override
+    public String id(int index) {
+        return String.format("%s[%d]", getClass().getPackage().getName(), index);
     }
 }

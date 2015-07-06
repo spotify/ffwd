@@ -24,5 +24,7 @@ import com.google.inject.Module;
 
 @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type")
 public interface OutputPlugin {
-    public Module module(Key<PluginSink> key);
+    public Module module(Key<PluginSink> key, String id);
+
+    public String id(int index);
 }

@@ -34,7 +34,7 @@ public class GeneratedInputPlugin implements InputPlugin {
     }
 
     @Override
-    public Module module(final Key<PluginSource> key) {
+    public Module module(final Key<PluginSource> key, final String id) {
         return new PrivateModule() {
             @Override
             protected void configure() {
@@ -42,5 +42,10 @@ public class GeneratedInputPlugin implements InputPlugin {
                 expose(key);
             }
         };
+    }
+
+    @Override
+    public String id(int index) {
+        return String.format("%s[%d]", getClass().getPackage().getName(), index);
     }
 }

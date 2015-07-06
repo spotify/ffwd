@@ -345,7 +345,7 @@ public class AgentCore {
 
         public Builder config(Path config) {
             if (config == null)
-                throw new IllegalArgumentException("'config' must not be null");
+                throw new NullPointerException("'config' must not be null");
 
             this.config = config;
             return this;
@@ -353,7 +353,7 @@ public class AgentCore {
 
         public Builder modules(List<Class<? extends FastForwardModule>> modules) {
             if (modules == null)
-                throw new IllegalArgumentException("'modules' must not be null");
+                throw new NullPointerException("'modules' must not be null");
 
             this.modules = modules;
             return this;

@@ -16,8 +16,6 @@
  **/
 package com.spotify.ffwd.template;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +34,6 @@ import com.spotify.ffwd.protocol.ProtocolPluginSink;
 import com.spotify.ffwd.protocol.ProtocolType;
 import com.spotify.ffwd.protocol.RetryPolicy;
 
-@Slf4j
 public class TemplateOutputPlugin implements OutputPlugin {
     private static final ProtocolType DEFAULT_PROTOCOL = ProtocolType.TCP;
     private static final int DEFAULT_PORT = 8910;
@@ -53,11 +50,11 @@ public class TemplateOutputPlugin implements OutputPlugin {
     }
 
     @Override
-    public Module module(final Key<PluginSink> key) {
+    public Module module(final Key<PluginSink> key, final String id) {
         return new PrivateModule() {
             @Override
             protected void configure() {
-                bind(Logger.class).toInstance(LoggerFactory.getLogger(getClass().getPackage().getName()));
+                bind(Logger.class).toInstance(LoggerFactory.getLogger(id));
                 bind(TemplateOutputEncoder.class).toInstance(new TemplateOutputEncoder());
                 bind(Protocol.class).toInstance(protocol);
                 bind(ProtocolClient.class).toInstance(new TemplateOutputProtocolClient());
@@ -66,5 +63,10 @@ public class TemplateOutputPlugin implements OutputPlugin {
                 expose(key);
             }
         };
+    }
+
+    @Override
+    public String id(int index) {
+        return String.format("%s[%s]", getClass().getPackage().getName(), protocol.toString());
     }
 }
