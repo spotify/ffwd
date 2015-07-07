@@ -18,9 +18,16 @@ package com.spotify.ffwd.statistics;
 
 public interface OutputManagerStatistics {
     /**
+     * Report that the given number of events have been sent to output plugins.
+     *
+     * @param sent The number of metrics sent.
+     */
+    public void reportSentEvents(int sent);
+
+    /**
      * Report that the given number of metrics have been sent to output plugins.
      *
      * @param sent The number of metrics sent.
      */
-    public void reportSent(int sent);
+    public void reportSentMetrics(int sent);
 }

@@ -31,8 +31,11 @@ import com.google.inject.Module;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
+import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
+import com.spotify.ffwd.statistics.CoreStatistics;
+import com.spotify.ffwd.statistics.InputManagerStatistics;
 
 public class InputManagerModule {
     private final List<InputPlugin> DEFAULT_PLUGINS = Lists.newArrayList();
@@ -46,6 +49,12 @@ public class InputManagerModule {
 
     public Module module() {
         return new PrivateModule() {
+            @Provides
+            @Singleton
+            public InputManagerStatistics statistics(CoreStatistics statistics) {
+                return statistics.newInputManager();
+            }
+
             @Provides
             public List<PluginSource> sources(final Set<PluginSource> sources) {
                 return Lists.newArrayList(sources);

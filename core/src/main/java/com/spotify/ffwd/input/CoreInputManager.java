@@ -27,6 +27,7 @@ import com.spotify.ffwd.debug.DebugServer;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.OutputManager;
+import com.spotify.ffwd.statistics.InputManagerStatistics;
 
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
@@ -52,6 +53,9 @@ public class CoreInputManager implements InputManager {
     @Inject
     private DebugServer debug;
 
+    @Inject
+    private InputManagerStatistics statistics;
+
     @Override
     public void init() {
         for (final PluginSource s : sources)
@@ -60,12 +64,14 @@ public class CoreInputManager implements InputManager {
 
     @Override
     public void receiveEvent(Event event) {
+        statistics.reportReceivedEvents(1);
         debug.inspectEvent(DEBUG_ID, event);
         output.sendEvent(event);
     }
 
     @Override
     public void receiveMetric(Metric metric) {
+        statistics.reportReceivedMetrics(1);
         debug.inspectMetric(DEBUG_ID, metric);
         output.sendMetric(metric);
     }

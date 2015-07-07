@@ -35,6 +35,8 @@ import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.spotify.ffwd.AgentConfig;
+import com.spotify.ffwd.statistics.CoreStatistics;
+import com.spotify.ffwd.statistics.OutputManagerStatistics;
 
 public class OutputManagerModule {
     private final List<OutputPlugin> DEFAULT_PLUGINS = Lists.newArrayList();
@@ -48,6 +50,12 @@ public class OutputManagerModule {
 
     public Module module() {
         return new PrivateModule() {
+            @Provides
+            @Singleton
+            public OutputManagerStatistics statistics(CoreStatistics statistics) {
+                return statistics.newOutputManager();
+            }
+
             @Provides
             @Singleton
             public List<PluginSink> sources(final Set<PluginSink> sinks) {

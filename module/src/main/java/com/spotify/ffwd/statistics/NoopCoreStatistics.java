@@ -19,7 +19,11 @@ package com.spotify.ffwd.statistics;
 public class NoopCoreStatistics implements CoreStatistics {
     private static final InputManagerStatistics noopInputManagerStatistics = new InputManagerStatistics() {
         @Override
-        public void reportReceived(int received) {
+        public void reportReceivedMetrics(int received) {
+        }
+
+        @Override
+        public void reportReceivedEvents(int received) {
         }
     };
 
@@ -30,7 +34,11 @@ public class NoopCoreStatistics implements CoreStatistics {
 
     private static final OutputManagerStatistics noopOutputManagerStatistics = new OutputManagerStatistics() {
         @Override
-        public void reportSent(int sent) {
+        public void reportSentMetrics(int sent) {
+        }
+
+        @Override
+        public void reportSentEvents(int sent) {
         }
     };
 

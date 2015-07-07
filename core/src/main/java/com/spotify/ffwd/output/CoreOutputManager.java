@@ -32,6 +32,7 @@ import com.google.inject.name.Named;
 import com.spotify.ffwd.debug.DebugServer;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.statistics.OutputManagerStatistics;
 
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
@@ -65,6 +66,9 @@ public class CoreOutputManager implements OutputManager {
     @Inject
     private DebugServer debug;
 
+    @Inject
+    private OutputManagerStatistics statistics;
+
     @Override
     public void init() {
         for (final PluginSink s : sinks)
@@ -73,6 +77,8 @@ public class CoreOutputManager implements OutputManager {
 
     @Override
     public void sendEvent(Event event) {
+        statistics.reportSentEvents(1);
+
         final Event filtered = filter(event);
 
         debug.inspectEvent(DEBUG_ID, filtered);
@@ -84,6 +90,8 @@ public class CoreOutputManager implements OutputManager {
 
     @Override
     public void sendMetric(Metric metric) {
+        statistics.reportSentMetrics(1);
+
         final Metric filtered = filter(metric);
 
         debug.inspectMetric(DEBUG_ID, filtered);
