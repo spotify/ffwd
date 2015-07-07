@@ -23,25 +23,20 @@ import java.util.Properties;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.ProducerConfig;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import com.google.inject.Key;
 import com.google.inject.Module;
-import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Names;
 import com.spotify.ffwd.output.BatchedPluginSink;
 import com.spotify.ffwd.output.FlushingPluginSink;
 import com.spotify.ffwd.output.OutputPlugin;
+import com.spotify.ffwd.output.OutputPluginModule;
 import com.spotify.ffwd.output.PluginSink;
 import com.spotify.ffwd.serializer.Serializer;
-import com.spotify.ffwd.statistics.CoreStatistics;
-import com.spotify.ffwd.statistics.OutputPluginStatistics;
 
 public class KafkaOutputPlugin implements OutputPlugin {
     private final KafkaRouter router;
@@ -63,13 +58,7 @@ public class KafkaOutputPlugin implements OutputPlugin {
 
     @Override
     public Module module(final Key<PluginSink> key, final String id) {
-        return new PrivateModule() {
-            @Provides
-            @Singleton
-            public OutputPluginStatistics statistics(CoreStatistics statistics) {
-                return statistics.newOutputPlugin(id);
-            }
-
+        return new OutputPluginModule(id) {
             @Provides
             @Singleton
             public Producer<Integer, byte[]> producer() {
@@ -83,7 +72,6 @@ public class KafkaOutputPlugin implements OutputPlugin {
 
             @Override
             protected void configure() {
-                bind(Logger.class).toInstance(LoggerFactory.getLogger(id));
                 bind(KafkaRouter.class).toInstance(router);
                 bind(KafkaPartitioner.class).toInstance(partitioner);
 
@@ -108,6 +96,11 @@ public class KafkaOutputPlugin implements OutputPlugin {
 
     @Override
     public String id(int index) {
-        return String.format("%s[%d]", getClass().getPackage().getName(), index);
+        final String brokers = properties.get("metadata.broker.list");
+
+        if (brokers != null)
+            return brokers;
+
+        return Integer.toString(index);
     }
 }

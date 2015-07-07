@@ -67,6 +67,6 @@ public class TemplateOutputPlugin implements OutputPlugin {
 
     @Override
     public String id(int index) {
-        return String.format("%s[%s]", getClass().getPackage().getName(), protocol.toString());
+        return protocol.toString();
     }
 }

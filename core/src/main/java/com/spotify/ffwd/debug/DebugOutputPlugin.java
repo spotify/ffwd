@@ -16,18 +16,15 @@
  **/
 package com.spotify.ffwd.debug;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.Key;
 import com.google.inject.Module;
-import com.google.inject.PrivateModule;
 import com.google.inject.Scopes;
 import com.spotify.ffwd.output.BatchedPluginSink;
 import com.spotify.ffwd.output.FlushingPluginSink;
 import com.spotify.ffwd.output.OutputPlugin;
+import com.spotify.ffwd.output.OutputPluginModule;
 import com.spotify.ffwd.output.PluginSink;
 
 public class DebugOutputPlugin implements OutputPlugin {
@@ -40,11 +37,9 @@ public class DebugOutputPlugin implements OutputPlugin {
 
     @Override
     public Module module(final Key<PluginSink> key, final String id) {
-        return new PrivateModule() {
+        return new OutputPluginModule(id) {
             @Override
             protected void configure() {
-                bind(Logger.class).toInstance(LoggerFactory.getLogger(id));
-
                 if (flushInterval != null) {
                     bind(BatchedPluginSink.class).to(DebugPluginSink.class);
                     bind(key).toInstance(new FlushingPluginSink(flushInterval));
@@ -59,6 +54,6 @@ public class DebugOutputPlugin implements OutputPlugin {
 
     @Override
     public String id(int index) {
-        return String.format("%s[%d]", getClass().getPackage().getName(), index);
+        return Integer.toString(index);
     }
 }
