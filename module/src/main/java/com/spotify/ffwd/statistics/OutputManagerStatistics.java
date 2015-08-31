@@ -30,4 +30,22 @@ public interface OutputManagerStatistics {
      * @param sent The number of metrics sent.
      */
     public void reportSentMetrics(int sent);
+
+    /**
+     * Reported that the given number of events were filtered.
+     *
+     * Filtered events are <em>not</em> sent to output plugins.
+     *
+     * @param filtered The number of filtered events.
+     */
+    public void reportEventsDroppedByFilter(int dropped);
+
+    /**
+     * Reported that the given number of metrics were filtered.
+     *
+     * Filtered metrics are <em>not</em> sent to output plugins.
+     *
+     * @param filtered The number of filtered metrics.
+     */
+    public void reportMetricsDroppedByFilter(int dropped);
 }

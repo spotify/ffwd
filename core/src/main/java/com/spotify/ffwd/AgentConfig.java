@@ -24,8 +24,6 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
 
-import lombok.Data;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
@@ -34,6 +32,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.spotify.ffwd.input.InputManagerModule;
 import com.spotify.ffwd.output.OutputManagerModule;
+
+import lombok.Data;
 
 @Data
 public class AgentConfig {

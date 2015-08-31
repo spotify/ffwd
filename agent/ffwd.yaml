@@ -31,6 +31,11 @@ input:
         type: udp
 
 output:
+  filter:
+    - "not"
+    - - "and"
+      - ["key", "system"]
+      - ["=", "stat", "p99"]
   plugins:
     - type: noop
       flushInterval: 10000

@@ -35,6 +35,8 @@ import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.spotify.ffwd.AgentConfig;
+import com.spotify.ffwd.filter.Filter;
+import com.spotify.ffwd.filter.TrueFilter;
 import com.spotify.ffwd.statistics.CoreStatistics;
 import com.spotify.ffwd.statistics.OutputManagerStatistics;
 
@@ -42,10 +44,12 @@ public class OutputManagerModule {
     private final List<OutputPlugin> DEFAULT_PLUGINS = Lists.newArrayList();
 
     private final List<OutputPlugin> plugins;
+    private final Filter filter;
 
     @JsonCreator
-    public OutputManagerModule(@JsonProperty("plugins") List<OutputPlugin> plugins) {
+    public OutputManagerModule(@JsonProperty("plugins") List<OutputPlugin> plugins, @JsonProperty("filter") Filter filter) {
         this.plugins = Optional.of(plugins).or(DEFAULT_PLUGINS);
+        this.filter = Optional.fromNullable(filter).or(new TrueFilter());
     }
 
     public Module module() {
@@ -90,6 +94,12 @@ public class OutputManagerModule {
                 return config.getTtl();
             }
 
+            @Provides
+            @Singleton
+            public Filter filter() {
+                return filter;
+            }
+
             @Override
             protected void configure() {
                 bind(OutputManager.class).to(CoreOutputManager.class).in(Scopes.SINGLETON);
@@ -117,7 +127,7 @@ public class OutputManagerModule {
         return new Supplier<OutputManagerModule>() {
             @Override
             public OutputManagerModule get() {
-                return new OutputManagerModule(null);
+                return new OutputManagerModule(null, null);
             }
         };
     }

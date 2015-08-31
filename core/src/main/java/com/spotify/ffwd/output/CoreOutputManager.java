@@ -22,20 +22,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import lombok.extern.slf4j.Slf4j;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.spotify.ffwd.debug.DebugServer;
+import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.statistics.OutputManagerStatistics;
 
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class CoreOutputManager implements OutputManager {
@@ -69,14 +69,25 @@ public class CoreOutputManager implements OutputManager {
     @Inject
     private OutputManagerStatistics statistics;
 
+    @Inject
+    private Filter filter;
+
     @Override
     public void init() {
-        for (final PluginSink s : sinks)
+        log.info("Initializing (filter: {})", filter);
+
+        for (final PluginSink s : sinks) {
             s.init();
+        }
     }
 
     @Override
     public void sendEvent(Event event) {
+        if (!filter.matchesEvent(event)) {
+            statistics.reportEventsDroppedByFilter(1);
+            return;
+        }
+
         statistics.reportSentEvents(1);
 
         final Event filtered = filter(event);
@@ -90,6 +101,11 @@ public class CoreOutputManager implements OutputManager {
 
     @Override
     public void sendMetric(Metric metric) {
+        if (!filter.matchesMetric(metric)) {
+            statistics.reportMetricsDroppedByFilter(1);
+            return;
+        }
+
         statistics.reportSentMetrics(1);
 
         final Metric filtered = filter(metric);

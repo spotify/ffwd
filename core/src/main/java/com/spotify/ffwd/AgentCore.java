@@ -16,11 +16,6 @@
  **/
 package com.spotify.ffwd;
 
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.util.HashedWheelTimer;
-import io.netty.util.Timer;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
@@ -28,7 +23,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -36,8 +33,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-
-import lombok.extern.slf4j.Slf4j;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -58,6 +53,14 @@ import com.google.inject.name.Names;
 import com.spotify.ffwd.debug.DebugServer;
 import com.spotify.ffwd.debug.NettyDebugServer;
 import com.spotify.ffwd.debug.NoopDebugServer;
+import com.spotify.ffwd.filter.AndFilter;
+import com.spotify.ffwd.filter.Filter;
+import com.spotify.ffwd.filter.FilterDeserializer;
+import com.spotify.ffwd.filter.MatchKey;
+import com.spotify.ffwd.filter.MatchTag;
+import com.spotify.ffwd.filter.NotFilter;
+import com.spotify.ffwd.filter.OrFilter;
+import com.spotify.ffwd.filter.TrueFilter;
 import com.spotify.ffwd.input.InputManager;
 import com.spotify.ffwd.module.FastForwardModule;
 import com.spotify.ffwd.module.PluginContext;
@@ -77,6 +80,11 @@ import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.DirectAsyncCaller;
 import eu.toolchain.async.TinyAsync;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.util.HashedWheelTimer;
+import io.netty.util.Timer;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class AgentCore {
@@ -177,9 +185,24 @@ public class AgentCore {
         modules.add(new AbstractModule() {
             @Singleton
             @Provides
+            public Map<String, FilterDeserializer.PartialDeserializer> filters() {
+                final Map<String, FilterDeserializer.PartialDeserializer> filters = new HashMap<>();
+                filters.put("key", new MatchKey.Deserializer());
+                filters.put("=", new MatchTag.Deserializer());
+                filters.put("true", new TrueFilter.Deserializer());
+                filters.put("false", new TrueFilter.Deserializer());
+                filters.put("and", new AndFilter.Deserializer());
+                filters.put("or", new OrFilter.Deserializer());
+                filters.put("not", new NotFilter.Deserializer());
+                return filters;
+            }
+
+            @Singleton
+            @Provides
             @Named("application/yaml+config")
-            public SimpleModule configModule() {
+            public SimpleModule configModule(Map<String, FilterDeserializer.PartialDeserializer> filters) {
                 final SimpleModule module = new SimpleModule();
+                module.addDeserializer(Filter.class, new FilterDeserializer(filters));
                 return module;
             }
 
@@ -306,8 +329,8 @@ public class AgentCore {
 
     private AgentConfig readConfig(Injector early) throws IOException {
         final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        final SimpleModule module = early.getInstance(Key.get(SimpleModule.class,
-                Names.named("application/yaml+config")));
+        final SimpleModule module = early
+                .getInstance(Key.get(SimpleModule.class, Names.named("application/yaml+config")));
 
         mapper.registerModule(module);
 

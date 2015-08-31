@@ -25,6 +25,14 @@ public class NoopCoreStatistics implements CoreStatistics {
         @Override
         public void reportReceivedEvents(int received) {
         }
+
+        @Override
+        public void reportEventsDroppedByFilter(int dropped) {
+        }
+
+        @Override
+        public void reportMetricsDroppedByFilter(int dropped) {
+        }
     };
 
     @Override
@@ -39,6 +47,14 @@ public class NoopCoreStatistics implements CoreStatistics {
 
         @Override
         public void reportSentEvents(int sent) {
+        }
+
+        @Override
+        public void reportEventsDroppedByFilter(int dropped) {
+        }
+
+        @Override
+        public void reportMetricsDroppedByFilter(int dropped) {
         }
     };
 

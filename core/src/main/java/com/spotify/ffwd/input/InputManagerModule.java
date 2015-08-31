@@ -16,8 +16,6 @@
  **/
 package com.spotify.ffwd.input;
 
-import io.netty.channel.ChannelInboundHandler;
-
 import java.util.List;
 import java.util.Set;
 
@@ -34,17 +32,24 @@ import com.google.inject.Scopes;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
+import com.spotify.ffwd.filter.Filter;
+import com.spotify.ffwd.filter.TrueFilter;
 import com.spotify.ffwd.statistics.CoreStatistics;
 import com.spotify.ffwd.statistics.InputManagerStatistics;
+
+import io.netty.channel.ChannelInboundHandler;
 
 public class InputManagerModule {
     private final List<InputPlugin> DEFAULT_PLUGINS = Lists.newArrayList();
 
     private final List<InputPlugin> plugins;
+    private final Filter filter;
 
     @JsonCreator
-    public InputManagerModule(@JsonProperty("plugins") List<InputPlugin> plugins) {
+    public InputManagerModule(@JsonProperty("plugins") List<InputPlugin> plugins,
+            @JsonProperty("filter") Filter filter) {
         this.plugins = Optional.of(plugins).or(DEFAULT_PLUGINS);
+        this.filter = Optional.fromNullable(filter).or(new TrueFilter());
     }
 
     public Module module() {
@@ -56,8 +61,15 @@ public class InputManagerModule {
             }
 
             @Provides
+            @Singleton
             public List<PluginSource> sources(final Set<PluginSource> sources) {
                 return Lists.newArrayList(sources);
+            }
+
+            @Provides
+            @Singleton
+            public Filter filter() {
+                return filter;
             }
 
             @Override
@@ -89,7 +101,7 @@ public class InputManagerModule {
         return new Supplier<InputManagerModule>() {
             @Override
             public InputManagerModule get() {
-                return new InputManagerModule(null);
+                return new InputManagerModule(null, null);
             }
         };
     }
