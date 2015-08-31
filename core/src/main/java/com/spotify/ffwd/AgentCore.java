@@ -169,7 +169,14 @@ public class AgentCore {
         shutdown.add(output.stop());
         shutdown.add(debug.stop());
 
-        async.collectAndDiscard(shutdown).get();
+        AsyncFuture<Void> all = async.collectAndDiscard(shutdown);
+
+        try {
+            all.get(10, TimeUnit.SECONDS);
+        } catch (final Exception e) {
+            log.error("All components did not stop in a timely fashion", e);
+            all.cancel();
+        }
     }
 
     /**
