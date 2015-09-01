@@ -16,15 +16,12 @@
  **/
 package com.spotify.ffwd.kafka;
 
-import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
-
+import com.google.common.collect.Iterators;
 import com.google.inject.Inject;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
@@ -33,12 +30,10 @@ import com.spotify.ffwd.serializer.Serializer;
 
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
+import kafka.javaapi.producer.Producer;
+import kafka.producer.KeyedMessage;
 
 public class KafkaPluginSink implements BatchedPluginSink {
-    private static final byte[] EMPTY_KEY = new byte[0];
-
-    private static final Charset UTF8 = Charset.forName("UTF-8");
-
     @Inject
     private AsyncFramework async;
 
@@ -54,6 +49,12 @@ public class KafkaPluginSink implements BatchedPluginSink {
     @Inject
     private Serializer serializer;
 
+    private final int batchSize;
+
+    public KafkaPluginSink(int batchSize) {
+        this.batchSize = batchSize;
+    }
+
     @Override
     public void init() {
     }
@@ -63,7 +64,7 @@ public class KafkaPluginSink implements BatchedPluginSink {
         async.call(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                producer.send(messageFor(event));
+                producer.send(eventConverter.toMessage(event));
                 return null;
             }
         });
@@ -74,7 +75,7 @@ public class KafkaPluginSink implements BatchedPluginSink {
         async.call(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                producer.send(messageFor(metric));
+                producer.send(metricConverter.toMessage(metric));
                 return null;
             }
         });
@@ -85,7 +86,12 @@ public class KafkaPluginSink implements BatchedPluginSink {
         return async.call(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                producer.send(messagesForEvents(events));
+                final Iterator<List<KeyedMessage<Integer, byte[]>>> batches = toBatches(iteratorFor(events, eventConverter));
+
+                while (batches.hasNext()) {
+                    producer.send(batches.next());
+                }
+
                 return null;
             }
         });
@@ -96,7 +102,12 @@ public class KafkaPluginSink implements BatchedPluginSink {
         return async.call(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                producer.send(messagesForMetrics(metrics));
+                final Iterator<List<KeyedMessage<Integer, byte[]>>> batches = toBatches(iteratorFor(metrics, metricConverter));
+
+                while (batches.hasNext()) {
+                    producer.send(batches.next());
+                }
+
                 return null;
             }
         });
@@ -124,36 +135,59 @@ public class KafkaPluginSink implements BatchedPluginSink {
         return true;
     }
 
-    private <T> List<KeyedMessage<Integer, byte[]>> messagesForMetrics(final Collection<Metric> metrics)
-            throws Exception {
-        final List<KeyedMessage<Integer, byte[]>> messages = new ArrayList<>(metrics.size());
-
-        for (final Metric metric : metrics)
-            messages.add(messageFor(metric));
-
-        return messages;
+    /**
+     * Convert the given message iterator to an iterator of batches of a specific size.
+     *
+     * This is an attempt to reduce the required maximum amount of live memory required at a single time.
+     *
+     * @param iterator Iterator to convert into batches.
+     * @return
+     */
+    private Iterator<List<KeyedMessage<Integer, byte[]>>> toBatches(final Iterator<KeyedMessage<Integer, byte[]>> iterator) {
+        return Iterators.partition(iterator, batchSize);
     }
 
-    private <T> List<KeyedMessage<Integer, byte[]>> messagesForEvents(final Collection<Event> events) throws Exception {
-        final List<KeyedMessage<Integer, byte[]>> messages = new ArrayList<>(events.size());
+    final Converter<Metric> metricConverter = new Converter<Metric>() {
+        @Override
+        public KeyedMessage<Integer, byte[]> toMessage(final Metric metric) throws Exception {
+            final String topic = router.route(metric);
+            final int partition = partitioner.partition(metric);
+            final byte[] payload = serializer.serialize(metric);
+            return new KeyedMessage<>(topic, partition, payload);
+        }
+    };
 
-        for (final Event event : events)
-            messages.add(messageFor(event));
+    final Converter<Event> eventConverter = new Converter<Event>() {
+        @Override
+        public KeyedMessage<Integer, byte[]> toMessage(final Event event) throws Exception {
+            final String topic = router.route(event);
+            final int partition = partitioner.partition(event);
+            final byte[] payload = serializer.serialize(event);
+            return new KeyedMessage<>(topic, partition, payload);
+        }
+    };
 
-        return messages;
+    final <T> Iterator<KeyedMessage<Integer, byte[]>> iteratorFor(Iterable<? extends T> iterable, final Converter<T> converter) {
+        final Iterator<? extends T> iterator = iterable.iterator();
+
+        return new Iterator<KeyedMessage<Integer, byte[]>>() {
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public KeyedMessage<Integer, byte[]> next() {
+                try {
+                    return converter.toMessage(iterator.next());
+                } catch (final Exception e) {
+                    throw new RuntimeException("Failed to produce next element", e);
+                }
+            }
+        };
     }
 
-    private KeyedMessage<Integer, byte[]> messageFor(final Metric metric) throws Exception {
-        final String topic = router.route(metric);
-        final int partition = partitioner.partition(metric);
-        final byte[] payload = serializer.serialize(metric);
-        return new KeyedMessage<>(topic, partition, payload);
-    }
-
-    private KeyedMessage<Integer, byte[]> messageFor(final Event event) throws Exception {
-        final String topic = router.route(event);
-        final int partition = partitioner.partition(event);
-        final byte[] payload = serializer.serialize(event);
-        return new KeyedMessage<>(topic, partition, payload);
+    static interface Converter<T> {
+        KeyedMessage<Integer, byte[]> toMessage(T object) throws Exception;
     }
 }
