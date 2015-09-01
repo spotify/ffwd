@@ -40,6 +40,7 @@ import kafka.producer.ProducerConfig;
 
 public class KafkaOutputPlugin implements OutputPlugin {
     public static final int DEFAULT_BATCH_SIZE = 1000;
+    public static final boolean DEFAULT_COMPRESSION = true;
 
     private final KafkaRouter router;
     private final KafkaPartitioner partitioner;
@@ -47,18 +48,21 @@ public class KafkaOutputPlugin implements OutputPlugin {
     private final Long flushInterval;
     private final Serializer serializer;
     private final int batchSize;
+    private final boolean compression;
 
     @JsonCreator
     public KafkaOutputPlugin(@JsonProperty("producer") Map<String, String> properties,
             @JsonProperty("flushInterval") Long flushInterval, @JsonProperty("router") KafkaRouter router,
             @JsonProperty("partitioner") KafkaPartitioner partitioner,
-            @JsonProperty("serializer") Serializer serializer, @JsonProperty("batchSize") Integer batchSize) {
+            @JsonProperty("serializer") Serializer serializer, @JsonProperty("batchSize") Integer batchSize,
+            @JsonProperty("compression") Boolean compression) {
         this.router = Optional.fromNullable(router).or(KafkaRouter.Attribute.supplier());
         this.partitioner = Optional.fromNullable(partitioner).or(KafkaPartitioner.Host.supplier());
         this.flushInterval = Optional.fromNullable(flushInterval).orNull();
         this.properties = Optional.fromNullable(properties).or(new HashMap<String, String>());
         this.serializer = Optional.fromNullable(serializer).orNull();
         this.batchSize = Optional.fromNullable(batchSize).or(DEFAULT_BATCH_SIZE);
+        this.compression = Optional.fromNullable(compression).or(DEFAULT_COMPRESSION);
     }
 
     @Override
@@ -71,6 +75,12 @@ public class KafkaOutputPlugin implements OutputPlugin {
                 props.putAll(properties);
                 props.put("partitioner.class", IntegerPartitioner.class.getCanonicalName());
                 props.put("key.serializer.class", IntegerEncoder.class.getCanonicalName());
+
+                // enable gzip.
+                if (compression) {
+                    props.put("compression.codec", "1");
+                }
+
                 final ProducerConfig config = new ProducerConfig(props);
                 return new Producer<Integer, byte[]>(config);
             }
