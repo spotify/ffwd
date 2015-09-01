@@ -100,7 +100,7 @@ public class KafkaPluginSink implements BatchedPluginSink {
             public Void call() throws Exception {
                 final List<Long> times = new ArrayList<>();
 
-                log.info("{}: Start ending of batch", id);
+                log.info("{}: Start sending of batch", id);
 
                 while (batches.hasNext()) {
                     final Stopwatch watch = Stopwatch.createStarted();

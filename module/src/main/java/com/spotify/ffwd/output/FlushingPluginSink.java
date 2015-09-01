@@ -27,8 +27,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import lombok.RequiredArgsConstructor;
-
 import org.slf4j.Logger;
 
 import com.google.inject.Inject;
@@ -41,6 +39,7 @@ import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.FutureFinished;
 import eu.toolchain.async.LazyTransform;
 import eu.toolchain.async.Transform;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Facade implementation of a plugin sink that receives metrics and events, puts them on a buffer, then flushes them at
@@ -51,7 +50,7 @@ import eu.toolchain.async.Transform;
 @RequiredArgsConstructor
 public class FlushingPluginSink implements PluginSink {
     public static final long DEFAULT_BATCH_SIZE_LIMIT = 10000;
-    public static final long DEFAULT_MAX_PENDING_FLUSHES = 2;
+    public static final long DEFAULT_MAX_PENDING_FLUSHES = 10;
 
     @Inject
     AsyncFramework async;
@@ -251,6 +250,23 @@ public class FlushingPluginSink implements PluginSink {
             return;
         }
 
+        // shortcut: future is most likely an immediate, no reason to maintain the set of pending tasks.
+        if (!flush.isDone()) {
+            // when future is done, remove this as a pending task.
+            flush.on(new FutureFinished() {
+                @Override
+                public void finished() throws Exception {
+                    synchronized ($pendingLock) {
+                        pending.remove(flush);
+                    }
+                }
+            });
+
+            synchronized ($pendingLock) {
+                pending.add(flush);
+            }
+        }
+
         // this is the last batch, don't bother scheduling flush of another one.
         flush.on(new FutureFinished() {
             @Override
@@ -258,24 +274,6 @@ public class FlushingPluginSink implements PluginSink {
                 scheduleNext();
             }
         });
-
-        // shortcut: future is most likely an immediate, no reason to maintain the set of pending tasks.
-        if (flush.isDone())
-            return;
-
-        // when future is done, remove this as a pending task.
-        flush.on(new FutureFinished() {
-            @Override
-            public void finished() throws Exception {
-                synchronized ($pendingLock) {
-                    pending.remove(flush);
-                }
-            }
-        });
-
-        synchronized ($pendingLock) {
-            pending.add(flush);
-        }
     }
 
     /**
@@ -329,19 +327,22 @@ public class FlushingPluginSink implements PluginSink {
         synchronized ($nextBatchLock) {
             batch = nextBatch;
 
-            if (batch == null)
+            if (batch == null) {
                 return null;
+            }
 
             nextBatch = newBatch;
         }
 
-        if (batch == null || batch.isEmpty())
+        if (batch == null || batch.isEmpty()) {
             return async.resolved();
+        }
 
         if (maxPendingFlushes > 0) {
             synchronized ($pendingLock) {
                 if (pending.size() >= maxPendingFlushes) {
-                    log.warn("Max number of pending flushes reached, dropping {} metric(s) and event(s)", batch.size());
+                    log.warn("Max number of pending flushes ({}) reached, dropping {} metric(s) and event(s)",
+                            pending.size(), batch.size());
                     statistics.reportDropped(batch.size());
                     return async.resolved();
                 }
@@ -350,11 +351,13 @@ public class FlushingPluginSink implements PluginSink {
 
         final List<AsyncFuture<Void>> futures = new ArrayList<>();
 
-        if (!batch.events.isEmpty())
+        if (!batch.events.isEmpty()) {
             futures.add(sink.sendEvents(batch.events));
+        }
 
-        if (!batch.metrics.isEmpty())
+        if (!batch.metrics.isEmpty()) {
             futures.add(sink.sendMetrics(batch.metrics));
+        }
 
         // chain into batch future.
         return async.collectAndDiscard(futures);
