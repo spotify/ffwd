@@ -184,6 +184,10 @@ public class KafkaPluginSink implements BatchedPluginSink {
                     throw new RuntimeException("Failed to produce next element", e);
                 }
             }
+
+            @Override
+            public void remove() {
+            }
         };
     }
 
