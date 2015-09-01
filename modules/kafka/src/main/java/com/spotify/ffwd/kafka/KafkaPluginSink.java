@@ -16,11 +16,15 @@
  **/
 package com.spotify.ffwd.kafka;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Iterators;
 import com.google.inject.Inject;
 import com.spotify.ffwd.model.Event;
@@ -32,7 +36,9 @@ import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class KafkaPluginSink implements BatchedPluginSink {
     @Inject
     private AsyncFramework async;
@@ -83,15 +89,26 @@ public class KafkaPluginSink implements BatchedPluginSink {
 
     @Override
     public AsyncFuture<Void> sendEvents(final Collection<Event> events) {
+        return send(toBatches(iteratorFor(events, eventConverter)));
+    }
+
+    private AsyncFuture<Void> send(final Iterator<List<KeyedMessage<Integer, byte[]>>> batches) {
+        final UUID id = UUID.randomUUID();
+
         return async.call(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                final Iterator<List<KeyedMessage<Integer, byte[]>>> batches = toBatches(iteratorFor(events, eventConverter));
+                final List<Long> times = new ArrayList<>();
+
+                log.info("{}: Start ending of batch", id);
 
                 while (batches.hasNext()) {
+                    final Stopwatch watch = Stopwatch.createStarted();
                     producer.send(batches.next());
+                    times.add(watch.elapsed(TimeUnit.MILLISECONDS));
                 }
 
+                log.info("{}: Done sending batch (timings in ms: {})", id, times);
                 return null;
             }
         });
@@ -99,18 +116,7 @@ public class KafkaPluginSink implements BatchedPluginSink {
 
     @Override
     public AsyncFuture<Void> sendMetrics(final Collection<Metric> metrics) {
-        return async.call(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                final Iterator<List<KeyedMessage<Integer, byte[]>>> batches = toBatches(iteratorFor(metrics, metricConverter));
-
-                while (batches.hasNext()) {
-                    producer.send(batches.next());
-                }
-
-                return null;
-            }
-        });
+        return send(toBatches(iteratorFor(metrics, metricConverter)));
     }
 
     @Override
