@@ -252,19 +252,21 @@ public class FlushingPluginSink implements PluginSink {
 
         // shortcut: future is most likely an immediate, no reason to maintain the set of pending tasks.
         if (!flush.isDone()) {
+            synchronized ($pendingLock) {
+                log.debug("Adding pending flush (size: {})", pending.size());
+                pending.add(flush);
+            }
+
             // when future is done, remove this as a pending task.
             flush.on(new FutureFinished() {
                 @Override
                 public void finished() throws Exception {
                     synchronized ($pendingLock) {
+                        log.debug("Removing pending flush (size: {})", pending.size());
                         pending.remove(flush);
                     }
                 }
             });
-
-            synchronized ($pendingLock) {
-                pending.add(flush);
-            }
         }
 
         // this is the last batch, don't bother scheduling flush of another one.
@@ -293,16 +295,17 @@ public class FlushingPluginSink implements PluginSink {
             }
         };
 
-        if (log.isDebugEnabled())
+        if (log.isDebugEnabled()) {
             log.debug("Scheduling next flush at {}", new Date(System.currentTimeMillis() + flushInterval));
+        }
 
-        final ScheduledFuture<?> next = scheduler.schedule(flusher, flushInterval,
-                TimeUnit.MILLISECONDS);
+        final ScheduledFuture<?> next = scheduler.schedule(flusher, flushInterval, TimeUnit.MILLISECONDS);
 
         final ScheduledFuture<?> future = nextFlush.getAndSet(next);
 
-        if (future != null && !future.isDone())
+        if (future != null && !future.isDone()) {
             future.cancel(false);
+        }
     }
 
     /**
