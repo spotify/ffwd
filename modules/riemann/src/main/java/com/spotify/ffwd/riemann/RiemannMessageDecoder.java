@@ -32,12 +32,6 @@ public class RiemannMessageDecoder extends MessageToMessageDecoder<Proto.Msg> {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, Proto.Msg msg, List<Object> out) throws Exception {
-        final List<Object> messages = serializer.decode0(msg);
-
-        if (messages == null)
-            return;
-
-        for (final Object frame : messages)
-            out.add(frame);
+        out.add(serializer.decode0(msg));
     }
 }

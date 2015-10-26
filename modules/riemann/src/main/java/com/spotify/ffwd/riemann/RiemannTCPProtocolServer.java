@@ -16,13 +16,17 @@
  **/
 package com.spotify.ffwd.riemann;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelInboundHandler;
-import io.netty.channel.ChannelInitializer;
+import java.util.List;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.spotify.ffwd.protocol.ProtocolServer;
+
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandler;
+import io.netty.channel.ChannelInitializer;
+import io.netty.handler.codec.MessageToMessageDecoder;
 
 /**
  * Decode a stream of data which is length-prefixed.
@@ -44,12 +48,23 @@ public class RiemannTCPProtocolServer implements ProtocolServer {
     @Inject
     private Provider<RiemannFrameDecoder> frameDecoder;
 
+    private final MessageToMessageDecoder<List<Object>> unpacker = new MessageToMessageDecoder<List<Object>>() {
+        @Override
+        protected void decode(final ChannelHandlerContext ctx, final List<Object> messages, final List<Object> out) throws Exception {
+            out.addAll(messages);
+        }
+
+        public boolean isSharable() {
+            return true;
+        };
+    };
+
     @Override
     public final ChannelInitializer<Channel> initializer() {
         return new ChannelInitializer<Channel>() {
             @Override
             protected void initChannel(Channel ch) throws Exception {
-                ch.pipeline().addLast(frameDecoder.get(), decoder, responder, handler);
+                ch.pipeline().addLast(frameDecoder.get(), decoder, responder, unpacker, handler);
             }
         };
     }

@@ -36,7 +36,7 @@ public class RiemannFrameDecoder extends ByteToMessageDecoder {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        if (in.readableBytes() < 8)
+        if (in.readableBytes() < 4)
             return;
 
         final long length = in.getUnsignedInt(0);
