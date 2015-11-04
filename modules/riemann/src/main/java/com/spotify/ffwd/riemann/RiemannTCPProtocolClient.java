@@ -16,6 +16,12 @@
  **/
 package com.spotify.ffwd.riemann;
 
+import java.util.Collection;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import com.google.inject.Inject;
+import com.spotify.ffwd.protocol.ProtocolClient;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -24,14 +30,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-
-import java.util.Collection;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import lombok.extern.slf4j.Slf4j;
-
-import com.google.inject.Inject;
-import com.spotify.ffwd.protocol.ProtocolClient;
 
 @Slf4j
 public class RiemannTCPProtocolClient implements ProtocolClient {
@@ -47,6 +46,8 @@ public class RiemannTCPProtocolClient implements ProtocolClient {
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
             final int p = pending.decrementAndGet();
+
+            log.debug("Decrementing pending acks (current: {})", p);
 
             if (p > WARNING_ACK_THRESHOLD)
                 log.warn("number of pending acks are high ({})", p);
@@ -70,16 +71,9 @@ public class RiemannTCPProtocolClient implements ProtocolClient {
                 buf = serializer.encode0(msg);
             }
 
-            if (buf == null)
-                return;
+            log.debug("Incrementing pending acks (current: {})", pending.incrementAndGet());
 
-            pending.incrementAndGet();
-
-            try {
-                ctx.writeAndFlush(buf);
-            } catch (Exception e) {
-                log.error("failed to write", e);
-            }
+            ctx.write(buf, promise);
         };
 
         @Override

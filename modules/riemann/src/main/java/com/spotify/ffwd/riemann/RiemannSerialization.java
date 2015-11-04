@@ -70,20 +70,13 @@ public class RiemannSerialization {
     public ByteBuf encodeAll0(Collection<Object> messages) throws IOException {
         final Proto.Msg.Builder builder = Proto.Msg.newBuilder();
 
-        int valid = 0;
-
         for (final Object d : messages) {
             if (d instanceof Metric) {
                 builder.addEvents(encodeMetric0((Metric) d));
-                ++valid;
             } else if (d instanceof Event) {
                 builder.addEvents(encodeEvent0((Event) d));
-                ++valid;
             }
         }
-
-        if (valid <= 0)
-            return null;
 
         final Proto.Msg m = builder.build();
 
