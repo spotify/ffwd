@@ -48,7 +48,7 @@ public class OutputManagerModule {
 
     @JsonCreator
     public OutputManagerModule(@JsonProperty("plugins") List<OutputPlugin> plugins, @JsonProperty("filter") Filter filter) {
-        this.plugins = Optional.of(plugins).or(DEFAULT_PLUGINS);
+        this.plugins = Optional.fromNullable(plugins).or(DEFAULT_PLUGINS);
         this.filter = Optional.fromNullable(filter).or(new TrueFilter());
     }
 
