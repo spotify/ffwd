@@ -68,11 +68,13 @@ public interface RetryPolicy {
 
         private final long initial;
         private final long max;
+        private final int max_attempt;
 
         @JsonCreator
         public Exponential(@JsonProperty("initial") Long initial, @JsonProperty("max") Long max) {
             this.initial = Optional.fromNullable(initial).or(DEFAULT_INITIAL);
             this.max = Optional.fromNullable(max).or(DEFAULT_MAX);
+            this.max_attempt = new Double(Math.floor(Math.log(this.max / this.initial) / Math.log(2))).intValue();
         }
 
         public Exponential() {
@@ -81,8 +83,10 @@ public interface RetryPolicy {
 
         @Override
         public long delay(int attempt) {
-            final long suggestion = initial * (long) Math.pow(2, attempt);
-            return Math.min(max, suggestion);
+            if (attempt > max_attempt) {
+                return max;
+            }
+            return initial * (long) Math.pow(2, attempt);
         }
     }
 
@@ -96,17 +100,21 @@ public interface RetryPolicy {
 
         private final long value;
         private final long max;
+        private final int max_attempt;
 
         @JsonCreator
         public Linear(@JsonProperty("value") Long value, @JsonProperty("max") Long max) {
             this.value = Optional.fromNullable(value).or(DEFAULT_VALUE);
             this.max = Optional.fromNullable(max).or(DEFAULT_MAX);
+            this.max_attempt = (int) ((this.max / this.value) - 1);
         }
 
         @Override
         public long delay(int attempt) {
-            final long suggestion = value * (attempt + 1);
-            return Math.min(max, suggestion);
+            if (attempt > max_attempt) {
+                return max;
+            }
+            return value * (attempt + 1);
         }
     }
 }
