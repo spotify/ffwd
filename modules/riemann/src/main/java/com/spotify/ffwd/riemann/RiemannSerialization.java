@@ -108,7 +108,7 @@ public class RiemannSerialization {
         b.setMetricD(d.getValue());
         b.addAllAttributes(convertAttributes0(d.getAttributes()));
         b.addAllTags(d.getTags());
-        b.setTime(d.getTime().getTime());
+        b.setTime(toRiemannTime(d.getTime()));
 
         return b;
     }
@@ -124,7 +124,7 @@ public class RiemannSerialization {
         b.setMetricD(d.getValue());
         b.addAllAttributes(convertAttributes0(d.getAttributes()));
         b.addAllTags(d.getTags());
-        b.setTime(d.getTime().getTime());
+        b.setTime(toRiemannTime(d.getTime()));
 
         if (d.getDescription() != null)
             b.setDescription(d.getDescription());
@@ -170,7 +170,7 @@ public class RiemannSerialization {
 
     private Object decodeEvent0(final Proto.Event event) {
         final String service = event.hasService() ? event.getService() : null;
-        final Date time = event.hasTime() ? new Date(event.getTime()) : null;
+        final Date time = event.hasTime() ? fromRiemannTime(event.getTime()) : null;
         final long ttl = (long) (event.hasTtl() ? event.getTtl() : 0f);
         final String state = event.hasState() ? event.getState() : null;
         final String description = event.hasDescription() ? event.getDescription() : null;
@@ -181,5 +181,13 @@ public class RiemannSerialization {
         final double value = convertValue0(event);
 
         return new Event(service, value, time, ttl, state, description, host, tags, attributes);
+    }
+
+    private Date fromRiemannTime(long time) {
+        return new Date(time * 1000L);
+    }
+
+    private long toRiemannTime(Date d) {
+        return d.getTime() / 1000L;
     }
 }
