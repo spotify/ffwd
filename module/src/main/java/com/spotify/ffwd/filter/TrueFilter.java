@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.google.common.base.Supplier;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 
@@ -32,5 +33,14 @@ public class TrueFilter implements Filter {
 
             return new TrueFilter();
         }
+    }
+
+    public static Supplier<TrueFilter> supplier() {
+        return new Supplier<TrueFilter>() {
+            @Override
+            public TrueFilter get() {
+                return new TrueFilter();
+            }
+        };
     }
 }

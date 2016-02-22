@@ -27,6 +27,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.spotify.ffwd.filter.Filter;
 import org.slf4j.Logger;
 
 import com.google.inject.Inject;
@@ -40,6 +41,8 @@ import eu.toolchain.async.FutureFinished;
 import eu.toolchain.async.LazyTransform;
 import eu.toolchain.async.Transform;
 import lombok.RequiredArgsConstructor;
+
+import javax.inject.Named;
 
 /**
  * Facade implementation of a plugin sink that receives metrics and events, puts them on a buffer, then flushes them at
@@ -66,6 +69,10 @@ public class FlushingPluginSink implements PluginSink {
 
     @Inject
     OutputPluginStatistics statistics;
+
+    @Named("flushing")
+    @Inject(optional = true)
+    Filter filter = null;
 
     /**
      * future associated with the timing of the next flush
@@ -124,6 +131,10 @@ public class FlushingPluginSink implements PluginSink {
 
     @Override
     public void sendMetric(final Metric metric) {
+        if (filter != null && !filter.matchesMetric(metric)) {
+            return;
+        }
+
         // shortcut: check before synchronized block.
         if (nextBatch == null) {
             // TODO: instrument dropped metric.
@@ -145,6 +156,10 @@ public class FlushingPluginSink implements PluginSink {
 
     @Override
     public void sendEvent(Event event) {
+        if (filter != null && !filter.matchesEvent(event)) {
+            return;
+        }
+
         // shortcut: check before synchronized block.
         if (nextBatch == null) {
             // TODO: instrument dropped metric.
@@ -178,6 +193,8 @@ public class FlushingPluginSink implements PluginSink {
 
     @Override
     public AsyncFuture<Void> start() {
+        log.info("Starting (Filter: {})", filter);
+
         return sink.start().transform(new Transform<Void, Void>() {
             @Override
             public Void transform(Void result) throws Exception {

@@ -22,6 +22,9 @@ import com.google.common.base.Optional;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
+import com.google.inject.name.Names;
+import com.spotify.ffwd.filter.Filter;
+import com.spotify.ffwd.filter.TrueFilter;
 import com.spotify.ffwd.output.BatchedPluginSink;
 import com.spotify.ffwd.output.FlushingPluginSink;
 import com.spotify.ffwd.output.OutputPlugin;
@@ -39,14 +42,16 @@ public class RiemannOutputPlugin implements OutputPlugin {
     private static final int DEFAULT_PORT = 5555;
     private static final long DEFAULT_FLUSH_INTERVAL = 0; // TimeUnit.MILLISECONDS.convert(10, TimeUnit.SECONDS);
 
+    private final Filter filter;
     private final Long flushInterval;
     private final Protocol protocol;
     private final Class<? extends ProtocolClient> protocolClient;
     private final RetryPolicy retry;
 
     @JsonCreator
-    public RiemannOutputPlugin(@JsonProperty("flushInterval") Long flushInterval,
-            @JsonProperty("protocol") ProtocolFactory protocol, @JsonProperty("retry") RetryPolicy retry) {
+    public RiemannOutputPlugin(@JsonProperty("filter") Filter filter, @JsonProperty("flushInterval") Long flushInterval,
+                               @JsonProperty("protocol") ProtocolFactory protocol, @JsonProperty("retry") RetryPolicy retry) {
+        this.filter = Optional.fromNullable(filter).or(TrueFilter.supplier());
         this.flushInterval = Optional.fromNullable(flushInterval).or(DEFAULT_FLUSH_INTERVAL);
         this.protocol = Optional.fromNullable(protocol).or(ProtocolFactory.defaultFor())
                 .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
@@ -71,9 +76,11 @@ public class RiemannOutputPlugin implements OutputPlugin {
                 bind(ProtocolClient.class).to(protocolClient).in(Scopes.SINGLETON);
 
                 if (flushInterval != null && flushInterval > 0) {
+                    bind(Key.get(Filter.class, Names.named("flushing"))).toInstance(filter);
                     bind(BatchedPluginSink.class).toInstance(new ProtocolPluginSink(retry));
                     bind(key).toInstance(new FlushingPluginSink(flushInterval));
                 } else {
+                    bind(Filter.class).toInstance(filter);
                     bind(key).toInstance(new ProtocolPluginSink(retry));
                 }
 
