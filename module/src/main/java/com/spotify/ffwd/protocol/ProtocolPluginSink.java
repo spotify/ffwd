@@ -19,6 +19,9 @@ package com.spotify.ffwd.protocol;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.google.common.collect.ImmutableList;
+import com.spotify.ffwd.filter.Filter;
+import com.spotify.ffwd.filter.TrueFilter;
 import lombok.RequiredArgsConstructor;
 
 import org.slf4j.Logger;
@@ -49,6 +52,9 @@ public class ProtocolPluginSink implements BatchedPluginSink {
     @Inject
     private Logger log;
 
+    @Inject(optional = true)
+    private Filter filter = null;
+
     private final RetryPolicy retry;
 
     private final AtomicReference<ProtocolConnection> connection = new AtomicReference<>();
@@ -64,6 +70,10 @@ public class ProtocolPluginSink implements BatchedPluginSink {
         if (c == null)
             return;
 
+        if (filter != null && !filter.matchesEvent(event)) {
+            return;
+        }
+
         c.send(event);
     }
 
@@ -73,6 +83,10 @@ public class ProtocolPluginSink implements BatchedPluginSink {
 
         if (c == null)
             return;
+
+        if (filter != null && !filter.matchesMetric(metric)) {
+            return;
+        }
 
         c.send(metric);
     }
@@ -84,7 +98,7 @@ public class ProtocolPluginSink implements BatchedPluginSink {
         if (c == null)
             return async.failed(new IllegalStateException("not connected to " + protocol));
 
-        return c.sendAll(events);
+        return c.sendAll(filterEvents(events));
     }
 
     @Override
@@ -94,7 +108,39 @@ public class ProtocolPluginSink implements BatchedPluginSink {
         if (c == null)
             return async.failed(new IllegalStateException("not connected to " + protocol));
 
-        return c.sendAll(metrics);
+        return c.sendAll(filterMetrics(metrics));
+    }
+
+    public Collection<Event> filterEvents(Collection<Event> input) {
+        if (filter == null || filter instanceof TrueFilter) {
+            return input;
+        }
+
+        final ImmutableList.Builder<Event> output = ImmutableList.builder();
+
+        for (final Event e : input) {
+            if (filter.matchesEvent(e)) {
+                output.add(e);
+            }
+        }
+
+        return output.build();
+    }
+
+    public Collection<Metric> filterMetrics(Collection<Metric> input) {
+        if (filter == null || filter instanceof TrueFilter) {
+            return input;
+        }
+
+        final ImmutableList.Builder<Metric> output = ImmutableList.builder();
+
+        for (final Metric m : input) {
+            if (filter.matchesMetric(m)) {
+                output.add(m);
+            }
+        }
+
+        return output.build();
     }
 
     @Override

@@ -62,6 +62,7 @@ import com.spotify.ffwd.filter.MatchTag;
 import com.spotify.ffwd.filter.NotFilter;
 import com.spotify.ffwd.filter.OrFilter;
 import com.spotify.ffwd.filter.TrueFilter;
+import com.spotify.ffwd.filter.TypeFilter;
 import com.spotify.ffwd.input.InputManager;
 import com.spotify.ffwd.module.FastForwardModule;
 import com.spotify.ffwd.module.PluginContext;
@@ -75,7 +76,6 @@ import com.spotify.ffwd.serializer.Serializer;
 import com.spotify.ffwd.serializer.ToStringSerializer;
 import com.spotify.ffwd.statistics.CoreStatistics;
 import com.spotify.ffwd.statistics.NoopCoreStatistics;
-
 import eu.toolchain.async.AsyncCaller;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
@@ -202,6 +202,7 @@ public class AgentCore {
                 filters.put("and", new AndFilter.Deserializer());
                 filters.put("or", new OrFilter.Deserializer());
                 filters.put("not", new NotFilter.Deserializer());
+                filters.put("type", new TypeFilter.Deserializer());
                 return filters;
             }
 
