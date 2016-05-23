@@ -21,6 +21,7 @@
     <module>modules/riemann</module>
     <module>modules/carbon</module>
     <module>modules/template</module>
+    <module>modules/protobuf</module>
   </modules>
 
   <licenses>
@@ -78,6 +79,11 @@
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-module-carbon</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.spotify.ffwd</groupId>
+        <artifactId>ffwd-module-protobuf</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

@@ -16,19 +16,18 @@
  **/
 package com.spotify.ffwd.protobuf;
 
+import com.google.inject.Inject;
+import com.spotify.ffwd.protocol.ProtocolServer;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
-import com.google.inject.Inject;
-import com.spotify.ffwd.protocol.ProtocolServer;
-
 /**
  * Decode a stream of data which is length-prefixed.
  *
  * Should only be used with TCP-based protocols.
- * 
+ *
  * @author udoprog
  */
 public class ProtobufLengthPrefixedProtocolServer implements ProtocolServer {

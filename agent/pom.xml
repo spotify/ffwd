@@ -41,6 +41,11 @@
 
     <dependency>
       <groupId>com.spotify.ffwd</groupId>
+      <artifactId>ffwd-module-protobuf</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.spotify.ffwd</groupId>
       <artifactId>ffwd-module-template</artifactId>
     </dependency>
 

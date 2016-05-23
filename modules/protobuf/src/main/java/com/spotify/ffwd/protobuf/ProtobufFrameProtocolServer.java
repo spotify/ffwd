@@ -16,12 +16,11 @@
  **/
 package com.spotify.ffwd.protobuf;
 
+import com.google.inject.Inject;
+import com.spotify.ffwd.protocol.ProtocolServer;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelInitializer;
-
-import com.google.inject.Inject;
-import com.spotify.ffwd.protocol.ProtocolServer;
 
 /**
  * Decode individual frames, should only be used with UDP protocols.

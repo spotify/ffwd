@@ -16,11 +16,16 @@
  **/
 package com.spotify.ffwd.protobuf;
 
+import com.google.protobuf250.InvalidProtocolBufferException;
+import com.spotify.ffwd.model.Event;
+import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.protocol0.Protocol0;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
 import java.util.Date;
@@ -29,13 +34,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import lombok.extern.slf4j.Slf4j;
-
-import com.google.protobuf250.InvalidProtocolBufferException;
-import com.spotify.ffwd.model.Event;
-import com.spotify.ffwd.model.Metric;
-import com.spotify.ffwd.protocol0.Protocol0;
 
 @Slf4j
 @Sharable
