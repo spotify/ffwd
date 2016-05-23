@@ -6,6 +6,7 @@ This is a Java implementation of [ffwd](https://github.com/spotify/ffwd)
 This project is currently: __experimental__, use at your own risk.
 
 * [Protobuf Protocol](/modules/protobuf/)
+* [JSON Protocol](/modules/json/)
 * [Hacking](docs/hacking.md)
 * [On-disk Persistent Queue (WIP)](docs/on-disk-queue.md)
 
@@ -25,7 +26,8 @@ $> tools/ffwd agent/ffwd.yaml
 
 # Clients
 
-* [java](https://github.com/udoprog/ffwd-java-client)
+* [Java](https://github.com/udoprog/ffwd-java-client)
+* [Python](https://pypi.python.org/pypi/ffwd)
 * [c++](https://github.com/udoprog/libffwd-client)
 
 # Libraries

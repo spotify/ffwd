@@ -22,6 +22,7 @@
     <module>modules/carbon</module>
     <module>modules/template</module>
     <module>modules/protobuf</module>
+    <module>modules/json</module>
   </modules>
 
   <licenses>
@@ -84,6 +85,16 @@
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-module-protobuf</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.spotify.ffwd</groupId>
+        <artifactId>ffwd-module-json</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.spotify.ffwd</groupId>
+        <artifactId>ffwd-module-ffwd</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

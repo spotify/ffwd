@@ -16,15 +16,14 @@
  **/
 package com.spotify.ffwd.json;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelInboundHandler;
-import io.netty.channel.ChannelInitializer;
-import io.netty.handler.codec.LineBasedFrameDecoder;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.spotify.ffwd.protocol.ProtocolServer;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelInboundHandler;
+import io.netty.channel.ChannelInitializer;
+import io.netty.handler.codec.LineBasedFrameDecoder;
 
 public class JsonLineProtocolServer implements ProtocolServer {
     public static final int MAX_LINE = 0xffff;
