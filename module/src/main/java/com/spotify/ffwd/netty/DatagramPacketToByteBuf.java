@@ -14,7 +14,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  **/
-package com.spotify.ffwd.protobuf;
+package com.spotify.ffwd.netty;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -25,9 +25,15 @@ import java.util.List;
 
 public class DatagramPacketToByteBuf extends MessageToMessageDecoder<DatagramPacket> {
     @Override
-    protected void decode(ChannelHandlerContext ctx, DatagramPacket packet, List<Object> out) throws Exception {
+    protected void decode(ChannelHandlerContext ctx, DatagramPacket packet, List<Object> out)
+        throws Exception {
         final ByteBuf buf = packet.content();
         buf.retain();
         out.add(buf);
+    }
+
+    @Override
+    public boolean isSharable() {
+        return true;
     }
 }
