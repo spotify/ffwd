@@ -19,7 +19,7 @@ $> mvn package
 You can run the client using `tools/ffwd`.
 
 ```bash
-$> tools/ffwd <config>
+$> tools/ffwd agent/ffwd.yaml
 ```
 
 # Clients
