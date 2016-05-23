@@ -1,4 +1,5 @@
 # ffwd-java &#187;
+[![Build Status](https://travis-ci.org/spotify/ffwd-java.svg?branch=master)](https://travis-ci.org/spotify/ffwd-java)
 
 This is a Java implementation of [ffwd](https://github.com/spotify/ffwd)
 
