@@ -1,0 +1,32 @@
+#!/bin/bash
+
+root=$(dirname $(dirname $0))
+dist="$root/agent"
+
+JVM_OPTS=${JVM_OPTS:-""}
+
+MVN=${MVN:-mvn}
+MVN_OPTS=${MVN_OPTS:-"-B -V"}
+
+dist_jar="$dist/target/ffwd-agent-0.0.1-SNAPSHOT.jar"
+
+CLASSPATH="$dist_jar"
+
+if [[ $1 == '-debug' ]]; then
+    JVM_OPTS="$JVM_OPTS -agentlib:jdwp=transport=dt_socket,server=y,address=5005,suspend=y"
+    JVM_OPTS="$JVM_OPTS -Dloglevel=TRACE"
+    shift
+fi
+
+if [[ -d $dist ]]; then
+    if [[ ! -f $dist_jar ]]; then
+        (cd $root && $MVN $MVN_OPTS clean package)
+    fi
+
+    if [[ ! -f $dist_jar ]]; then
+        echo "No such jar: $dist_jar" 1>&2
+        exit 1
+    fi
+fi
+
+exec java -cp "$CLASSPATH" $JVM_OPTS com.spotify.ffwd.FastForwardAgent "$@"
