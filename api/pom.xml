@@ -9,9 +9,9 @@
     <relativePath>..</relativePath>
   </parent>
 
-  <artifactId>ffwd-module</artifactId>
+  <artifactId>ffwd-api</artifactId>
   <packaging>jar</packaging>
-  <name>FastForward Module</name>
+  <name>FastForward API</name>
 
   <dependencies>
     <dependency>

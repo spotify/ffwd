@@ -2,17 +2,16 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>ffwd-module-riemann</artifactId>
-  <packaging>jar</packaging>
-
-  <name>FastForward Kafka Module</name>
-
   <parent>
     <groupId>com.spotify.ffwd</groupId>
     <artifactId>ffwd-parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <relativePath>../..</relativePath>
+    <relativePath>../../pom.xml</relativePath>
   </parent>
+
+  <artifactId>ffwd-module-riemann</artifactId>
+  <packaging>jar</packaging>
+  <name>FastForward Kafka Module</name>
 
   <dependencies>
     <dependency>
@@ -28,7 +27,7 @@
 
     <dependency>
       <groupId>com.spotify.ffwd</groupId>
-      <artifactId>ffwd-module</artifactId>
+      <artifactId>ffwd-api</artifactId>
     </dependency>
   </dependencies>
 </project>
