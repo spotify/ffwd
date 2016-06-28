@@ -256,8 +256,6 @@ public class FlushingPluginSink implements PluginSink {
      * Flushes the current batch and schedules the next one
      * 
      * Maintains the set of pending tasks.
-     *
-     * @param nextBatch
      */
     void flushNowThenScheduleNext() {
         final AsyncFuture<Void> flush = doFlush(newBatch());
@@ -271,9 +269,9 @@ public class FlushingPluginSink implements PluginSink {
         if (!flush.isDone()) {
             synchronized ($pendingLock) {
                 log.debug("Adding pending flush (size: {})", pending.size());
+
                 pending.add(flush);
             }
-
             // when future is done, remove this as a pending task.
             flush.on(new FutureFinished() {
                 @Override
@@ -337,7 +335,7 @@ public class FlushingPluginSink implements PluginSink {
      *
      * The given parameter will be set as the next batch.
      *
-     * @param nextBatch The next batch to flush, setting to {@code null} will cause all subsequent batches to be
+     * @param newBatch The next batch to flush, setting to {@code null} will cause all subsequent batches to be
      *            rejected.
      * @return A future associated with the current flush, or {@code null} if we are stopping.
      */
