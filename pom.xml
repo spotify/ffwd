@@ -106,6 +106,44 @@
         </plugins>
       </build>
     </profile>
+
+    <profile>
+      <id>findbugs</id>
+
+      <activation>
+        <property>
+          <name>environment</name>
+          <value>test</value>
+        </property>
+      </activation>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>findbugs-maven-plugin</artifactId>
+            <version>3.0.3</version>
+            <configuration>
+              <failOnError>true</failOnError>
+              <effort>Max</effort>
+              <threshold>High</threshold>
+              <xmlOutput>true</xmlOutput>
+            </configuration>
+            <executions>
+              <execution>
+                <id>compile-findbugs-check</id>
+
+                <phase>compile</phase>
+
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
   <dependencyManagement>
