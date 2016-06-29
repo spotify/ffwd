@@ -20,11 +20,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.spotify.ffwd.debug.DebugServer;
@@ -48,8 +46,8 @@ public class CoreOutputManager implements OutputManager {
     private AsyncFramework async;
 
     @Inject
-    @Named("attributes")
-    private Map<String, String> attributes;
+    @Named("tags")
+    private Map<String, String> tags;
 
     @Inject
     @Named("host")
@@ -137,34 +135,34 @@ public class CoreOutputManager implements OutputManager {
      * Filter the provided Event and complete fields.
      */
     private Event filter(Event event) {
-        if (attributes.isEmpty() && ttl == 0)
+        if (tags.isEmpty() && ttl == 0)
             return event;
 
         final String host = event.getHost() != null ? event.getHost() : this.host;
-        final Map<String, String> a = Maps.newHashMap(attributes);
-        a.putAll(event.getAttributes());
+        final Map<String, String> merged_tags = Maps.newHashMap(tags);
+        merged_tags.putAll(event.getTags());
 
         final Date time = event.getTime() != null ? event.getTime() : new Date();
         final Long ttl = event.getTtl() != 0 ? event.getTtl() : this.ttl;
 
         return new Event(event.getKey(), event.getValue(), time, ttl, event.getState(),
-                event.getDescription(), host, event.getTags(), a);
+                event.getDescription(), host, event.getRiemann_tags(), merged_tags);
     }
 
     /**
      * Filter the provided Metric and complete fields.
      */
     private Metric filter(Metric metric) {
-        if (attributes.isEmpty())
+        if (tags.isEmpty())
             return metric;
 
         final String host = metric.getHost() != null ? metric.getHost() : this.host;
 
-        final Map<String, String> a = Maps.newHashMap(attributes);
-        a.putAll(metric.getAttributes());
+        final Map<String, String> merged_tags = Maps.newHashMap(tags);
+        merged_tags.putAll(metric.getTags());
 
         final Date time = metric.getTime() != null ? metric.getTime() : new Date();
 
-        return new Metric(metric.getKey(), metric.getValue(), time, host, metric.getTags(), a, metric.getProc());
+        return new Metric(metric.getKey(), metric.getValue(), time, host, metric.getRiemann_tags(), merged_tags, metric.getProc());
     }
 }

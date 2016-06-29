@@ -56,7 +56,7 @@ public class KafkaOutputPlugin implements OutputPlugin {
             @JsonProperty("partitioner") KafkaPartitioner partitioner,
             @JsonProperty("serializer") Serializer serializer, @JsonProperty("batchSize") Integer batchSize,
             @JsonProperty("compression") Boolean compression) {
-        this.router = Optional.fromNullable(router).or(KafkaRouter.Attribute.supplier());
+        this.router = Optional.fromNullable(router).or(KafkaRouter.Tag.supplier());
         this.partitioner = Optional.fromNullable(partitioner).or(KafkaPartitioner.Host.supplier());
         this.flushInterval = Optional.fromNullable(flushInterval).orNull();
         this.properties = Optional.fromNullable(properties).or(new HashMap<String, String>());

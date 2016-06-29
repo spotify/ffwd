@@ -26,47 +26,47 @@ import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes({ @JsonSubTypes.Type(value = KafkaRouter.Attribute.class, name = "attribute"),
+@JsonSubTypes({ @JsonSubTypes.Type(value = KafkaRouter.Tag.class, name = "tag"),
         @JsonSubTypes.Type(value = KafkaRouter.Static.class, name = "static") })
 public interface KafkaRouter {
     public String route(final Event event);
 
     public String route(final Metric metric);
 
-    public static class Attribute implements KafkaRouter {
+    public static class Tag implements KafkaRouter {
         private static final String DEFAULT = "default";
-        private static final String DEFAULT_ATTRIBUTE = "site";
+        private static final String DEFAULT_TAGKEY = "site";
         private static final String DEFAULT_METRICS = "metrics-%s";
         private static final String DEFAULT_EVENTS = "events-%s";
 
-        private final String attribute;
+        private final String tagKey;
         private final String metrics;
         private final String events;
 
         @JsonCreator
-        public Attribute(@JsonProperty("attribute") final String attribute, @JsonProperty("metrics") String metrics,
-                @JsonProperty("events") String events) {
-            this.attribute = Optional.fromNullable(attribute).or(DEFAULT_ATTRIBUTE);
+        public Tag(@JsonProperty("tag") final String tagKey, @JsonProperty("metrics") String metrics,
+                   @JsonProperty("events") String events) {
+            this.tagKey = Optional.fromNullable(tagKey).or(DEFAULT_TAGKEY);
             this.metrics = Optional.fromNullable(metrics).or(DEFAULT_METRICS);
             this.events = Optional.fromNullable(events).or(DEFAULT_EVENTS);
         }
 
         @Override
         public String route(final Event event) {
-            final String attr = event.getAttributes().get(attribute);
+            final String tagValue = event.getTags().get(tagKey);
 
-            if (attr != null)
-                return String.format(events, attr);
+            if (tagValue != null)
+                return String.format(events, tagValue);
 
             return String.format(events, DEFAULT);
         }
 
         @Override
         public String route(final Metric metric) {
-            final String attr = metric.getAttributes().get(attribute);
+            final String tagValue = metric.getTags().get(tagKey);
 
-            if (attr != null)
-                return String.format(metrics, attr);
+            if (tagValue != null)
+                return String.format(metrics, tagValue);
 
             return String.format(metrics, DEFAULT);
         }
@@ -75,7 +75,7 @@ public interface KafkaRouter {
             return new Supplier<KafkaRouter>() {
                 @Override
                 public KafkaRouter get() {
-                    return new Attribute(null, null, null);
+                    return new Tag(null, null, null);
                 }
             };
         }

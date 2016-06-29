@@ -113,12 +113,12 @@ public class RiemannSerialization {
             b.setHost(d.getHost());
 
         b.setMetricD(d.getValue());
-        b.addAllAttributes(convertAttributes0(d.getAttributes()));
+        b.addAllAttributes(convertTags0(d.getTags()));
 
-        final Set<String> tags = new HashSet<>(riemann_tags);
-        tags.addAll(d.getTags());
+        final Set<String> riemann_tags = new HashSet<>(this.riemann_tags);
+        riemann_tags.addAll(d.getRiemann_tags());
 
-        b.addAllTags(tags);
+        b.addAllTags(riemann_tags);
         b.setTime(toRiemannTime(d.getTime()));
 
         return b;
@@ -133,12 +133,12 @@ public class RiemannSerialization {
             b.setHost(d.getHost());
 
         b.setMetricD(d.getValue());
-        b.addAllAttributes(convertAttributes0(d.getAttributes()));
+        b.addAllAttributes(convertTags0(d.getTags()));
 
-        final Set<String> tags = new HashSet<>(riemann_tags);
-        tags.addAll(d.getTags());
+        final Set<String> riemann_tags = new HashSet<>(this.riemann_tags);
+        riemann_tags.addAll(d.getRiemann_tags());
 
-        b.addAllTags(tags);
+        b.addAllTags(riemann_tags);
         b.setTime(toRiemannTime(d.getTime()));
 
         if (d.getDescription() != null)
@@ -152,22 +152,22 @@ public class RiemannSerialization {
         return b;
     }
 
-    private Iterable<? extends Proto.Attribute> convertAttributes0(Map<String, String> source) {
+    private Iterable<? extends Proto.Attribute> convertTags0(Map<String, String> tags) {
         final List<Proto.Attribute> attributes = new ArrayList<>();
 
-        for (final Map.Entry<String, String> e : source.entrySet())
-            attributes.add(Proto.Attribute.newBuilder().setKey(e.getKey()).setValue(e.getValue()).build());
+        for (final Map.Entry<String, String> tag : tags.entrySet())
+            attributes.add(Proto.Attribute.newBuilder().setKey(tag.getKey()).setValue(tag.getValue()).build());
 
         return attributes;
     }
 
-    private Map<String, String> convertAttributes0(List<Proto.Attribute> attributesList) {
-        final Map<String, String> attributes = new HashMap<>();
+    private Map<String, String> convertTags0(List<Proto.Attribute> attributesList) {
+        final Map<String, String> tags = new HashMap<>();
 
         for (final Proto.Attribute a : attributesList)
-            attributes.put(a.getKey(), a.getValue());
+            tags.put(a.getKey(), a.getValue());
 
-        return attributes;
+        return tags;
     }
 
     private double convertValue0(Proto.Event e) {
@@ -190,12 +190,12 @@ public class RiemannSerialization {
         final String state = event.hasState() ? event.getState() : null;
         final String description = event.hasDescription() ? event.getDescription() : null;
         final String host = event.hasHost() ? event.getHost() : null;
-        final Set<String> tags = new HashSet<>(event.getTagsList());
-        final Map<String, String> attributes = convertAttributes0(event.getAttributesList());
+        final Set<String> riemann_tags = new HashSet<>(event.getTagsList());
+        final Map<String, String> tags = convertTags0(event.getAttributesList());
 
         final double value = convertValue0(event);
 
-        return new Event(service, value, time, ttl, state, description, host, tags, attributes);
+        return new Event(service, value, time, ttl, state, description, host, riemann_tags, tags);
     }
 
     private Date fromRiemannTime(long time) {

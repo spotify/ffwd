@@ -18,7 +18,7 @@ public class MatchTag implements Filter {
 
     @Override
     public boolean matchesEvent(final Event event) {
-        final String value = event.getAttributes().get(key);
+        final String value = event.getTags().get(key);
 
         if (value == null) {
             return false;
@@ -29,7 +29,7 @@ public class MatchTag implements Filter {
 
     @Override
     public boolean matchesMetric(final Metric metric) {
-        final String value = metric.getAttributes().get(key);
+        final String value = metric.getTags().get(key);
 
         if (value == null) {
             return false;

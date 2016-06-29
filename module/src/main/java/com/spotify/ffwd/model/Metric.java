@@ -24,13 +24,13 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(of = { "key", "tags", "attributes" })
+@EqualsAndHashCode(of = { "key", "riemann_tags", "tags" })
 public class Metric {
     private final String key;
     private final double value;
     private final Date time;
     private final String host;
-    private final Set<String> tags;
-    private final Map<String, String> attributes;
+    private final Set<String> riemann_tags;
+    private final Map<String, String> tags;
     private final String proc;
 }

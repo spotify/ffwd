@@ -64,7 +64,7 @@ public class Spotify100Serializer implements Serializer {
     @Override
     public byte[] serialize(Event source) throws Exception {
         final Spotify100Event e = new Spotify100Event(source.getKey(), source.getHost(), source.getTime().getTime(),
-                source.getAttributes(), source.getValue());
+                source.getTags(), source.getValue());
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         mapper.writeValue(outputStream, e);
         return outputStream.toByteArray();
@@ -73,7 +73,7 @@ public class Spotify100Serializer implements Serializer {
     @Override
     public byte[] serialize(Metric source) throws Exception {
         final Spotify100Metric m = new Spotify100Metric(source.getKey(), source.getHost(), source.getTime().getTime(),
-                source.getAttributes(), source.getValue());
+                source.getTags(), source.getValue());
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         mapper.writeValue(outputStream, m);
         return outputStream.toByteArray();

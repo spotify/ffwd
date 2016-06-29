@@ -112,11 +112,11 @@ public class ProtobufDecoder extends MessageToMessageDecoder<ByteBuf> {
         final double value = metric.hasValue() ? metric.getValue() : Double.NaN;
         final Date time = metric.hasTime() ? new Date(metric.getTime()) : null;
         final String host = metric.hasHost() ? metric.getHost() : null;
-        final Set<String> tags = new HashSet<>(metric.getTagsList());
-        final Map<String, String> attributes = convertAttributes0(metric.getAttributesList());
+        final Set<String> riemann_tags = new HashSet<>(metric.getTagsList());
+        final Map<String, String> tags = convertAttributes0(metric.getAttributesList());
         final String proc = metric.hasProc() ? metric.getProc() : null;
 
-        return new Metric(key, value, time, host, tags, attributes, proc);
+        return new Metric(key, value, time, host, riemann_tags, tags, proc);
     }
 
     private Map<String, String> convertAttributes0(List<Protocol0.Attribute> attributesList) {
@@ -136,9 +136,9 @@ public class ProtobufDecoder extends MessageToMessageDecoder<ByteBuf> {
         final String state = event.hasState() ? event.getState() : null;
         final String description = event.hasDescription() ? event.getDescription() : null;
         final String host = event.hasHost() ? event.getHost() : null;
-        final Set<String> tags = new HashSet<>(event.getTagsList());
-        final Map<String, String> attributes = convertAttributes0(event.getAttributesList());
+        final Set<String> riemann_tags = new HashSet<>(event.getTagsList());
+        final Map<String, String> tags = convertAttributes0(event.getAttributesList());
 
-        return new Event(key, value, time, ttl, state, description, host, tags, attributes);
+        return new Event(key, value, time, ttl, state, description, host, riemann_tags, tags);
     }
 }

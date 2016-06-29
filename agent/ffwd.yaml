@@ -51,8 +51,8 @@ output:
     #  serializer:
     #    type: spotify100
     #  router:
-    #    type: attribute
-    #    attribute: pod
+    #    type: tag
+    #    tag: pod
     #  partitioner:
     #    type: host
     #  producer:
