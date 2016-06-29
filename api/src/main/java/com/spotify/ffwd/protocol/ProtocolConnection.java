@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,9 +15,9 @@
  **/
 package com.spotify.ffwd.protocol;
 
-import java.util.Collection;
-
 import eu.toolchain.async.AsyncFuture;
+
+import java.util.Collection;
 
 public interface ProtocolConnection {
     public void send(Object message);

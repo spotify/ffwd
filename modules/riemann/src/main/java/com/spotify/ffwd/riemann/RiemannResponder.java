@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,6 +15,7 @@
  **/
 package com.spotify.ffwd.riemann;
 
+import com.aphyr.riemann.Proto;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
@@ -24,8 +24,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 import java.io.IOException;
-
-import com.aphyr.riemann.Proto;
 
 @Sharable
 public class RiemannResponder extends ChannelInboundHandlerAdapter {

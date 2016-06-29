@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,10 +15,6 @@
  **/
 package com.spotify.ffwd.riemann;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.slf4j.Logger;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
@@ -35,6 +30,8 @@ import com.spotify.ffwd.protocol.ProtocolPluginSource;
 import com.spotify.ffwd.protocol.ProtocolServer;
 import com.spotify.ffwd.protocol.ProtocolType;
 import com.spotify.ffwd.protocol.RetryPolicy;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 
 @Slf4j
 public class RiemannInputPlugin implements InputPlugin {
@@ -46,20 +43,25 @@ public class RiemannInputPlugin implements InputPlugin {
     private final RetryPolicy retry;
 
     @JsonCreator
-    public RiemannInputPlugin(@JsonProperty("protocol") ProtocolFactory protocol,
-            @JsonProperty("retry") RetryPolicy retry) {
-        this.protocol = Optional.fromNullable(protocol).or(ProtocolFactory.defaultFor())
-                .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
+    public RiemannInputPlugin(
+        @JsonProperty("protocol") ProtocolFactory protocol, @JsonProperty("retry") RetryPolicy retry
+    ) {
+        this.protocol = Optional
+            .fromNullable(protocol)
+            .or(ProtocolFactory.defaultFor())
+            .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
         this.protocolServer = parseProtocolServer();
         this.retry = Optional.fromNullable(retry).or(new RetryPolicy.Exponential());
     }
 
     private Class<? extends ProtocolServer> parseProtocolServer() {
-        if (protocol.getType() == ProtocolType.UDP)
+        if (protocol.getType() == ProtocolType.UDP) {
             return RiemannUDPProtocolServer.class;
+        }
 
-        if (protocol.getType() == ProtocolType.TCP)
+        if (protocol.getType() == ProtocolType.TCP) {
             return RiemannTCPProtocolServer.class;
+        }
 
         throw new IllegalArgumentException("Protocol not supported: " + protocol.getType());
     }

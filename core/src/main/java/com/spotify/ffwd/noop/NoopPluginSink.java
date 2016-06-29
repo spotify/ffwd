@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,18 +15,16 @@
  **/
 package com.spotify.ffwd.noop;
 
-import java.util.Collection;
-import java.util.concurrent.atomic.AtomicLong;
-
-import lombok.extern.slf4j.Slf4j;
-
 import com.google.inject.Inject;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchedPluginSink;
-
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.Collection;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 public class NoopPluginSink implements BatchedPluginSink {
@@ -71,7 +68,7 @@ public class NoopPluginSink implements BatchedPluginSink {
 
         if (then != 0 && diff != 0) {
             final long seen = total - this.last.getAndSet(total);
-            rate = Math.round((double)seen / (double)diff);
+            rate = Math.round((double) seen / (double) diff);
         } else {
             rate = Double.NaN;
         }

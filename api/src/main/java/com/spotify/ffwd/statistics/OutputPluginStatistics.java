@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -19,7 +18,7 @@ package com.spotify.ffwd.statistics;
 public interface OutputPluginStatistics {
     /**
      * Report that a number of events and metrics have been dropped.
-     * 
+     *
      * @param dropped The number of events and metrics that we have dropped.
      */
     void reportDropped(int dropped);

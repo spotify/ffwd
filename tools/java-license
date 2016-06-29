@@ -10,7 +10,6 @@ LICENSE_PATH = "tools/license.header"
 
 def read_header():
     lines = []
-    lines += ['// $LICENSE']
     lines += ['/**']
 
     with open(LICENSE_PATH) as header:

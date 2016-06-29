@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -19,7 +18,6 @@ package com.spotify.ffwd.output;
 import com.spotify.ffwd.Initializable;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
-
 import eu.toolchain.async.AsyncFuture;
 
 public interface PluginSink extends Initializable {

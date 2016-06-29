@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,6 +15,20 @@
  **/
 package com.spotify.ffwd.output;
 
+import com.google.inject.Inject;
+import com.spotify.ffwd.filter.Filter;
+import com.spotify.ffwd.model.Event;
+import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.statistics.OutputPluginStatistics;
+import eu.toolchain.async.AsyncFramework;
+import eu.toolchain.async.AsyncFuture;
+import eu.toolchain.async.FutureFinished;
+import eu.toolchain.async.LazyTransform;
+import eu.toolchain.async.Transform;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+
+import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -27,25 +40,9 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.spotify.ffwd.filter.Filter;
-import org.slf4j.Logger;
-
-import com.google.inject.Inject;
-import com.spotify.ffwd.model.Event;
-import com.spotify.ffwd.model.Metric;
-import com.spotify.ffwd.statistics.OutputPluginStatistics;
-
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
-import eu.toolchain.async.FutureFinished;
-import eu.toolchain.async.LazyTransform;
-import eu.toolchain.async.Transform;
-import lombok.RequiredArgsConstructor;
-
-import javax.inject.Named;
-
 /**
- * Facade implementation of a plugin sink that receives metrics and events, puts them on a buffer, then flushes them at
+ * Facade implementation of a plugin sink that receives metrics and events, puts them on a
+ * buffer, then flushes them at
  * regular intervals.
  *
  * @author udoprog
@@ -82,19 +79,20 @@ public class FlushingPluginSink implements PluginSink {
     /**
      * lock that governs access to the current batch
      */
-    final Object $nextBatchLock = new Object();
+    final Object nextBatchLock = new Object();
     /**
      * the next batch to be flushed.
      */
     Batch nextBatch = new Batch();
 
     /**
-     * lock that governs access to the pending set of futures, this is preferred over eventually consistent concurrent
+     * lock that governs access to the pending set of futures, this is preferred over eventually
+     * consistent concurrent
      * data structures since we desire a clean shutdown that tracks _all_ pending flushes.
      */
-    final Object $pendingLock = new Object();
+    final Object pendingLock = new Object();
     /**
-     * a pending set of futures, all access has to be synchronized on {@link #$pendingLock}
+     * a pending set of futures, all access has to be synchronized on {@link #pendingLock}
      */
     final Set<AsyncFuture<Void>> pending = new HashSet<>();
 
@@ -141,7 +139,7 @@ public class FlushingPluginSink implements PluginSink {
             return;
         }
 
-        synchronized ($nextBatchLock) {
+        synchronized (nextBatchLock) {
             final Batch batch = nextBatch;
 
             if (batch == null) {
@@ -166,7 +164,7 @@ public class FlushingPluginSink implements PluginSink {
             return;
         }
 
-        synchronized ($nextBatchLock) {
+        synchronized (nextBatchLock) {
             final Batch batch = nextBatch;
 
             if (batch == null) {
@@ -180,9 +178,10 @@ public class FlushingPluginSink implements PluginSink {
     }
 
     void checkBatch(Batch batch) {
-        synchronized ($nextBatchLock) {
-            if (batchSizeLimit <= 0)
+        synchronized (nextBatchLock) {
+            if (batchSizeLimit <= 0) {
                 return;
+            }
 
             if (batch.size() >= batchSizeLimit) {
                 log.debug("Flushing because limit of {} reached", batchSizeLimit);
@@ -229,7 +228,7 @@ public class FlushingPluginSink implements PluginSink {
 
                 pending.add(doLastFlush());
 
-                synchronized ($pendingLock) {
+                synchronized (pendingLock) {
                     pending.addAll(FlushingPluginSink.this.pending);
                     FlushingPluginSink.this.pending.clear();
                 }
@@ -254,7 +253,7 @@ public class FlushingPluginSink implements PluginSink {
 
     /**
      * Flushes the current batch and schedules the next one
-     * 
+     *
      * Maintains the set of pending tasks.
      */
     void flushNowThenScheduleNext() {
@@ -265,9 +264,10 @@ public class FlushingPluginSink implements PluginSink {
             return;
         }
 
-        // shortcut: future is most likely an immediate, no reason to maintain the set of pending tasks.
+        // shortcut: future is most likely an immediate, no reason to maintain the set of pending
+        // tasks.
         if (!flush.isDone()) {
-            synchronized ($pendingLock) {
+            synchronized (pendingLock) {
                 log.debug("Adding pending flush (size: {})", pending.size());
 
                 pending.add(flush);
@@ -276,7 +276,7 @@ public class FlushingPluginSink implements PluginSink {
             flush.on(new FutureFinished() {
                 @Override
                 public void finished() throws Exception {
-                    synchronized ($pendingLock) {
+                    synchronized (pendingLock) {
                         log.debug("Removing pending flush (size: {})", pending.size());
                         pending.remove(flush);
                     }
@@ -297,11 +297,13 @@ public class FlushingPluginSink implements PluginSink {
      * Schedule the next flush, if applicable.
      */
     void scheduleNext() {
-        if (stopped)
+        if (stopped) {
             return;
+        }
 
-        if (flushInterval <= 0)
+        if (flushInterval <= 0) {
             return;
+        }
 
         final Runnable flusher = new Runnable() {
             @Override
@@ -311,10 +313,12 @@ public class FlushingPluginSink implements PluginSink {
         };
 
         if (log.isDebugEnabled()) {
-            log.debug("Scheduling next flush at {}", new Date(System.currentTimeMillis() + flushInterval));
+            log.debug("Scheduling next flush at {}",
+                new Date(System.currentTimeMillis() + flushInterval));
         }
 
-        final ScheduledFuture<?> next = scheduler.schedule(flusher, flushInterval, TimeUnit.MILLISECONDS);
+        final ScheduledFuture<?> next =
+            scheduler.schedule(flusher, flushInterval, TimeUnit.MILLISECONDS);
 
         final ScheduledFuture<?> future = nextFlush.getAndSet(next);
 
@@ -335,14 +339,15 @@ public class FlushingPluginSink implements PluginSink {
      *
      * The given parameter will be set as the next batch.
      *
-     * @param newBatch The next batch to flush, setting to {@code null} will cause all subsequent batches to be
+     * @param newBatch The next batch to flush, setting to {@code null} will cause all subsequent
+     * batches to be
      *            rejected.
      * @return A future associated with the current flush, or {@code null} if we are stopping.
      */
     AsyncFuture<Void> doFlush(Batch newBatch) {
         final Batch batch;
 
-        synchronized ($nextBatchLock) {
+        synchronized (nextBatchLock) {
             batch = nextBatch;
 
             if (batch == null) {
@@ -357,10 +362,11 @@ public class FlushingPluginSink implements PluginSink {
         }
 
         if (maxPendingFlushes > 0) {
-            synchronized ($pendingLock) {
+            synchronized (pendingLock) {
                 if (pending.size() >= maxPendingFlushes) {
-                    log.warn("Max number of pending flushes ({}) reached, dropping {} metric(s) and event(s)",
-                            pending.size(), batch.size());
+                    log.warn(
+                        "Max number of pending flushes ({}) reached, dropping {} metric(s) and " +
+                            "event(s)", pending.size(), batch.size());
                     statistics.reportDropped(batch.size());
                     return async.resolved();
                 }

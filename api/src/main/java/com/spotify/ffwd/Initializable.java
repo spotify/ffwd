@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -17,7 +16,8 @@
 package com.spotify.ffwd;
 
 /**
- * Interface to implement when you require post-start initialization of a component (e.g. guarantee that everything else
+ * Interface to implement when you require post-start initialization of a component (e.g.
+ * guarantee that everything else
  * has started).
  *
  * @author udoprog

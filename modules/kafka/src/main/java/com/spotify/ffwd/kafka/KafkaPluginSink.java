@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,14 +15,6 @@
  **/
 package com.spotify.ffwd.kafka;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
-
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Iterators;
 import com.google.inject.Inject;
@@ -31,12 +22,19 @@ import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchedPluginSink;
 import com.spotify.ffwd.serializer.Serializer;
-
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class KafkaPluginSink implements BatchedPluginSink {
@@ -144,12 +142,15 @@ public class KafkaPluginSink implements BatchedPluginSink {
     /**
      * Convert the given message iterator to an iterator of batches of a specific size.
      *
-     * This is an attempt to reduce the required maximum amount of live memory required at a single time.
+     * This is an attempt to reduce the required maximum amount of live memory required at a
+     * single time.
      *
      * @param iterator Iterator to convert into batches.
      * @return
      */
-    private Iterator<List<KeyedMessage<Integer, byte[]>>> toBatches(final Iterator<KeyedMessage<Integer, byte[]>> iterator) {
+    private Iterator<List<KeyedMessage<Integer, byte[]>>> toBatches(
+        final Iterator<KeyedMessage<Integer, byte[]>> iterator
+    ) {
         return Iterators.partition(iterator, batchSize);
     }
 
@@ -173,7 +174,9 @@ public class KafkaPluginSink implements BatchedPluginSink {
         }
     };
 
-    final <T> Iterator<KeyedMessage<Integer, byte[]>> iteratorFor(Iterable<? extends T> iterable, final Converter<T> converter) {
+    final <T> Iterator<KeyedMessage<Integer, byte[]>> iteratorFor(
+        Iterable<? extends T> iterable, final Converter<T> converter
+    ) {
         final Iterator<? extends T> iterator = iterable.iterator();
 
         return new Iterator<KeyedMessage<Integer, byte[]>>() {

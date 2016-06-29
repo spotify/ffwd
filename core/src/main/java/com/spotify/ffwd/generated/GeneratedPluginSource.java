@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,6 +15,16 @@
  **/
 package com.spotify.ffwd.generated;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.inject.Inject;
+import com.spotify.ffwd.input.InputManager;
+import com.spotify.ffwd.input.PluginSource;
+import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.output.OutputManager;
+import eu.toolchain.async.AsyncFramework;
+import eu.toolchain.async.AsyncFuture;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -25,17 +34,6 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.inject.Inject;
-import com.spotify.ffwd.input.InputManager;
-import com.spotify.ffwd.input.PluginSource;
-import com.spotify.ffwd.model.Metric;
-import com.spotify.ffwd.output.OutputManager;
-
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
 
 public class GeneratedPluginSource implements PluginSource {
     @Inject
@@ -91,19 +89,20 @@ public class GeneratedPluginSource implements PluginSource {
             final double value = 0.42 * i;
             final Date time = null;
             final String host = generateHost(i);
-            final Set<String> riemann_tags = ImmutableSet.of();
+            final Set<String> riemannTags = ImmutableSet.of();
             final Map<String, String> tags = ImmutableMap.of("what", "metric-" + i);
             final String proc = null;
 
-            metrics.add(new Metric(key, value, time, host, riemann_tags, tags, proc));
+            metrics.add(new Metric(key, value, time, host, riemannTags, tags, proc));
         }
 
         return metrics;
     }
 
     private String generateHost(int i) {
-        if (sameHost)
+        if (sameHost) {
             return "host";
+        }
 
         return "host" + i;
     }

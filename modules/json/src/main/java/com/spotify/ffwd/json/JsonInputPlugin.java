@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -45,41 +44,51 @@ public class JsonInputPlugin implements InputPlugin {
     private final RetryPolicy retry;
 
     @JsonCreator
-    public JsonInputPlugin(@JsonProperty("protocol") ProtocolFactory protocol,
-            @JsonProperty("delimiter") String delimiter, @JsonProperty("retry") RetryPolicy retry) {
-        this.protocol = Optional.fromNullable(protocol).or(ProtocolFactory.defaultFor())
-                .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
-        this.protocolServer = parseProtocolServer(Optional.fromNullable(delimiter).or(defaultDelimiter()));
+    public JsonInputPlugin(
+        @JsonProperty("protocol") ProtocolFactory protocol,
+        @JsonProperty("delimiter") String delimiter, @JsonProperty("retry") RetryPolicy retry
+    ) {
+        this.protocol = Optional
+            .fromNullable(protocol)
+            .or(ProtocolFactory.defaultFor())
+            .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
+        this.protocolServer =
+            parseProtocolServer(Optional.fromNullable(delimiter).or(defaultDelimiter()));
         this.retry = Optional.fromNullable(retry).or(new RetryPolicy.Exponential());
     }
 
     private String defaultDelimiter() {
-        if (protocol.getType() == ProtocolType.TCP)
+        if (protocol.getType() == ProtocolType.TCP) {
             return LINE;
+        }
 
-        if (protocol.getType() == ProtocolType.UDP)
+        if (protocol.getType() == ProtocolType.UDP) {
             return FRAME;
+        }
 
         return FRAME;
     }
 
     private Class<? extends ProtocolServer> parseProtocolServer(String delimiter) {
         if (FRAME.equals(delimiter)) {
-            if (protocol.getType() == ProtocolType.TCP)
+            if (protocol.getType() == ProtocolType.TCP) {
                 throw new IllegalArgumentException("frame-based decoding is not suitable for TCP");
+            }
 
             return JsonFrameProtocolServer.class;
         }
 
-        if (LINE.equals(delimiter))
+        if (LINE.equals(delimiter)) {
             return JsonLineProtocolServer.class;
+        }
 
         return defaultProtocolServer();
     }
 
     private Class<? extends ProtocolServer> defaultProtocolServer() {
-        if (protocol.getType() == ProtocolType.TCP)
+        if (protocol.getType() == ProtocolType.TCP) {
             return JsonLineProtocolServer.class;
+        }
 
         return JsonFrameProtocolServer.class;
     }

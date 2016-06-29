@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -27,7 +26,8 @@ public interface FastForwardModule {
     /**
      * Configure the external module.
      *
-     * The intention is for the module to inject and setup the hooks which it needs to perform its operation.
+     * The intention is for the module to inject and setup the hooks which it needs to perform
+     * its operation.
      */
     public void setup() throws Exception;
 }

@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,24 +15,21 @@
  **/
 package com.spotify.ffwd.protocol;
 
-import java.util.Collection;
-import java.util.concurrent.atomic.AtomicReference;
-
 import com.google.common.collect.ImmutableList;
+import com.google.inject.Inject;
 import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.filter.TrueFilter;
-import lombok.RequiredArgsConstructor;
-
-import org.slf4j.Logger;
-
-import com.google.inject.Inject;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchedPluginSink;
-
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.LazyTransform;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+
+import java.util.Collection;
+import java.util.concurrent.atomic.AtomicReference;
 
 @RequiredArgsConstructor
 public class ProtocolPluginSink implements BatchedPluginSink {
@@ -67,8 +63,9 @@ public class ProtocolPluginSink implements BatchedPluginSink {
     public void sendEvent(Event event) {
         final ProtocolConnection c = connection.get();
 
-        if (c == null)
+        if (c == null) {
             return;
+        }
 
         if (filter != null && !filter.matchesEvent(event)) {
             return;
@@ -81,8 +78,9 @@ public class ProtocolPluginSink implements BatchedPluginSink {
     public void sendMetric(Metric metric) {
         final ProtocolConnection c = connection.get();
 
-        if (c == null)
+        if (c == null) {
             return;
+        }
 
         if (filter != null && !filter.matchesMetric(metric)) {
             return;
@@ -95,8 +93,9 @@ public class ProtocolPluginSink implements BatchedPluginSink {
     public AsyncFuture<Void> sendEvents(Collection<Event> events) {
         final ProtocolConnection c = connection.get();
 
-        if (c == null)
+        if (c == null) {
             return async.failed(new IllegalStateException("not connected to " + protocol));
+        }
 
         return c.sendAll(filterEvents(events));
     }
@@ -105,8 +104,9 @@ public class ProtocolPluginSink implements BatchedPluginSink {
     public AsyncFuture<Void> sendMetrics(Collection<Metric> metrics) {
         final ProtocolConnection c = connection.get();
 
-        if (c == null)
+        if (c == null) {
             return async.failed(new IllegalStateException("not connected to " + protocol));
+        }
 
         return c.sendAll(filterMetrics(metrics));
     }
@@ -145,24 +145,27 @@ public class ProtocolPluginSink implements BatchedPluginSink {
 
     @Override
     public AsyncFuture<Void> start() {
-        return clients.connect(log, protocol, client, retry).lazyTransform(
-                new LazyTransform<ProtocolConnection, Void>() {
-            @Override
-            public AsyncFuture<Void> transform(ProtocolConnection result) throws Exception {
-                if (!connection.compareAndSet(null, result))
-                    return result.stop();
+        return clients
+            .connect(log, protocol, client, retry)
+            .lazyTransform(new LazyTransform<ProtocolConnection, Void>() {
+                @Override
+                public AsyncFuture<Void> transform(ProtocolConnection result) throws Exception {
+                    if (!connection.compareAndSet(null, result)) {
+                        return result.stop();
+                    }
 
-                return async.resolved(null);
-            }
-        });
+                    return async.resolved(null);
+                }
+            });
     }
 
     @Override
     public AsyncFuture<Void> stop() {
         final ProtocolConnection c = connection.getAndSet(null);
 
-        if (c == null)
+        if (c == null) {
             return async.resolved(null);
+        }
 
         return c.stop();
     }
@@ -171,8 +174,9 @@ public class ProtocolPluginSink implements BatchedPluginSink {
     public boolean isReady() {
         final ProtocolConnection c = connection.get();
 
-        if (c == null)
+        if (c == null) {
             return false;
+        }
 
         return c.isConnected();
     }

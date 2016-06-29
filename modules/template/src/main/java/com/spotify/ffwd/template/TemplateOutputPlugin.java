@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,9 +15,6 @@
  **/
 package com.spotify.ffwd.template;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
@@ -33,6 +29,8 @@ import com.spotify.ffwd.protocol.ProtocolFactory;
 import com.spotify.ffwd.protocol.ProtocolPluginSink;
 import com.spotify.ffwd.protocol.ProtocolType;
 import com.spotify.ffwd.protocol.RetryPolicy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TemplateOutputPlugin implements OutputPlugin {
     private static final ProtocolType DEFAULT_PROTOCOL = ProtocolType.TCP;
@@ -42,10 +40,14 @@ public class TemplateOutputPlugin implements OutputPlugin {
     private final RetryPolicy retry;
 
     @JsonCreator
-    public TemplateOutputPlugin(@JsonProperty("protocol") final ProtocolFactory protocol,
-            @JsonProperty("retry") final RetryPolicy retry) {
-        this.protocol = Optional.fromNullable(protocol).or(ProtocolFactory.defaultFor())
-                .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
+    public TemplateOutputPlugin(
+        @JsonProperty("protocol") final ProtocolFactory protocol,
+        @JsonProperty("retry") final RetryPolicy retry
+    ) {
+        this.protocol = Optional
+            .fromNullable(protocol)
+            .or(ProtocolFactory.defaultFor())
+            .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
         this.retry = Optional.fromNullable(retry).or(new RetryPolicy.Exponential());
     }
 

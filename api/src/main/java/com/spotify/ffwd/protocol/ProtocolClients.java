@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,11 +15,11 @@
  **/
 package com.spotify.ffwd.protocol;
 
+import eu.toolchain.async.AsyncFuture;
 import org.slf4j.Logger;
 
-import eu.toolchain.async.AsyncFuture;
-
 public interface ProtocolClients {
-    public AsyncFuture<ProtocolConnection> connect(Logger log, Protocol protocol, ProtocolClient client,
-            RetryPolicy policy);
+    public AsyncFuture<ProtocolConnection> connect(
+        Logger log, Protocol protocol, ProtocolClient client, RetryPolicy policy
+    );
 }

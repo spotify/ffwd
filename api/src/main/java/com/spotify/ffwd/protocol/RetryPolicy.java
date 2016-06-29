@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,8 +15,6 @@
  **/
 package com.spotify.ffwd.protocol;
 
-import java.util.concurrent.TimeUnit;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -25,25 +22,30 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.google.common.base.Optional;
 
+import java.util.concurrent.TimeUnit;
+
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes({ @JsonSubTypes.Type(RetryPolicy.Constant.class), @JsonSubTypes.Type(RetryPolicy.Exponential.class),
-        @JsonSubTypes.Type(RetryPolicy.Linear.class) })
+@JsonSubTypes({
+    @JsonSubTypes.Type(RetryPolicy.Constant.class),
+    @JsonSubTypes.Type(RetryPolicy.Exponential.class), @JsonSubTypes.Type(RetryPolicy.Linear.class)
+})
 public interface RetryPolicy {
     /**
      * Get the required delay in milliseconds.
-     *
+     * <p>
      * A value of {@code 0} or less will cause no delay.
      *
      * @param attempt A zero-based number indicating the current attempt.
      */
-    public long delay(int attempt);
+    long delay(int attempt);
 
     /**
      * A retry policy with a constant delay.
      */
     @JsonTypeName("constant")
-    public static class Constant implements RetryPolicy {
-        public static final long DEFAULT_VALUE = TimeUnit.MILLISECONDS.convert(10, TimeUnit.SECONDS);
+    class Constant implements RetryPolicy {
+        public static final long DEFAULT_VALUE =
+            TimeUnit.MILLISECONDS.convert(10, TimeUnit.SECONDS);
 
         private final long value;
 
@@ -62,19 +64,21 @@ public interface RetryPolicy {
      * A retry policy that increases delay exponentially.
      */
     @JsonTypeName("exponential")
-    public static class Exponential implements RetryPolicy {
-        public static final long DEFAULT_INITIAL = TimeUnit.MILLISECONDS.convert(2, TimeUnit.SECONDS);
+    class Exponential implements RetryPolicy {
+        public static final long DEFAULT_INITIAL =
+            TimeUnit.MILLISECONDS.convert(2, TimeUnit.SECONDS);
         public static final long DEFAULT_MAX = TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES);
 
         private final long initial;
         private final long max;
-        private final int max_attempt;
+        private final int maxAttempt;
 
         @JsonCreator
         public Exponential(@JsonProperty("initial") Long initial, @JsonProperty("max") Long max) {
             this.initial = Optional.fromNullable(initial).or(DEFAULT_INITIAL);
             this.max = Optional.fromNullable(max).or(DEFAULT_MAX);
-            this.max_attempt = new Double(Math.floor(Math.log(this.max / this.initial) / Math.log(2))).intValue();
+            this.maxAttempt =
+                new Double(Math.floor(Math.log(this.max / this.initial) / Math.log(2))).intValue();
         }
 
         public Exponential() {
@@ -83,7 +87,7 @@ public interface RetryPolicy {
 
         @Override
         public long delay(int attempt) {
-            if (attempt > max_attempt) {
+            if (attempt > maxAttempt) {
                 return max;
             }
             return initial * (long) Math.pow(2, attempt);
@@ -94,24 +98,24 @@ public interface RetryPolicy {
      * A retry policy that increases delay linearly.
      */
     @JsonTypeName("linear")
-    public static class Linear implements RetryPolicy {
+    class Linear implements RetryPolicy {
         public static final long DEFAULT_VALUE = TimeUnit.MILLISECONDS.convert(2, TimeUnit.SECONDS);
         public static final long DEFAULT_MAX = TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES);
 
         private final long value;
         private final long max;
-        private final int max_attempt;
+        private final int maxAttempt;
 
         @JsonCreator
         public Linear(@JsonProperty("value") Long value, @JsonProperty("max") Long max) {
             this.value = Optional.fromNullable(value).or(DEFAULT_VALUE);
             this.max = Optional.fromNullable(max).or(DEFAULT_MAX);
-            this.max_attempt = (int) ((this.max / this.value) - 1);
+            this.maxAttempt = (int) ((this.max / this.value) - 1);
         }
 
         @Override
         public long delay(int attempt) {
-            if (attempt > max_attempt) {
+            if (attempt > maxAttempt) {
                 return max;
             }
             return value * (attempt + 1);

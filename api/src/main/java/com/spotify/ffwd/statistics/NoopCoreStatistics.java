@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -17,57 +16,60 @@
 package com.spotify.ffwd.statistics;
 
 public class NoopCoreStatistics implements CoreStatistics {
-    private static final InputManagerStatistics noopInputManagerStatistics = new InputManagerStatistics() {
-        @Override
-        public void reportReceivedMetrics(int received) {
-        }
+    private static final InputManagerStatistics noopInputManagerStatistics =
+        new InputManagerStatistics() {
+            @Override
+            public void reportReceivedMetrics(int received) {
+            }
 
-        @Override
-        public void reportReceivedEvents(int received) {
-        }
+            @Override
+            public void reportReceivedEvents(int received) {
+            }
 
-        @Override
-        public void reportEventsDroppedByFilter(int dropped) {
-        }
+            @Override
+            public void reportEventsDroppedByFilter(int dropped) {
+            }
 
-        @Override
-        public void reportMetricsDroppedByFilter(int dropped) {
-        }
-    };
+            @Override
+            public void reportMetricsDroppedByFilter(int dropped) {
+            }
+        };
 
     @Override
     public InputManagerStatistics newInputManager() {
         return noopInputManagerStatistics;
     }
 
-    private static final OutputManagerStatistics noopOutputManagerStatistics = new OutputManagerStatistics() {
-        @Override
-        public void reportSentMetrics(int sent) {
-        }
+    private static final OutputManagerStatistics noopOutputManagerStatistics =
+        new OutputManagerStatistics() {
+            @Override
+            public void reportSentMetrics(int sent) {
+            }
 
-        @Override
-        public void reportSentEvents(int sent) {
-        }
+            @Override
+            public void reportSentEvents(int sent) {
+            }
 
-        @Override
-        public void reportEventsDroppedByFilter(int dropped) {
-        }
+            @Override
+            public void reportEventsDroppedByFilter(int dropped) {
+            }
 
-        @Override
-        public void reportMetricsDroppedByFilter(int dropped) {
-        }
-    };
+            @Override
+            public void reportMetricsDroppedByFilter(int dropped) {
+            }
+        };
 
     @Override
     public OutputManagerStatistics newOutputManager() {
         return noopOutputManagerStatistics;
     }
 
-    private static final OutputPluginStatistics noopOutputPluginStatistics = new OutputPluginStatistics() {
-        @Override
-        public void reportDropped(int dropped) {
-        }
-    };
+    private static final OutputPluginStatistics noopOutputPluginStatistics =
+        new OutputPluginStatistics() {
+            @Override
+            public void reportDropped(int dropped) {
+            }
+        };
 
     @Override
     public OutputPluginStatistics newOutputPlugin(String id) {

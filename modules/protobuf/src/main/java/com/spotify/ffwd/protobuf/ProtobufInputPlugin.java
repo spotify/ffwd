@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -40,20 +39,25 @@ public class ProtobufInputPlugin implements InputPlugin {
     private final RetryPolicy retry;
 
     @JsonCreator
-    public ProtobufInputPlugin(@JsonProperty("protocol") ProtocolFactory protocol,
-            @JsonProperty("retry") RetryPolicy retry) {
-        this.protocol = Optional.fromNullable(protocol).or(ProtocolFactory.defaultFor())
-                .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
+    public ProtobufInputPlugin(
+        @JsonProperty("protocol") ProtocolFactory protocol, @JsonProperty("retry") RetryPolicy retry
+    ) {
+        this.protocol = Optional
+            .fromNullable(protocol)
+            .or(ProtocolFactory.defaultFor())
+            .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
         this.protocolServer = parseProtocolServer();
         this.retry = Optional.fromNullable(retry).or(new RetryPolicy.Exponential());
     }
 
     private Class<? extends ProtocolServer> parseProtocolServer() {
-        if (protocol.getType() == ProtocolType.UDP)
+        if (protocol.getType() == ProtocolType.UDP) {
             return ProtobufFrameProtocolServer.class;
+        }
 
-        if (protocol.getType() == ProtocolType.TCP)
+        if (protocol.getType() == ProtocolType.TCP) {
             return ProtobufLengthPrefixedProtocolServer.class;
+        }
 
         throw new IllegalArgumentException("Protocol not supported: " + protocol.getType());
     }

@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -17,7 +16,6 @@
 package com.spotify.ffwd.input;
 
 import com.spotify.ffwd.Initializable;
-
 import eu.toolchain.async.AsyncFuture;
 
 public interface PluginSource extends Initializable {

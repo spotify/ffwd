@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,8 +15,6 @@
  **/
 package com.spotify.ffwd.module;
 
-import lombok.Data;
-
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.inject.Inject;
@@ -25,6 +22,7 @@ import com.google.inject.name.Named;
 import com.spotify.ffwd.input.InputPlugin;
 import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.serializer.Serializer;
+import lombok.Data;
 
 @Data
 public class PluginContextImpl implements PluginContext {

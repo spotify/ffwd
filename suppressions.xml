@@ -5,6 +5,7 @@
 <suppressions>
     <suppress files="[\\/]generated-sources[\\/]" checks="." />
     <suppress files="[\\/]protobuf250[\\/]" checks="." />
+    <suppress files="[\\/]aphyr[\\/]riemann[\\/]Proto\.java" checks="." />
     <suppress files=".+Test\.java$" checks="Header" />
     <suppress files="\.cql$" checks="." />
     <suppress files="\.json$" checks="." />

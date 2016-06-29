@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,6 +15,11 @@
  **/
 package com.spotify.ffwd.riemann;
 
+import com.aphyr.riemann.Proto;
+import com.google.common.collect.ImmutableList;
+import com.spotify.ffwd.model.Event;
+import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.protobuf250.InvalidProtocolBufferException;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
@@ -32,19 +36,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.aphyr.riemann.Proto;
-import com.google.common.collect.ImmutableList;
-import com.spotify.ffwd.model.Event;
-import com.spotify.ffwd.model.Metric;
-import com.spotify.ffwd.protobuf250.InvalidProtocolBufferException;
-
 public class RiemannSerialization {
-    private final Set<String> riemann_tags;
+    private final Set<String> riemannTags;
 
-    public RiemannSerialization(Set<String> riemann_tags) {
-        this.riemann_tags = riemann_tags;
+    public RiemannSerialization(Set<String> riemannTags) {
+        this.riemannTags = riemannTags;
     }
-
 
     public Proto.Msg parse0(ByteBuf buffer) throws IOException {
         final InputStream inputStream = new ByteBufInputStream(buffer);
@@ -59,13 +56,15 @@ public class RiemannSerialization {
     public List<Object> decode0(Proto.Msg message) throws IOException {
         final List<com.aphyr.riemann.Proto.Event> source = message.getEventsList();
 
-        if (source.isEmpty())
+        if (source.isEmpty()) {
             return ImmutableList.of();
+        }
 
         final List<Object> events = new ArrayList<>();
 
-        for (Proto.Event e : source)
+        for (Proto.Event e : source) {
             events.add(decodeEvent0(e));
+        }
 
         return events;
     }
@@ -106,19 +105,21 @@ public class RiemannSerialization {
     private Proto.Event.Builder encodeMetric0(final Metric d) {
         final Proto.Event.Builder b = Proto.Event.newBuilder();
 
-        if (d.getKey() != null)
+        if (d.getKey() != null) {
             b.setService(d.getKey());
+        }
 
-        if (d.getHost() != null)
+        if (d.getHost() != null) {
             b.setHost(d.getHost());
+        }
 
         b.setMetricD(d.getValue());
         b.addAllAttributes(convertTags0(d.getTags()));
 
-        final Set<String> riemann_tags = new HashSet<>(this.riemann_tags);
-        riemann_tags.addAll(d.getRiemann_tags());
+        final Set<String> riemannTags = new HashSet<>(this.riemannTags);
+        riemannTags.addAll(d.getRiemannTags());
 
-        b.addAllTags(riemann_tags);
+        b.addAllTags(riemannTags);
         b.setTime(toRiemannTime(d.getTime()));
 
         return b;
@@ -126,28 +127,32 @@ public class RiemannSerialization {
 
     private Proto.Event.Builder encodeEvent0(final Event d) {
         final Proto.Event.Builder b = Proto.Event.newBuilder();
-        if (d.getKey() != null)
+        if (d.getKey() != null) {
             b.setService(d.getKey());
+        }
 
-        if (d.getHost() != null)
+        if (d.getHost() != null) {
             b.setHost(d.getHost());
+        }
 
         b.setMetricD(d.getValue());
         b.addAllAttributes(convertTags0(d.getTags()));
 
-        final Set<String> riemann_tags = new HashSet<>(this.riemann_tags);
-        riemann_tags.addAll(d.getRiemann_tags());
+        final Set<String> riemannTags = new HashSet<>(this.riemannTags);
+        riemannTags.addAll(d.getRiemannTags());
 
-        b.addAllTags(riemann_tags);
+        b.addAllTags(riemannTags);
         b.setTime(toRiemannTime(d.getTime()));
 
-        if (d.getDescription() != null)
+        if (d.getDescription() != null) {
             b.setDescription(d.getDescription());
+        }
 
         b.setTtl(d.getTtl());
 
-        if (d.getState() != null)
+        if (d.getState() != null) {
             b.setState(d.getState());
+        }
 
         return b;
     }
@@ -155,8 +160,10 @@ public class RiemannSerialization {
     private Iterable<? extends Proto.Attribute> convertTags0(Map<String, String> tags) {
         final List<Proto.Attribute> attributes = new ArrayList<>();
 
-        for (final Map.Entry<String, String> tag : tags.entrySet())
-            attributes.add(Proto.Attribute.newBuilder().setKey(tag.getKey()).setValue(tag.getValue()).build());
+        for (final Map.Entry<String, String> tag : tags.entrySet()) {
+            attributes.add(
+                Proto.Attribute.newBuilder().setKey(tag.getKey()).setValue(tag.getValue()).build());
+        }
 
         return attributes;
     }
@@ -164,21 +171,25 @@ public class RiemannSerialization {
     private Map<String, String> convertTags0(List<Proto.Attribute> attributesList) {
         final Map<String, String> tags = new HashMap<>();
 
-        for (final Proto.Attribute a : attributesList)
+        for (final Proto.Attribute a : attributesList) {
             tags.put(a.getKey(), a.getValue());
+        }
 
         return tags;
     }
 
     private double convertValue0(Proto.Event e) {
-        if (e.hasMetricD())
+        if (e.hasMetricD()) {
             return e.getMetricD();
+        }
 
-        if (e.hasMetricSint64())
+        if (e.hasMetricSint64()) {
             return e.getMetricSint64();
+        }
 
-        if (e.hasMetricF())
+        if (e.hasMetricF()) {
             return e.getMetricF();
+        }
 
         return Double.NaN;
     }
@@ -190,12 +201,12 @@ public class RiemannSerialization {
         final String state = event.hasState() ? event.getState() : null;
         final String description = event.hasDescription() ? event.getDescription() : null;
         final String host = event.hasHost() ? event.getHost() : null;
-        final Set<String> riemann_tags = new HashSet<>(event.getTagsList());
+        final Set<String> riemannTags = new HashSet<>(event.getTagsList());
         final Map<String, String> tags = convertTags0(event.getAttributesList());
 
         final double value = convertValue0(event);
 
-        return new Event(service, value, time, ttl, state, description, host, riemann_tags, tags);
+        return new Event(service, value, time, ttl, state, description, host, riemannTags, tags);
     }
 
     private Date fromRiemannTime(long time) {

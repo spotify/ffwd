@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,13 +15,12 @@
  **/
 package com.spotify.ffwd.protocol;
 
-import java.net.InetSocketAddress;
-
-import lombok.Data;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Supplier;
+import lombok.Data;
+
+import java.net.InetSocketAddress;
 
 /**
  * Data type suitable for building using a @JsonCreator block.
@@ -39,8 +37,11 @@ public class ProtocolFactory {
     private final Integer receiveBufferSize;
 
     @JsonCreator
-    public ProtocolFactory(@JsonProperty("type") String type, @JsonProperty("host") String host,
-            @JsonProperty("port") Integer port, @JsonProperty("receiveBufferSize") Integer receiveBufferSize) {
+    public ProtocolFactory(
+        @JsonProperty("type") String type, @JsonProperty("host") String host,
+        @JsonProperty("port") Integer port,
+        @JsonProperty("receiveBufferSize") Integer receiveBufferSize
+    ) {
         this.type = type;
         this.host = host;
         this.port = port;
@@ -49,7 +50,7 @@ public class ProtocolFactory {
 
     /**
      * Build a default instance of {@link ProtocolFactory}.
-     * 
+     *
      * @return
      */
     public static Supplier<ProtocolFactory> defaultFor() {
@@ -82,27 +83,34 @@ public class ProtocolFactory {
         return new Protocol(t, address, receiveBufferSize);
     }
 
-    private InetSocketAddress parseSocketAddress(String host, Integer port, int defaultPort, String defaultHost) {
-        if (host == null)
+    private InetSocketAddress parseSocketAddress(
+        String host, Integer port, int defaultPort, String defaultHost
+    ) {
+        if (host == null) {
             host = defaultHost;
+        }
 
-        if (port == null)
+        if (port == null) {
             port = defaultPort;
+        }
 
         return new InetSocketAddress(host, port);
     }
 
     private ProtocolType parseProtocolType(String type, ProtocolType defaultType) {
-        if (type == null)
+        if (type == null) {
             return defaultType;
+        }
 
         type = type.toUpperCase();
 
-        if (ProtocolType.TCP.name().equals(type))
+        if (ProtocolType.TCP.name().equals(type)) {
             return ProtocolType.TCP;
+        }
 
-        if (ProtocolType.UDP.name().equals(type))
+        if (ProtocolType.UDP.name().equals(type)) {
             return ProtocolType.UDP;
+        }
 
         throw new IllegalArgumentException("Invalid protocol type: " + type);
     }

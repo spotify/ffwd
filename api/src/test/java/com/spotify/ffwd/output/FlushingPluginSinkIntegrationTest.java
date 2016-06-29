@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -110,7 +109,7 @@ public class FlushingPluginSinkIntegrationTest {
 
         // Metrics will have been divided into batches because none of the batches have been successfully sent yet,
         // which is indicated by resolving `sendFuture'.
-        synchronized (sink.$pendingLock) {
+        synchronized (sink.pendingLock) {
             assertEquals(batches, sink.pending.size());
         }
 
@@ -118,7 +117,7 @@ public class FlushingPluginSinkIntegrationTest {
         sendFuture.resolve(null);
 
         // all pending batches should have been marked as sent.
-        synchronized (sink.$pendingLock) {
+        synchronized (sink.pendingLock) {
             assertEquals(0, sink.pending.size());
         }
 

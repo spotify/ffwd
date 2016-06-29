@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,13 +15,6 @@
  **/
 package com.spotify.ffwd;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
@@ -30,8 +22,14 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.Maps;
 import com.spotify.ffwd.input.InputManagerModule;
 import com.spotify.ffwd.output.OutputManagerModule;
-
 import lombok.Data;
+
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Map;
 
 @Data
 public class AgentConfig {
@@ -56,24 +54,28 @@ public class AgentConfig {
     private final Path qlog;
 
     @JsonCreator
-    public AgentConfig(@JsonProperty("debug") Debug debug, @JsonProperty("host") String host,
-            @JsonProperty("tags") Map<String, String> tags,
-            @JsonProperty("input") InputManagerModule input, @JsonProperty("output") OutputManagerModule output,
-            @JsonProperty("asyncThreads") Integer asyncThreads,
-            @JsonProperty("schedulerThreads") Integer schedulerThreads,
-            @JsonProperty("bossThreads") Integer bossThreads,
-            @JsonProperty("workerThreads") Integer workerThreads, @JsonProperty("ttl") Long ttl,
-            @JsonProperty("qlog") String qlog) {
+    public AgentConfig(
+        @JsonProperty("debug") Debug debug, @JsonProperty("host") String host,
+        @JsonProperty("tags") Map<String, String> tags,
+        @JsonProperty("input") InputManagerModule input,
+        @JsonProperty("output") OutputManagerModule output,
+        @JsonProperty("asyncThreads") Integer asyncThreads,
+        @JsonProperty("schedulerThreads") Integer schedulerThreads,
+        @JsonProperty("bossThreads") Integer bossThreads,
+        @JsonProperty("workerThreads") Integer workerThreads, @JsonProperty("ttl") Long ttl,
+        @JsonProperty("qlog") String qlog
+    ) {
         this.debug = Optional.fromNullable(debug);
         this.host = Optional.fromNullable(host).or(this.defaultHostSupplier());
         this.tags = Optional.fromNullable(tags).or(DEFAULT_TAGS);
         this.input = Optional.fromNullable(input).or(InputManagerModule.supplyDefault());
         this.output = Optional.fromNullable(output).or(OutputManagerModule.supplyDefault());
         this.asyncThreads = Optional.fromNullable(asyncThreads).or(DEFAULT_ASYNC_THREADS);
-        this.schedulerThreads = Optional.fromNullable(schedulerThreads).or(DEFAULT_SCHEDULER_THREADS);
-        this.bossThreads = Optional.fromNullable(workerThreads).or(DEFAULT_BOSS_THREADS);  // XXX: Cut'n'paste error?
+        this.schedulerThreads =
+            Optional.fromNullable(schedulerThreads).or(DEFAULT_SCHEDULER_THREADS);
+        this.bossThreads = Optional.fromNullable(bossThreads).or(DEFAULT_BOSS_THREADS);
         this.workerThreads = Optional.fromNullable(workerThreads).or(DEFAULT_WORKER_THREADS);
-        this.ttl = Optional.fromNullable(ttl).or(0l);
+        this.ttl = Optional.fromNullable(ttl).or(0L);
         this.qlog = Paths.get(Optional.fromNullable(qlog).or(DEFAULT_QLOG));
     }
 
@@ -104,7 +106,7 @@ public class AgentConfig {
         @JsonCreator
         public Debug(@JsonProperty("host") String host, @JsonProperty("port") Integer port) {
             this.localAddress = buildLocalAddress(Optional.fromNullable(host).or(DEFAULT_HOST),
-                    Optional.fromNullable(port).or(DEFAULT_PORT));
+                Optional.fromNullable(port).or(DEFAULT_PORT));
         }
 
         private InetSocketAddress buildLocalAddress(String host, Integer port) {

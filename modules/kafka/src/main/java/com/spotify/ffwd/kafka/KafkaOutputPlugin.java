@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,10 +15,6 @@
  **/
 package com.spotify.ffwd.kafka;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
@@ -34,9 +29,12 @@ import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.output.OutputPluginModule;
 import com.spotify.ffwd.output.PluginSink;
 import com.spotify.ffwd.serializer.Serializer;
-
 import kafka.javaapi.producer.Producer;
 import kafka.producer.ProducerConfig;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 public class KafkaOutputPlugin implements OutputPlugin {
     public static final int DEFAULT_BATCH_SIZE = 1000;
@@ -51,11 +49,15 @@ public class KafkaOutputPlugin implements OutputPlugin {
     private final boolean compression;
 
     @JsonCreator
-    public KafkaOutputPlugin(@JsonProperty("producer") Map<String, String> properties,
-            @JsonProperty("flushInterval") Long flushInterval, @JsonProperty("router") KafkaRouter router,
-            @JsonProperty("partitioner") KafkaPartitioner partitioner,
-            @JsonProperty("serializer") Serializer serializer, @JsonProperty("batchSize") Integer batchSize,
-            @JsonProperty("compression") Boolean compression) {
+    public KafkaOutputPlugin(
+        @JsonProperty("producer") Map<String, String> properties,
+        @JsonProperty("flushInterval") Long flushInterval,
+        @JsonProperty("router") KafkaRouter router,
+        @JsonProperty("partitioner") KafkaPartitioner partitioner,
+        @JsonProperty("serializer") Serializer serializer,
+        @JsonProperty("batchSize") Integer batchSize,
+        @JsonProperty("compression") Boolean compression
+    ) {
         this.router = Optional.fromNullable(router).or(KafkaRouter.Tag.supplier());
         this.partitioner = Optional.fromNullable(partitioner).or(KafkaPartitioner.Host.supplier());
         this.flushInterval = Optional.fromNullable(flushInterval).orNull();
@@ -113,8 +115,9 @@ public class KafkaOutputPlugin implements OutputPlugin {
     public String id(int index) {
         final String brokers = properties.get("metadata.broker.list");
 
-        if (brokers != null)
+        if (brokers != null) {
             return brokers;
+        }
 
         return Integer.toString(index);
     }

@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,11 +15,6 @@
  **/
 package com.spotify.ffwd.output;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
@@ -30,14 +24,18 @@ import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.statistics.OutputManagerStatistics;
-
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
 @Slf4j
 public class CoreOutputManager implements OutputManager {
-    private final String DEBUG_ID = "core.output";
+    private static final String DEBUG_ID = "core.output";
 
     @Inject
     private List<PluginSink> sinks;
@@ -88,9 +86,11 @@ public class CoreOutputManager implements OutputManager {
 
         debug.inspectEvent(DEBUG_ID, filtered);
 
-        for (final PluginSink s : sinks)
-            if (s.isReady())
+        for (final PluginSink s : sinks) {
+            if (s.isReady()) {
                 s.sendEvent(filtered);
+            }
+        }
     }
 
     @Override
@@ -106,17 +106,20 @@ public class CoreOutputManager implements OutputManager {
 
         debug.inspectMetric(DEBUG_ID, filtered);
 
-        for (final PluginSink s : sinks)
-            if (s.isReady())
+        for (final PluginSink s : sinks) {
+            if (s.isReady()) {
                 s.sendMetric(filtered);
+            }
+        }
     }
 
     @Override
     public AsyncFuture<Void> start() {
         final ArrayList<AsyncFuture<Void>> futures = Lists.newArrayList();
 
-        for (final PluginSink s : sinks)
+        for (final PluginSink s : sinks) {
             futures.add(s.start());
+        }
 
         return async.collectAndDiscard(futures);
     }
@@ -125,8 +128,9 @@ public class CoreOutputManager implements OutputManager {
     public AsyncFuture<Void> stop() {
         final ArrayList<AsyncFuture<Void>> futures = Lists.newArrayList();
 
-        for (final PluginSink s : sinks)
+        for (final PluginSink s : sinks) {
             futures.add(s.stop());
+        }
 
         return async.collectAndDiscard(futures);
     }
@@ -135,34 +139,37 @@ public class CoreOutputManager implements OutputManager {
      * Filter the provided Event and complete fields.
      */
     private Event filter(Event event) {
-        if (tags.isEmpty() && ttl == 0)
+        if (tags.isEmpty() && ttl == 0) {
             return event;
+        }
 
         final String host = event.getHost() != null ? event.getHost() : this.host;
-        final Map<String, String> merged_tags = Maps.newHashMap(tags);
-        merged_tags.putAll(event.getTags());
+        final Map<String, String> mergedTags = Maps.newHashMap(tags);
+        mergedTags.putAll(event.getTags());
 
         final Date time = event.getTime() != null ? event.getTime() : new Date();
         final Long ttl = event.getTtl() != 0 ? event.getTtl() : this.ttl;
 
         return new Event(event.getKey(), event.getValue(), time, ttl, event.getState(),
-                event.getDescription(), host, event.getRiemann_tags(), merged_tags);
+            event.getDescription(), host, event.getRiemannTags(), mergedTags);
     }
 
     /**
      * Filter the provided Metric and complete fields.
      */
     private Metric filter(Metric metric) {
-        if (tags.isEmpty())
+        if (tags.isEmpty()) {
             return metric;
+        }
 
         final String host = metric.getHost() != null ? metric.getHost() : this.host;
 
-        final Map<String, String> merged_tags = Maps.newHashMap(tags);
-        merged_tags.putAll(metric.getTags());
+        final Map<String, String> mergedTags = Maps.newHashMap(tags);
+        mergedTags.putAll(metric.getTags());
 
         final Date time = metric.getTime() != null ? metric.getTime() : new Date();
 
-        return new Metric(metric.getKey(), metric.getValue(), time, host, metric.getRiemann_tags(), merged_tags, metric.getProc());
+        return new Metric(metric.getKey(), metric.getValue(), time, host, metric.getRiemannTags(),
+            mergedTags, metric.getProc());
     }
 }

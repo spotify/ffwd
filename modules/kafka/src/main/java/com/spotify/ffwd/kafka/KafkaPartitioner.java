@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -26,15 +25,17 @@ import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes({ @JsonSubTypes.Type(value = KafkaPartitioner.Tag.class, name = "tag"),
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = KafkaPartitioner.Tag.class, name = "tag"),
     @JsonSubTypes.Type(value = KafkaPartitioner.Hashed.class, name = "static"),
-    @JsonSubTypes.Type(value = KafkaPartitioner.Host.class, name = "host")})
+    @JsonSubTypes.Type(value = KafkaPartitioner.Host.class, name = "host")
+})
 public interface KafkaPartitioner {
-    public int partition(final Event event);
+    int partition(final Event event);
 
-    public int partition(final Metric metric);
+    int partition(final Metric metric);
 
-    public static class Host implements KafkaPartitioner {
+    class Host implements KafkaPartitioner {
         @JsonCreator
         public Host() {
         }
@@ -59,7 +60,7 @@ public interface KafkaPartitioner {
         }
     }
 
-    public static class Tag implements KafkaPartitioner {
+    class Tag implements KafkaPartitioner {
         private static final String DEFAULT_TAGKEY = "site";
 
         private final String tagKey;
@@ -73,20 +74,24 @@ public interface KafkaPartitioner {
         public int partition(final Event event) {
             final String tagValue = event.getTags().get(tagKey);
 
-            if (tagValue != null)
+            if (tagValue != null) {
                 return tagValue.hashCode();
+            }
 
-            throw new IllegalArgumentException(String.format("missing tag '%s' for event %s", tagKey, event));
+            throw new IllegalArgumentException(
+                String.format("missing tag '%s' for event %s", tagKey, event));
         }
 
         @Override
         public int partition(final Metric metric) {
             final String tagValue = metric.getTags().get(tagKey);
 
-            if (tagValue != null)
+            if (tagValue != null) {
                 return tagValue.hashCode();
+            }
 
-            throw new IllegalArgumentException(String.format("missing tag '%s' for metric %s", tagKey, metric));
+            throw new IllegalArgumentException(
+                String.format("missing tag '%s' for metric %s", tagKey, metric));
         }
 
         public static Supplier<KafkaPartitioner> supplier() {
@@ -99,7 +104,7 @@ public interface KafkaPartitioner {
         }
     }
 
-    public static class Hashed implements KafkaPartitioner {
+    class Hashed implements KafkaPartitioner {
         @JsonCreator
         public Hashed() {
         }

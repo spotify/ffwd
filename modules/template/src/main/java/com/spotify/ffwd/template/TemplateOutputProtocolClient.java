@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,12 +15,11 @@
  **/
 package com.spotify.ffwd.template;
 
+import com.google.inject.Inject;
+import com.spotify.ffwd.protocol.ProtocolClient;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.handler.codec.string.StringEncoder;
-
-import com.google.inject.Inject;
-import com.spotify.ffwd.protocol.ProtocolClient;
 
 public class TemplateOutputProtocolClient implements ProtocolClient {
     @Inject

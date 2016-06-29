@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,9 +15,9 @@
  **/
 package com.spotify.ffwd.protocol;
 
-import java.net.InetSocketAddress;
-
 import lombok.Data;
+
+import java.net.InetSocketAddress;
 
 @Data
 public class Protocol {
@@ -28,6 +27,7 @@ public class Protocol {
 
     @Override
     public String toString() {
-        return String.format("%s://%s:%d", type.toString().toLowerCase(), address.getHostName(), address.getPort());
+        return String.format("%s://%s:%d", type.toString().toLowerCase(), address.getHostName(),
+            address.getPort());
     }
 }

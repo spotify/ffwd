@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -46,36 +45,45 @@ public class CarbonInputPlugin implements InputPlugin {
     private final String metricKey;
 
     @JsonCreator
-    public CarbonInputPlugin(@JsonProperty("protocol") final ProtocolFactory protocol,
-            @JsonProperty("delimiter") final String delimiter, @JsonProperty("retry") final RetryPolicy retry,
-            @JsonProperty("key") final String key) {
-        this.protocol = Optional.fromNullable(protocol).or(ProtocolFactory.defaultFor())
-                .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
-        this.protocolServer = parseProtocolServer(Optional.fromNullable(delimiter).or(defaultDelimiter()));
+    public CarbonInputPlugin(
+        @JsonProperty("protocol") final ProtocolFactory protocol,
+        @JsonProperty("delimiter") final String delimiter,
+        @JsonProperty("retry") final RetryPolicy retry, @JsonProperty("key") final String key
+    ) {
+        this.protocol = Optional
+            .fromNullable(protocol)
+            .or(ProtocolFactory.defaultFor())
+            .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
+        this.protocolServer =
+            parseProtocolServer(Optional.fromNullable(delimiter).or(defaultDelimiter()));
         this.retry = Optional.fromNullable(retry).or(new RetryPolicy.Exponential());
         this.metricKey = Optional.fromNullable(key).or(DEFAULT_KEY);
     }
 
     private String defaultDelimiter() {
-        if (protocol.getType() == ProtocolType.TCP)
+        if (protocol.getType() == ProtocolType.TCP) {
             return LINE;
+        }
 
-        if (protocol.getType() == ProtocolType.UDP)
+        if (protocol.getType() == ProtocolType.UDP) {
             throw new IllegalArgumentException("udp protocol is not supported yet");
+        }
 
         return LINE;
     }
 
     private Class<? extends ProtocolServer> parseProtocolServer(final String delimiter) {
         if (FRAME.equals(delimiter)) {
-            if (protocol.getType() == ProtocolType.TCP)
+            if (protocol.getType() == ProtocolType.TCP) {
                 throw new IllegalArgumentException("frame-based decoding is not suitable for TCP");
+            }
 
             throw new IllegalArgumentException("frame-based decoding is not supported yet");
         }
 
-        if (LINE.equals(delimiter))
+        if (LINE.equals(delimiter)) {
             return CarbonLineServer.class;
+        }
 
         return defaultProtocolServer();
     }

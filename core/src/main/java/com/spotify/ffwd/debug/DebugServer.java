@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -18,7 +17,6 @@ package com.spotify.ffwd.debug;
 
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
-
 import eu.toolchain.async.AsyncFuture;
 
 public interface DebugServer {

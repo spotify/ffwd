@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -15,6 +14,15 @@
  * the License.
  **/
 package com.spotify.ffwd.qlog;
+
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+import eu.toolchain.async.AsyncFramework;
+import eu.toolchain.async.AsyncFuture;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.DataInput;
 import java.io.DataInputStream;
@@ -34,17 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
-
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
-
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
-
 @Slf4j
 public class QLogManagerImpl implements QLogManager {
     private static final Charset UTF8 = Charset.forName("UTF-8");
@@ -54,7 +51,7 @@ public class QLogManagerImpl implements QLogManager {
     private static final String INDEX = "index";
 
     // 'FFLG'
-    private static final byte[] MAGIC = new byte[] { 0x46, 0x46, 0x4c, 0x47 };
+    private static final byte[] MAGIC = new byte[]{0x46, 0x46, 0x4c, 0x47};
     private static final int HEADER_BASE_SIZE = MAGIC.length + 8;
     private static final int BUFFER_SIZE = 4096;
     private static final int CURRENT_VERSION = 0;
@@ -63,7 +60,7 @@ public class QLogManagerImpl implements QLogManager {
     private final AsyncFramework async;
     private final int maxLogSize;
 
-    private final Object $lock = new Object();
+    private final Object lock = new Object();
     private volatile boolean setup = false;
 
     // buffer to the tail log.
@@ -78,8 +75,9 @@ public class QLogManagerImpl implements QLogManager {
     }
 
     public QLogManagerImpl(final Path path, final AsyncFramework async, int maxLogSize) {
-        if (maxLogSize < MINIMUM_MAX_LOG_SIZE)
+        if (maxLogSize < MINIMUM_MAX_LOG_SIZE) {
             throw new IllegalArgumentException("maxLogSize");
+        }
 
         this.path = path;
         this.async = async;
@@ -93,10 +91,11 @@ public class QLogManagerImpl implements QLogManager {
      */
     @Override
     public void trim(final long position) {
-        if (!setup)
+        if (!setup) {
             throw new IllegalStateException("not setup");
+        }
 
-        synchronized ($lock) {
+        synchronized (lock) {
             final Iterator<Header> iter = headers.iterator();
 
             final List<Header> unlink = Lists.newArrayList();
@@ -106,8 +105,9 @@ public class QLogManagerImpl implements QLogManager {
             while (iter.hasNext()) {
                 final Header next = iter.next();
 
-                if (next.offset() >= position)
+                if (next.offset() >= position) {
                     break;
+                }
 
                 unlink.add(current);
                 current = next;
@@ -129,20 +129,22 @@ public class QLogManagerImpl implements QLogManager {
 
     @Override
     public void trim() {
-        if (!setup)
+        if (!setup) {
             throw new IllegalStateException("not setup");
+        }
 
-        synchronized ($lock) {
+        synchronized (lock) {
             trim(maxOffset());
         }
     }
 
     @Override
     public void update(String id, long position) {
-        if (!setup)
+        if (!setup) {
             throw new IllegalStateException("not setup");
+        }
 
-        synchronized ($lock) {
+        synchronized (lock) {
             offsets.put(id, position);
         }
     }
@@ -152,10 +154,11 @@ public class QLogManagerImpl implements QLogManager {
      */
     @Override
     public long position() {
-        if (!setup)
+        if (!setup) {
             throw new IllegalStateException("not setup");
+        }
 
-        synchronized ($lock) {
+        synchronized (lock) {
             return position;
         }
     }
@@ -171,10 +174,11 @@ public class QLogManagerImpl implements QLogManager {
      */
     @Override
     public long write(final ByteBuffer input) throws IOException {
-        if (!setup)
+        if (!setup) {
             throw new IllegalStateException("not setup");
+        }
 
-        synchronized ($lock) {
+        synchronized (lock) {
             writeEntry(position++, input.asReadOnlyBuffer());
             return position;
         }
@@ -182,18 +186,21 @@ public class QLogManagerImpl implements QLogManager {
 
     @Override
     public AsyncFuture<Void> start() {
-        if (setup)
+        if (setup) {
             throw new IllegalStateException("already setup");
+        }
 
-        if (!Files.isDirectory(path))
+        if (!Files.isDirectory(path)) {
             throw new IllegalStateException("log path is not a directory: " + path);
+        }
 
         return async.call(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                synchronized ($lock) {
-                    if (setup)
+                synchronized (lock) {
+                    if (setup) {
                         return null;
+                    }
 
                     start0();
                     setup = true;
@@ -206,15 +213,17 @@ public class QLogManagerImpl implements QLogManager {
 
     @Override
     public AsyncFuture<Void> stop() {
-        if (!setup)
+        if (!setup) {
             throw new IllegalStateException("not setup");
+        }
 
         return async.call(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                synchronized ($lock) {
-                    if (!setup)
+                synchronized (lock) {
+                    if (!setup) {
                         return null;
+                    }
 
                     stop0();
                     setup = false;
@@ -228,8 +237,9 @@ public class QLogManagerImpl implements QLogManager {
     private long maxOffset() {
         long offset = position();
 
-        for (final Map.Entry<String, Long> e : offsets.entrySet())
+        for (final Map.Entry<String, Long> e : offsets.entrySet()) {
             offset = Math.min(offset, e.getValue());
+        }
 
         return offset;
     }
@@ -237,8 +247,9 @@ public class QLogManagerImpl implements QLogManager {
     private void writeEntry(final long position, final ByteBuffer input) throws IOException {
         final Header header = tail();
 
-        if (header == null)
+        if (header == null) {
             throw new IllegalStateException("header");
+        }
 
         final Header writeTo;
 
@@ -249,8 +260,9 @@ public class QLogManagerImpl implements QLogManager {
 
             writeTo = appendHeader(position);
 
-            if (tail.position() + input.remaining() > tail.capacity())
+            if (tail.position() + input.remaining() > tail.capacity()) {
                 throw new IOException("entry too large");
+            }
         } else {
             writeTo = header;
         }
@@ -261,8 +273,9 @@ public class QLogManagerImpl implements QLogManager {
     private void stop0() throws IOException {
         final Header header = tail();
 
-        if (header == null)
+        if (header == null) {
             throw new IllegalStateException("header");
+        }
 
         flushIndex();
         flush(header);
@@ -273,8 +286,9 @@ public class QLogManagerImpl implements QLogManager {
 
         final Path index = this.path.resolve(INDEX);
 
-        if (!Files.isReadable(index))
+        if (!Files.isReadable(index)) {
             return offsets;
+        }
 
         final ByteBuffer reader = ByteBuffer.allocate(12);
 
@@ -284,8 +298,9 @@ public class QLogManagerImpl implements QLogManager {
 
                 final int read = input.read(reader.array(), 0, 12);
 
-                if (read < 12)
+                if (read < 12) {
                     break;
+                }
 
                 final int length = reader.getInt();
                 final long offset = reader.getLong();
@@ -339,8 +354,9 @@ public class QLogManagerImpl implements QLogManager {
     }
 
     private Header tail() {
-        if (headers.isEmpty())
+        if (headers.isEmpty()) {
             return null;
+        }
 
         return headers.get(headers.size() - 1);
     }
@@ -409,8 +425,9 @@ public class QLogManagerImpl implements QLogManager {
 
         while (source.remaining() > 0) {
             // break on corrupt entry.
-            if (header.read(source) == null)
+            if (header.read(source) == null) {
                 break;
+            }
 
             offset += 1;
         }
@@ -421,13 +438,15 @@ public class QLogManagerImpl implements QLogManager {
     private ByteBuffer readPath(final Path path) throws IOException {
         final long logSize = Files.size(path);
 
-        if (logSize > Integer.MAX_VALUE)
+        if (logSize > Integer.MAX_VALUE) {
             throw new IllegalStateException("file too large: " + path);
+        }
 
         final int actual = Math.max((int) logSize, maxLogSize);
 
-        if (actual > maxLogSize)
+        if (actual > maxLogSize) {
             log.warn("grew max to {} since tail file larger than maximum {}", actual, maxLogSize);
+        }
 
         final ByteBuffer buffer = ByteBuffer.allocate(actual);
 
@@ -437,8 +456,9 @@ public class QLogManagerImpl implements QLogManager {
             while (true) {
                 final int read = input.read(local);
 
-                if (read <= 0)
+                if (read <= 0) {
                     break;
+                }
 
                 buffer.put(local, 0, read);
             }
@@ -450,8 +470,9 @@ public class QLogManagerImpl implements QLogManager {
     private Header appendHeader(final long offset) throws IOException {
         final Path path = this.path.resolve(String.format(QLOG_FORMAT, offset)).toAbsolutePath();
 
-        if (tail.position() != 0)
+        if (tail.position() != 0) {
             throw new IllegalStateException("tail should be in position zero");
+        }
 
         final Header0 header0 = new Header0(path, offset);
 
@@ -470,13 +491,15 @@ public class QLogManagerImpl implements QLogManager {
 
             d.read(magic);
 
-            if (!Arrays.equals(MAGIC, magic))
+            if (!Arrays.equals(MAGIC, magic)) {
                 throw new IllegalStateException("Magic bytes do not match");
+            }
 
             final int version = d.readInt();
 
-            if (version == 0)
+            if (version == 0) {
                 return readHeader0(name, path, d);
+            }
 
             throw new IllegalStateException("Unsupported log version: " + version);
         }
@@ -502,7 +525,7 @@ public class QLogManagerImpl implements QLogManager {
     }
 
     @RequiredArgsConstructor
-    @ToString(of = { "path", "offset" })
+    @ToString(of = {"path", "offset"})
     private static class Header0 implements Header {
         private final Path path;
         private final long offset;
@@ -527,16 +550,18 @@ public class QLogManagerImpl implements QLogManager {
             final ByteBuffer slice = source.slice();
 
             // buffer to short.
-            if (slice.remaining() < size())
+            if (slice.remaining() < size()) {
                 return null;
+            }
 
             // each entry prefixed with its length.
             final int size = slice.getInt();
 
             final ByteBuffer result = slice.slice();
 
-            if (result.remaining() < size)
+            if (result.remaining() < size) {
                 return null;
+            }
 
             result.limit(size);
 
