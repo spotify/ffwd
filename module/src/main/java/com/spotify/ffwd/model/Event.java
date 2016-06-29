@@ -24,7 +24,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(of = { "key", "tags", "attributes" })
+@EqualsAndHashCode(of = { "key", "riemann_tags", "tags" })
 public class Event {
     private final String key;
     private final double value;
@@ -33,6 +33,6 @@ public class Event {
     private final String state;
     private final String description;
     private final String host;
-    private final Set<String> tags;
-    private final Map<String, String> attributes;
+    private final Set<String> riemann_tags;
+    private final Map<String, String> tags;
 }

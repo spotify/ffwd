@@ -22,14 +22,12 @@ import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
-import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.spotify.ffwd.input.InputManagerModule;
 import com.spotify.ffwd.output.OutputManagerModule;
 
@@ -42,14 +40,12 @@ public class AgentConfig {
     public static final int DEFAULT_BOSS_THREADS = 2;
     public static final int DEFAULT_WORKER_THREADS = 4;
 
-    public static final Map<String, String> DEFAULT_ATTRIBUTES = Maps.newHashMap();
-    public static final Set<String> DEFAULT_TAGS = Sets.newHashSet();
+    public static final Map<String, String> DEFAULT_TAGS = Maps.newHashMap();
     public static final String DEFAULT_QLOG = "./qlog/";
 
     private final Optional<Debug> debug;
     private final String host;
-    private final Map<String, String> attributes;
-    private final Set<String> tags;
+    private final Map<String, String> tags;
     private final InputManagerModule input;
     private final OutputManagerModule output;
     private final int schedulerThreads;
@@ -61,7 +57,7 @@ public class AgentConfig {
 
     @JsonCreator
     public AgentConfig(@JsonProperty("debug") Debug debug, @JsonProperty("host") String host,
-            @JsonProperty("attributes") Map<String, String> attributes, @JsonProperty("tags") Set<String> tags,
+            @JsonProperty("tags") Map<String, String> tags,
             @JsonProperty("input") InputManagerModule input, @JsonProperty("output") OutputManagerModule output,
             @JsonProperty("asyncThreads") Integer asyncThreads,
             @JsonProperty("schedulerThreads") Integer schedulerThreads,
@@ -70,13 +66,12 @@ public class AgentConfig {
             @JsonProperty("qlog") String qlog) {
         this.debug = Optional.fromNullable(debug);
         this.host = Optional.fromNullable(host).or(this.defaultHostSupplier());
-        this.attributes = Optional.fromNullable(attributes).or(DEFAULT_ATTRIBUTES);
         this.tags = Optional.fromNullable(tags).or(DEFAULT_TAGS);
         this.input = Optional.fromNullable(input).or(InputManagerModule.supplyDefault());
         this.output = Optional.fromNullable(output).or(OutputManagerModule.supplyDefault());
         this.asyncThreads = Optional.fromNullable(asyncThreads).or(DEFAULT_ASYNC_THREADS);
         this.schedulerThreads = Optional.fromNullable(schedulerThreads).or(DEFAULT_SCHEDULER_THREADS);
-        this.bossThreads = Optional.fromNullable(workerThreads).or(DEFAULT_BOSS_THREADS);
+        this.bossThreads = Optional.fromNullable(workerThreads).or(DEFAULT_BOSS_THREADS);  // XXX: Cut'n'paste error?
         this.workerThreads = Optional.fromNullable(workerThreads).or(DEFAULT_WORKER_THREADS);
         this.ttl = Optional.fromNullable(ttl).or(0l);
         this.qlog = Paths.get(Optional.fromNullable(qlog).or(DEFAULT_QLOG));

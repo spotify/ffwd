@@ -68,15 +68,8 @@ public class OutputManagerModule {
 
             @Provides
             @Singleton
-            @Named("attributes")
-            public Map<String, String> attributes(AgentConfig config) {
-                return config.getAttributes();
-            }
-
-            @Provides
-            @Singleton
             @Named("tags")
-            public Set<String> tags(AgentConfig config) {
+            public Map<String, String> tags(AgentConfig config) {
                 return config.getTags();
             }
 

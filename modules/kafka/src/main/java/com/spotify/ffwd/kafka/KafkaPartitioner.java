@@ -26,7 +26,7 @@ import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes({ @JsonSubTypes.Type(value = KafkaPartitioner.Attribute.class, name = "attribute"),
+@JsonSubTypes({ @JsonSubTypes.Type(value = KafkaPartitioner.Tag.class, name = "tag"),
     @JsonSubTypes.Type(value = KafkaPartitioner.Hashed.class, name = "static"),
     @JsonSubTypes.Type(value = KafkaPartitioner.Host.class, name = "host")})
 public interface KafkaPartitioner {
@@ -59,41 +59,41 @@ public interface KafkaPartitioner {
         }
     }
 
-    public static class Attribute implements KafkaPartitioner {
-        private static final String DEFAULT_ATTRIBUTE = "site";
+    public static class Tag implements KafkaPartitioner {
+        private static final String DEFAULT_TAGKEY = "site";
 
-        private final String attribute;
+        private final String tagKey;
 
         @JsonCreator
-        public Attribute(@JsonProperty("attribute") final String attribute) {
-            this.attribute = Optional.fromNullable(attribute).or(DEFAULT_ATTRIBUTE);
+        public Tag(@JsonProperty("tag") final String tagKey) {
+            this.tagKey = Optional.fromNullable(tagKey).or(DEFAULT_TAGKEY);
         }
 
         @Override
         public int partition(final Event event) {
-            final String attr = event.getAttributes().get(attribute);
+            final String tagValue = event.getTags().get(tagKey);
 
-            if (attr != null)
-                return attr.hashCode();
+            if (tagValue != null)
+                return tagValue.hashCode();
 
-            throw new IllegalArgumentException(String.format("missing attribute '%s' for event %s", attribute, event));
+            throw new IllegalArgumentException(String.format("missing tag '%s' for event %s", tagKey, event));
         }
 
         @Override
         public int partition(final Metric metric) {
-            final String attr = metric.getAttributes().get(attribute);
+            final String tagValue = metric.getTags().get(tagKey);
 
-            if (attr != null)
-                return attr.hashCode();
+            if (tagValue != null)
+                return tagValue.hashCode();
 
-            throw new IllegalArgumentException(String.format("missing attribute '%s' for metric %s", attribute, metric));
+            throw new IllegalArgumentException(String.format("missing tag '%s' for metric %s", tagKey, metric));
         }
 
         public static Supplier<KafkaPartitioner> supplier() {
             return new Supplier<KafkaPartitioner>() {
                 @Override
                 public KafkaPartitioner get() {
-                    return new Attribute(null);
+                    return new Tag(null);
                 }
             };
         }

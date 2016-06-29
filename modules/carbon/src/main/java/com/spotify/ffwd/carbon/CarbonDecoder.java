@@ -70,10 +70,10 @@ public class CarbonDecoder extends MessageToMessageDecoder<String> {
                     in, StringEscapeUtils.escapeJava(tokens[2])));
         }
 
-        final Map<String, String> attributes = new HashMap<String,String>();
-        attributes.put("what", tokens[0]);
+        final Map<String, String> tags = new HashMap<String,String>();
+        tags.put("what", tokens[0]);
 
-        out.add(new Metric(key, value, new Date(timestamp), null, EMPTY_TAGS, attributes, null));
+        out.add(new Metric(key, value, new Date(timestamp), null, EMPTY_TAGS, tags, null));
     }
 
 }

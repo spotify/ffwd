@@ -100,11 +100,11 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
         final double value = decodeDouble(tree, "value");
         final Date time = decodeTime(tree, "time");
         final String host = decodeString(tree, "host");
-        final Set<String> tags = decodeTags(tree, "tags");
-        final Map<String, String> attributes = decodeAttributes(tree, "attributes");
+        final Set<String> riemann_tags = decodeTags(tree, "tags");
+        final Map<String, String> tags = decodeAttributes(tree, "attributes");
         final String proc = decodeString(tree, "proc");
 
-        return new Metric(key, value, time, host, tags, attributes, proc);
+        return new Metric(key, value, time, host, riemann_tags, tags, proc);
     }
 
     private Object decodeEvent(JsonNode tree, List<Object> out) {
@@ -115,10 +115,10 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
         final String state = decodeString(tree, "state");
         final String description = decodeString(tree, "description");
         final String host = decodeString(tree, "host");
-        final Set<String> tags = decodeTags(tree, "tags");
-        final Map<String, String> attributes = decodeAttributes(tree, "attributes");
+        final Set<String> riemann_tags = decodeTags(tree, "tags");
+        final Map<String, String> tags = decodeAttributes(tree, "attributes");
 
-        return new Event(key, value, time, ttl, state, description, host, tags, attributes);
+        return new Event(key, value, time, ttl, state, description, host, riemann_tags, tags);
     }
 
     private long decodeTtl(JsonNode tree, String name) {
