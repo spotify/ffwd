@@ -52,10 +52,6 @@ public class CoreOutputManager implements OutputManager {
     private Map<String, String> attributes;
 
     @Inject
-    @Named("tags")
-    private Set<String> tags;
-
-    @Inject
     @Named("host")
     private String host;
 
@@ -141,28 +137,25 @@ public class CoreOutputManager implements OutputManager {
      * Filter the provided Event and complete fields.
      */
     private Event filter(Event event) {
-        if (attributes.isEmpty() && tags.isEmpty() && ttl == 0)
+        if (attributes.isEmpty() && ttl == 0)
             return event;
 
         final String host = event.getHost() != null ? event.getHost() : this.host;
         final Map<String, String> a = Maps.newHashMap(attributes);
         a.putAll(event.getAttributes());
 
-        final Set<String> t = Sets.newHashSet(tags);
-        t.addAll(event.getTags());
-
         final Date time = event.getTime() != null ? event.getTime() : new Date();
         final Long ttl = event.getTtl() != 0 ? event.getTtl() : this.ttl;
 
-        return new Event(event.getKey(), event.getValue(), time, ttl, event.getState(), event.getDescription(), host,
-                t, a);
+        return new Event(event.getKey(), event.getValue(), time, ttl, event.getState(),
+                event.getDescription(), host, event.getTags(), a);
     }
 
     /**
      * Filter the provided Metric and complete fields.
      */
     private Metric filter(Metric metric) {
-        if (attributes.isEmpty() && tags.isEmpty())
+        if (attributes.isEmpty())
             return metric;
 
         final String host = metric.getHost() != null ? metric.getHost() : this.host;
@@ -170,11 +163,8 @@ public class CoreOutputManager implements OutputManager {
         final Map<String, String> a = Maps.newHashMap(attributes);
         a.putAll(metric.getAttributes());
 
-        final Set<String> t = Sets.newHashSet(tags);
-        t.addAll(metric.getTags());
-
         final Date time = metric.getTime() != null ? metric.getTime() : new Date();
 
-        return new Metric(metric.getKey(), metric.getValue(), time, host, t, a, metric.getProc());
+        return new Metric(metric.getKey(), metric.getValue(), time, host, metric.getTags(), a, metric.getProc());
     }
 }

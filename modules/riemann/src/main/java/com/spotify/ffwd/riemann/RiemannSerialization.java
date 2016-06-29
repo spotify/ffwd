@@ -39,6 +39,13 @@ import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.protobuf250.InvalidProtocolBufferException;
 
 public class RiemannSerialization {
+    private final Set<String> riemann_tags;
+
+    public RiemannSerialization(Set<String> riemann_tags) {
+        this.riemann_tags = riemann_tags;
+    }
+
+
     public Proto.Msg parse0(ByteBuf buffer) throws IOException {
         final InputStream inputStream = new ByteBufInputStream(buffer);
 
@@ -107,7 +114,11 @@ public class RiemannSerialization {
 
         b.setMetricD(d.getValue());
         b.addAllAttributes(convertAttributes0(d.getAttributes()));
-        b.addAllTags(d.getTags());
+
+        final Set<String> tags = new HashSet<>(riemann_tags);
+        tags.addAll(d.getTags());
+
+        b.addAllTags(tags);
         b.setTime(toRiemannTime(d.getTime()));
 
         return b;
@@ -123,7 +134,11 @@ public class RiemannSerialization {
 
         b.setMetricD(d.getValue());
         b.addAllAttributes(convertAttributes0(d.getAttributes()));
-        b.addAllTags(d.getTags());
+
+        final Set<String> tags = new HashSet<>(riemann_tags);
+        tags.addAll(d.getTags());
+
+        b.addAllTags(tags);
         b.setTime(toRiemannTime(d.getTime()));
 
         if (d.getDescription() != null)

@@ -75,13 +75,6 @@ public class OutputManagerModule {
 
             @Provides
             @Singleton
-            @Named("tags")
-            public Set<String> tags(AgentConfig config) {
-                return config.getTags();
-            }
-
-            @Provides
-            @Singleton
             @Named("host")
             public String host(AgentConfig config) {
                 return config.getHost();

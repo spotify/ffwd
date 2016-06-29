@@ -49,7 +49,6 @@ public class AgentConfig {
     private final Optional<Debug> debug;
     private final String host;
     private final Map<String, String> attributes;
-    private final Set<String> tags;
     private final InputManagerModule input;
     private final OutputManagerModule output;
     private final int schedulerThreads;
@@ -61,7 +60,7 @@ public class AgentConfig {
 
     @JsonCreator
     public AgentConfig(@JsonProperty("debug") Debug debug, @JsonProperty("host") String host,
-            @JsonProperty("attributes") Map<String, String> attributes, @JsonProperty("tags") Set<String> tags,
+            @JsonProperty("attributes") Map<String, String> attributes,
             @JsonProperty("input") InputManagerModule input, @JsonProperty("output") OutputManagerModule output,
             @JsonProperty("asyncThreads") Integer asyncThreads,
             @JsonProperty("schedulerThreads") Integer schedulerThreads,
@@ -71,7 +70,6 @@ public class AgentConfig {
         this.debug = Optional.fromNullable(debug);
         this.host = Optional.fromNullable(host).or(this.defaultHostSupplier());
         this.attributes = Optional.fromNullable(attributes).or(DEFAULT_ATTRIBUTES);
-        this.tags = Optional.fromNullable(tags).or(DEFAULT_TAGS);
         this.input = Optional.fromNullable(input).or(InputManagerModule.supplyDefault());
         this.output = Optional.fromNullable(output).or(OutputManagerModule.supplyDefault());
         this.asyncThreads = Optional.fromNullable(asyncThreads).or(DEFAULT_ASYNC_THREADS);
