@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,18 +15,17 @@
  **/
 package com.spotify.ffwd;
 
+import com.spotify.ffwd.module.FastForwardModule;
+import lombok.extern.slf4j.Slf4j;
+
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-
-import com.spotify.ffwd.module.FastForwardModule;
-
 @Slf4j
 public class FastForwardAgent {
-    public static void main(String argv[]) {
+    public static void main(String[] argv) {
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(Thread t, Throwable e) {
@@ -54,8 +52,9 @@ public class FastForwardAgent {
 
         final AgentCore.Builder builder = AgentCore.builder().modules(modules);
 
-        if (argv.length > 0)
+        if (argv.length > 0) {
             builder.config(Paths.get(argv[0]));
+        }
 
         final AgentCore core = builder.build();
 

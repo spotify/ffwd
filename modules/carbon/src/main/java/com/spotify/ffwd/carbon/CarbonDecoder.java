@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,10 +15,13 @@
  **/
 package com.spotify.ffwd.carbon;
 
+import com.google.common.collect.Sets;
+import com.spotify.ffwd.model.Metric;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.CorruptedFrameException;
 import io.netty.handler.codec.MessageToMessageDecoder;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -27,11 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringEscapeUtils;
-
-import com.google.common.collect.Sets;
-import com.spotify.ffwd.model.Metric;
 
 @Sharable
 public class CarbonDecoder extends MessageToMessageDecoder<String> {
@@ -45,8 +42,9 @@ public class CarbonDecoder extends MessageToMessageDecoder<String> {
     }
 
     @Override
-    protected void decode(final ChannelHandlerContext arg0, final String in,
-            final List<Object> out) throws Exception {
+    protected void decode(
+        final ChannelHandlerContext arg0, final String in, final List<Object> out
+    ) throws Exception {
 
         final String[] tokens = WHITE_SPACE_PATTERN.split(in);
 
@@ -55,25 +53,26 @@ public class CarbonDecoder extends MessageToMessageDecoder<String> {
         }
 
         final double value;
-        try{
+        try {
             value = Double.valueOf(tokens[1]);
         } catch (final NumberFormatException e) {
-            throw new CorruptedFrameException(String.format("malformed carbon frame (%s), (%s) is an invalid value",
-                    in, StringEscapeUtils.escapeJava(tokens[1])));
+            throw new CorruptedFrameException(
+                String.format("malformed carbon frame (%s), (%s) is an invalid value", in,
+                    StringEscapeUtils.escapeJava(tokens[1])));
         }
 
         final long timestamp;
         try {
             timestamp = Long.valueOf(tokens[2]);
         } catch (final NumberFormatException e) {
-            throw new CorruptedFrameException(String.format("malformed carbon frame (%s), (%s) is an invalid timestamp",
-                    in, StringEscapeUtils.escapeJava(tokens[2])));
+            throw new CorruptedFrameException(
+                String.format("malformed carbon frame (%s), (%s) is an invalid timestamp", in,
+                    StringEscapeUtils.escapeJava(tokens[2])));
         }
 
-        final Map<String, String> tags = new HashMap<String,String>();
+        final Map<String, String> tags = new HashMap<>();
         tags.put("what", tokens[0]);
 
         out.add(new Metric(key, value, new Date(timestamp), null, EMPTY_TAGS, tags, null));
     }
-
 }

@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -43,35 +42,39 @@ import java.util.Set;
 public class RiemannOutputPlugin implements OutputPlugin {
     private static final ProtocolType DEFAULT_PROTOCOL = ProtocolType.TCP;
     private static final int DEFAULT_PORT = 5555;
-    private static final long DEFAULT_FLUSH_INTERVAL = 0; // TimeUnit.MILLISECONDS.convert(10, TimeUnit.SECONDS);
+    private static final long DEFAULT_FLUSH_INTERVAL = 0;
+    // TimeUnit.MILLISECONDS.convert(10, TimeUnit.SECONDS);
     public static final Set<String> DEFAULT_TAGS = Sets.newHashSet();
-
 
     private final Filter filter;
     private final Long flushInterval;
     private final Protocol protocol;
     private final Class<? extends ProtocolClient> protocolClient;
     private final RetryPolicy retry;
-    private final Set<String> riemann_tags;
+    private final Set<String> riemannTags;
 
     @JsonCreator
-    public RiemannOutputPlugin(@JsonProperty("filter") Filter filter,
-                               @JsonProperty("flushInterval") Long flushInterval,
-                               @JsonProperty("protocol") ProtocolFactory protocol,
-                               @JsonProperty("retry") RetryPolicy retry,
-                               @JsonProperty("riemann_tags") Set<String> riemann_tags) {
+    public RiemannOutputPlugin(
+        @JsonProperty("filter") Filter filter, @JsonProperty("flushInterval") Long flushInterval,
+        @JsonProperty("protocol") ProtocolFactory protocol,
+        @JsonProperty("retry") RetryPolicy retry,
+        @JsonProperty("riemannTags") Set<String> riemannTags
+    ) {
         this.filter = Optional.fromNullable(filter).or(TrueFilter.supplier());
         this.flushInterval = Optional.fromNullable(flushInterval).or(DEFAULT_FLUSH_INTERVAL);
-        this.protocol = Optional.fromNullable(protocol).or(ProtocolFactory.defaultFor())
-                .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
+        this.protocol = Optional
+            .fromNullable(protocol)
+            .or(ProtocolFactory.defaultFor())
+            .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
         this.protocolClient = parseProtocolClient();
         this.retry = Optional.fromNullable(retry).or(new RetryPolicy.Exponential());
-        this.riemann_tags = Optional.fromNullable(riemann_tags).or(DEFAULT_TAGS);
+        this.riemannTags = Optional.fromNullable(riemannTags).or(DEFAULT_TAGS);
     }
 
     private Class<? extends ProtocolClient> parseProtocolClient() {
-        if (protocol.getType() == ProtocolType.TCP)
+        if (protocol.getType() == ProtocolType.TCP) {
             return RiemannTCPProtocolClient.class;
+        }
 
         throw new IllegalArgumentException("Protocol not supported: " + protocol.getType());
     }
@@ -84,7 +87,7 @@ public class RiemannOutputPlugin implements OutputPlugin {
                 bind(Protocol.class).toInstance(protocol);
                 bind(RiemannMessageDecoder.class).in(Scopes.SINGLETON);
                 bind(ProtocolClient.class).to(protocolClient).in(Scopes.SINGLETON);
-                bind(RiemannSerialization.class).toInstance(new RiemannSerialization(riemann_tags));
+                bind(RiemannSerialization.class).toInstance(new RiemannSerialization(riemannTags));
 
                 if (flushInterval != null && flushInterval > 0) {
                     bind(Key.get(Filter.class, Names.named("flushing"))).toInstance(filter);

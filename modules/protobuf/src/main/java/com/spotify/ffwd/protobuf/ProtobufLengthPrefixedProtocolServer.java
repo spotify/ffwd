@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -31,7 +30,7 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
  * @author udoprog
  */
 public class ProtobufLengthPrefixedProtocolServer implements ProtocolServer {
-    private final int MAX_LENGTH = 0xffffff;
+    private static final int MAX_LENGTH = 0xffffff;
 
     @Inject
     private ChannelInboundHandler handler;
@@ -44,7 +43,9 @@ public class ProtobufLengthPrefixedProtocolServer implements ProtocolServer {
         return new ChannelInitializer<Channel>() {
             @Override
             protected void initChannel(Channel ch) throws Exception {
-                ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(MAX_LENGTH, 0, 4), decoder, handler);
+                ch
+                    .pipeline()
+                    .addLast(new LengthFieldBasedFrameDecoder(MAX_LENGTH, 0, 4), decoder, handler);
             }
         };
     }

@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,14 +15,13 @@
  **/
 package com.spotify.ffwd.riemann;
 
+import com.google.inject.Inject;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.CorruptedFrameException;
 
 import java.util.List;
-
-import com.google.inject.Inject;
 
 /**
  * Parses and unpacks length-prefixed streams of Proto.Msg messages.
@@ -35,19 +33,24 @@ public class RiemannFrameDecoder extends ByteToMessageDecoder {
     private RiemannSerialization serializer;
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        if (in.readableBytes() < 4)
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out)
+        throws Exception {
+        if (in.readableBytes() < 4) {
             return;
+        }
 
         final long length = in.getUnsignedInt(0);
 
-        if (length > MAX_SIZE)
-            throw new CorruptedFrameException(String.format("frame size (%s) larger than max (%d)", length, MAX_SIZE));
+        if (length > MAX_SIZE) {
+            throw new CorruptedFrameException(
+                String.format("frame size (%s) larger than max (%d)", length, MAX_SIZE));
+        }
 
         final int intLength = (int) length;
 
-        if (in.readableBytes() < (4 + length))
+        if (in.readableBytes() < (4 + length)) {
             return;
+        }
 
         in.skipBytes(4);
         final ByteBuf frame = in.readBytes(intLength);

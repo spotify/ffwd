@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,17 +15,15 @@
  **/
 package com.spotify.ffwd.riemann;
 
-import java.util.List;
-
+import com.google.inject.Inject;
+import com.spotify.ffwd.protocol.ProtocolServer;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.handler.codec.MessageToMessageDecoder;
 
-import com.google.inject.Inject;
-import com.spotify.ffwd.protocol.ProtocolServer;
-
+import java.util.List;
 
 /**
  * Decode individual frames, should only be used with UDP protocols.
@@ -43,16 +40,19 @@ public class RiemannUDPProtocolServer implements ProtocolServer {
     @Inject
     private RiemannDatagramDecoder datagramDecoder;
 
-    private final MessageToMessageDecoder<List<Object>> unpacker = new MessageToMessageDecoder<List<Object>>() {
-        @Override
-        protected void decode(final ChannelHandlerContext ctx, final List<Object> messages, final List<Object> out) throws Exception {
-            out.addAll(messages);
-        }
+    private final MessageToMessageDecoder<List<Object>> unpacker =
+        new MessageToMessageDecoder<List<Object>>() {
+            @Override
+            protected void decode(
+                final ChannelHandlerContext ctx, final List<Object> messages, final List<Object> out
+            ) throws Exception {
+                out.addAll(messages);
+            }
 
-        public boolean isSharable() {
-            return true;
+            public boolean isSharable() {
+                return true;
+            }
         };
-    };
 
     @Override
     public final ChannelInitializer<Channel> initializer() {

@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -26,14 +25,16 @@ import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes({ @JsonSubTypes.Type(value = KafkaRouter.Tag.class, name = "tag"),
-        @JsonSubTypes.Type(value = KafkaRouter.Static.class, name = "static") })
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = KafkaRouter.Tag.class, name = "tag"),
+    @JsonSubTypes.Type(value = KafkaRouter.Static.class, name = "static")
+})
 public interface KafkaRouter {
-    public String route(final Event event);
+    String route(final Event event);
 
-    public String route(final Metric metric);
+    String route(final Metric metric);
 
-    public static class Tag implements KafkaRouter {
+    class Tag implements KafkaRouter {
         private static final String DEFAULT = "default";
         private static final String DEFAULT_TAGKEY = "site";
         private static final String DEFAULT_METRICS = "metrics-%s";
@@ -44,8 +45,10 @@ public interface KafkaRouter {
         private final String events;
 
         @JsonCreator
-        public Tag(@JsonProperty("tag") final String tagKey, @JsonProperty("metrics") String metrics,
-                   @JsonProperty("events") String events) {
+        public Tag(
+            @JsonProperty("tag") final String tagKey, @JsonProperty("metrics") String metrics,
+            @JsonProperty("events") String events
+        ) {
             this.tagKey = Optional.fromNullable(tagKey).or(DEFAULT_TAGKEY);
             this.metrics = Optional.fromNullable(metrics).or(DEFAULT_METRICS);
             this.events = Optional.fromNullable(events).or(DEFAULT_EVENTS);
@@ -55,8 +58,9 @@ public interface KafkaRouter {
         public String route(final Event event) {
             final String tagValue = event.getTags().get(tagKey);
 
-            if (tagValue != null)
+            if (tagValue != null) {
                 return String.format(events, tagValue);
+            }
 
             return String.format(events, DEFAULT);
         }
@@ -65,8 +69,9 @@ public interface KafkaRouter {
         public String route(final Metric metric) {
             final String tagValue = metric.getTags().get(tagKey);
 
-            if (tagValue != null)
+            if (tagValue != null) {
                 return String.format(metrics, tagValue);
+            }
 
             return String.format(metrics, DEFAULT);
         }
@@ -81,7 +86,7 @@ public interface KafkaRouter {
         }
     }
 
-    public static class Static implements KafkaRouter {
+    class Static implements KafkaRouter {
         private static final String DEFAULT_METRICS = "metrics";
         private static final String DEFAULT_EVENTS = "events";
 
@@ -89,7 +94,9 @@ public interface KafkaRouter {
         private final String events;
 
         @JsonCreator
-        public Static(@JsonProperty("metrics") String metrics, @JsonProperty("events") String events) {
+        public Static(
+            @JsonProperty("metrics") String metrics, @JsonProperty("events") String events
+        ) {
             this.metrics = Optional.fromNullable(metrics).or(DEFAULT_METRICS);
             this.events = Optional.fromNullable(events).or(DEFAULT_EVENTS);
         }

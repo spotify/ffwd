@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,10 +15,10 @@
  **/
 package com.spotify.ffwd.qlog;
 
+import eu.toolchain.async.AsyncFuture;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
-
-import eu.toolchain.async.AsyncFuture;
 
 public interface QLogManager {
     public long position();

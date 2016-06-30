@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,14 +15,13 @@
  **/
 package com.spotify.ffwd.riemann;
 
+import com.aphyr.riemann.Proto;
+import com.google.inject.Inject;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 
 import java.util.List;
-
-import com.aphyr.riemann.Proto;
-import com.google.inject.Inject;
 
 @Sharable
 public class RiemannMessageDecoder extends MessageToMessageDecoder<Proto.Msg> {
@@ -31,7 +29,8 @@ public class RiemannMessageDecoder extends MessageToMessageDecoder<Proto.Msg> {
     private RiemannSerialization serializer;
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, Proto.Msg msg, List<Object> out) throws Exception {
+    protected void decode(ChannelHandlerContext ctx, Proto.Msg msg, List<Object> out)
+        throws Exception {
         out.add(serializer.decode0(msg));
     }
 }

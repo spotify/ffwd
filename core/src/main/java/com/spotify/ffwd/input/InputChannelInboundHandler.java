@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,14 +15,13 @@
  **/
 package com.spotify.ffwd.input;
 
+import com.google.inject.Inject;
+import com.spotify.ffwd.model.Event;
+import com.spotify.ffwd.model.Metric;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.extern.slf4j.Slf4j;
-
-import com.google.inject.Inject;
-import com.spotify.ffwd.model.Event;
-import com.spotify.ffwd.model.Metric;
 
 @Slf4j
 @Sharable

@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -15,9 +14,6 @@
  * the License.
  **/
 package com.spotify.ffwd.input;
-
-import java.util.List;
-import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -36,18 +32,21 @@ import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.filter.TrueFilter;
 import com.spotify.ffwd.statistics.CoreStatistics;
 import com.spotify.ffwd.statistics.InputManagerStatistics;
-
 import io.netty.channel.ChannelInboundHandler;
 
+import java.util.List;
+import java.util.Set;
+
 public class InputManagerModule {
-    private final List<InputPlugin> DEFAULT_PLUGINS = Lists.newArrayList();
+    private static final List<InputPlugin> DEFAULT_PLUGINS = Lists.newArrayList();
 
     private final List<InputPlugin> plugins;
     private final Filter filter;
 
     @JsonCreator
-    public InputManagerModule(@JsonProperty("plugins") List<InputPlugin> plugins,
-            @JsonProperty("filter") Filter filter) {
+    public InputManagerModule(
+        @JsonProperty("plugins") List<InputPlugin> plugins, @JsonProperty("filter") Filter filter
+    ) {
         this.plugins = Optional.fromNullable(plugins).or(DEFAULT_PLUGINS);
         this.filter = Optional.fromNullable(filter).or(new TrueFilter());
     }
@@ -83,7 +82,8 @@ public class InputManagerModule {
             }
 
             private void bindPlugins() {
-                final Multibinder<PluginSource> sources = Multibinder.newSetBinder(binder(), PluginSource.class);
+                final Multibinder<PluginSource> sources =
+                    Multibinder.newSetBinder(binder(), PluginSource.class);
 
                 int i = 0;
 

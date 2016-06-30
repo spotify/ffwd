@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,12 +15,11 @@
  **/
 package com.spotify.ffwd.serializer;
 
-import lombok.extern.slf4j.Slf4j;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.common.base.Supplier;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ToStringSerializer implements Serializer {

@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,6 +15,15 @@
  **/
 package com.spotify.ffwd.debug;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+import com.spotify.ffwd.model.Event;
+import com.spotify.ffwd.model.Metric;
+import eu.toolchain.async.AsyncFramework;
+import eu.toolchain.async.AsyncFuture;
+import eu.toolchain.async.ResolvableFuture;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -29,30 +37,18 @@ import io.netty.channel.group.ChannelGroupFutureListener;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.GlobalEventExecutor;
-
-import java.net.InetSocketAddress;
-import java.nio.charset.Charset;
-import java.util.concurrent.atomic.AtomicReference;
-
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
-import com.spotify.ffwd.model.Event;
-import com.spotify.ffwd.model.Metric;
-
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
-import eu.toolchain.async.ResolvableFuture;
+import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 @RequiredArgsConstructor
-@ToString(of = { "localAddress" })
+@ToString(of = {"localAddress"})
 public class NettyDebugServer implements DebugServer {
     private static final String LINE_ENDING = "\n";
     private static final Charset UTF8 = Charset.forName("UTF-8");
@@ -79,8 +75,9 @@ public class NettyDebugServer implements DebugServer {
     private final ChannelGroup connected = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
     public void inspectEvent(final String id, Event event) {
-        if (connected.isEmpty())
+        if (connected.isEmpty()) {
             return;
+        }
 
         try {
             sendInspectPacket(new WriteEventEvent(id, event));
@@ -90,8 +87,9 @@ public class NettyDebugServer implements DebugServer {
     }
 
     public void inspectMetric(final String id, Metric metric) {
-        if (connected.isEmpty())
+        if (connected.isEmpty()) {
             return;
+        }
 
         try {
             sendInspectPacket(new WriteMetricEvent(id, metric));
@@ -102,7 +100,8 @@ public class NettyDebugServer implements DebugServer {
 
     private void sendInspectPacket(Object event) throws Exception {
         final byte[] buf = (mapper.writeValueAsString(event) + LINE_ENDING).getBytes(UTF8);
-        final ChannelFuture cf = connected.iterator().next().writeAndFlush(Unpooled.wrappedBuffer(buf));
+        final ChannelFuture cf =
+            connected.iterator().next().writeAndFlush(Unpooled.wrappedBuffer(buf));
     }
 
     public AsyncFuture<Void> start() {
@@ -155,8 +154,9 @@ public class NettyDebugServer implements DebugServer {
     public AsyncFuture<Void> stop() {
         final Channel server = this.server.getAndSet(null);
 
-        if (server == null)
+        if (server == null) {
             throw new IllegalStateException("server not started");
+        }
 
         final ResolvableFuture<Void> serverClose = async.future();
 
@@ -186,7 +186,8 @@ public class NettyDebugServer implements DebugServer {
             }
         });
 
-        return async.collectAndDiscard(ImmutableList.<AsyncFuture<Void>> of(serverClose, channelGroupClose));
+        return async.collectAndDiscard(
+            ImmutableList.<AsyncFuture<Void>>of(serverClose, channelGroupClose));
     }
 
     @Data

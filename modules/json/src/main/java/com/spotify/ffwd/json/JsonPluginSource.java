@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -55,23 +54,27 @@ public class JsonPluginSource implements PluginSource {
 
     @Override
     public AsyncFuture<Void> start() {
-        return servers.bind(log, protocol, server, policy).transform(new Transform<ProtocolConnection, Void>() {
-            @Override
-            public Void transform(ProtocolConnection c) throws Exception {
-                if (!connection.compareAndSet(null, c))
-                    c.stop();
+        return servers
+            .bind(log, protocol, server, policy)
+            .transform(new Transform<ProtocolConnection, Void>() {
+                @Override
+                public Void transform(ProtocolConnection c) throws Exception {
+                    if (!connection.compareAndSet(null, c)) {
+                        c.stop();
+                    }
 
-                return null;
-            }
-        });
+                    return null;
+                }
+            });
     }
 
     @Override
     public AsyncFuture<Void> stop() {
         final ProtocolConnection c = connection.getAndSet(null);
 
-        if (c == null)
+        if (c == null) {
             return async.resolved(null);
+        }
 
         return c.stop();
     }

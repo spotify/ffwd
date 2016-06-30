@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -15,24 +14,6 @@
  * the License.
  **/
 package com.spotify.ffwd;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Constructor;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -87,13 +68,34 @@ import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timer;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+
 @Slf4j
 public class AgentCore {
     private final List<Class<? extends FastForwardModule>> modules;
     private final Path config;
     private final CoreStatistics statistics;
 
-    private AgentCore(final List<Class<? extends FastForwardModule>> modules, Path config, CoreStatistics statistics) {
+    private AgentCore(
+        final List<Class<? extends FastForwardModule>> modules, Path config,
+        CoreStatistics statistics
+    ) {
         this.modules = modules;
         this.config = config;
         this.statistics = statistics;
@@ -136,7 +138,8 @@ public class AgentCore {
         return thread;
     }
 
-    private void start(final Injector primary) throws Exception, InterruptedException, ExecutionException {
+    private void start(final Injector primary)
+        throws Exception, InterruptedException, ExecutionException {
         final InputManager input = primary.getInstance(InputManager.class);
         final OutputManager output = primary.getInstance(OutputManager.class);
         final DebugServer debug = primary.getInstance(DebugServer.class);
@@ -209,7 +212,9 @@ public class AgentCore {
             @Singleton
             @Provides
             @Named("application/yaml+config")
-            public SimpleModule configModule(Map<String, FilterDeserializer.PartialDeserializer> filters) {
+            public SimpleModule configModule(
+                Map<String, FilterDeserializer.PartialDeserializer> filters
+            ) {
                 final SimpleModule module = new SimpleModule();
                 module.addDeserializer(Filter.class, new FilterDeserializer(filters));
                 return module;
@@ -249,7 +254,8 @@ public class AgentCore {
             protected void configure() {
                 if (config.getDebug().isPresent()) {
                     final AgentConfig.Debug debug = config.getDebug().get();
-                    bind(DebugServer.class).toInstance(new NettyDebugServer(debug.getLocalAddress()));
+                    bind(DebugServer.class).toInstance(
+                        new NettyDebugServer(debug.getLocalAddress()));
                 } else {
                     bind(DebugServer.class).toInstance(new NoopDebugServer());
                 }
@@ -266,15 +272,16 @@ public class AgentCore {
             @Singleton
             @Provides
             private ExecutorService executor() {
-                final ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat("ffwd-async-%d").build();
+                final ThreadFactory factory =
+                    new ThreadFactoryBuilder().setNameFormat("ffwd-async-%d").build();
                 return Executors.newFixedThreadPool(config.getAsyncThreads(), factory);
             }
 
             @Singleton
             @Provides
             private ScheduledExecutorService scheduledExecutor() {
-                final ThreadFactory factory = new ThreadFactoryBuilder()
-                        .setNameFormat("ffwd-scheduler-%d").build();
+                final ThreadFactory factory =
+                    new ThreadFactoryBuilder().setNameFormat("ffwd-scheduler-%d").build();
                 return Executors.newScheduledThreadPool(config.getSchedulerThreads(), factory);
             }
 
@@ -295,7 +302,8 @@ public class AgentCore {
             @Provides
             @Named("boss")
             public EventLoopGroup bosses() {
-                final ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat("ffwd-boss-%d").build();
+                final ThreadFactory factory =
+                    new ThreadFactoryBuilder().setNameFormat("ffwd-boss-%d").build();
                 return new NioEventLoopGroup(config.getBossThreads(), factory);
             }
 
@@ -303,7 +311,8 @@ public class AgentCore {
             @Provides
             @Named("worker")
             public EventLoopGroup workers() {
-                final ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat("ffwd-worker-%d").build();
+                final ThreadFactory factory =
+                    new ThreadFactoryBuilder().setNameFormat("ffwd-worker-%d").build();
                 return new NioEventLoopGroup(config.getWorkerThreads(), factory);
             }
 
@@ -322,8 +331,9 @@ public class AgentCore {
 
             @Override
             protected void configure() {
-                bind(Key.get(Serializer.class, Names.named("default"))).to(ToStringSerializer.class).in(
-                        Scopes.SINGLETON);
+                bind(Key.get(Serializer.class, Names.named("default")))
+                    .to(ToStringSerializer.class)
+                    .in(Scopes.SINGLETON);
                 bind(Timer.class).to(HashedWheelTimer.class).in(Scopes.SINGLETON);
                 bind(ProtocolServers.class).to(ProtocolServersImpl.class).in(Scopes.SINGLETON);
                 bind(ProtocolClients.class).to(ProtocolClientsImpl.class).in(Scopes.SINGLETON);
@@ -338,14 +348,14 @@ public class AgentCore {
 
     private AgentConfig readConfig(Injector early) throws IOException {
         final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        final SimpleModule module = early
-                .getInstance(Key.get(SimpleModule.class, Names.named("application/yaml+config")));
+        final SimpleModule module =
+            early.getInstance(Key.get(SimpleModule.class, Names.named("application/yaml+config")));
 
         mapper.registerModule(module);
 
         try (final InputStream input = Files.newInputStream(this.config)) {
             return mapper.readValue(input, AgentConfig.class);
-        } catch (JsonParseException|JsonMappingException e) {
+        } catch (JsonParseException | JsonMappingException e) {
             throw new IOException("Failed to parse configuration", e);
         }
     }
@@ -387,24 +397,27 @@ public class AgentCore {
         private CoreStatistics statistics = NoopCoreStatistics.get();
 
         public Builder config(Path config) {
-            if (config == null)
+            if (config == null) {
                 throw new NullPointerException("'config' must not be null");
+            }
 
             this.config = config;
             return this;
         }
 
         public Builder modules(List<Class<? extends FastForwardModule>> modules) {
-            if (modules == null)
+            if (modules == null) {
                 throw new NullPointerException("'modules' must not be null");
+            }
 
             this.modules = modules;
             return this;
         }
 
         public Builder statistics(CoreStatistics statistics) {
-            if (statistics == null)
+            if (statistics == null) {
                 throw new NullPointerException("'statistics' most not be null");
+            }
 
             this.statistics = statistics;
             return this;

@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,17 +15,15 @@
  **/
 package com.spotify.ffwd.debug;
 
-import java.util.Collection;
-
-import lombok.extern.slf4j.Slf4j;
-
 import com.google.inject.Inject;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchedPluginSink;
-
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.Collection;
 
 @Slf4j
 public class DebugPluginSink implements BatchedPluginSink {
@@ -51,8 +48,9 @@ public class DebugPluginSink implements BatchedPluginSink {
     public AsyncFuture<Void> sendEvents(Collection<Event> events) {
         int i = 0;
 
-        for (final Event e : events)
+        for (final Event e : events) {
             log.info("E#{}: {}", i++, e);
+        }
 
         return async.resolved(null);
     }
@@ -61,8 +59,9 @@ public class DebugPluginSink implements BatchedPluginSink {
     public AsyncFuture<Void> sendMetrics(Collection<Metric> metrics) {
         int i = 0;
 
-        for (final Metric m : metrics)
+        for (final Metric m : metrics) {
             log.info("E#{}: {}", i++, m);
+        }
 
         return async.resolved(null);
     }

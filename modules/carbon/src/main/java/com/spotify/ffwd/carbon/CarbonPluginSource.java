@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,10 +15,6 @@
  **/
 package com.spotify.ffwd.carbon;
 
-import java.util.concurrent.atomic.AtomicReference;
-
-import lombok.extern.slf4j.Slf4j;
-
 import com.google.inject.Inject;
 import com.spotify.ffwd.input.PluginSource;
 import com.spotify.ffwd.protocol.Protocol;
@@ -27,10 +22,12 @@ import com.spotify.ffwd.protocol.ProtocolConnection;
 import com.spotify.ffwd.protocol.ProtocolServer;
 import com.spotify.ffwd.protocol.ProtocolServers;
 import com.spotify.ffwd.protocol.RetryPolicy;
-
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.Transform;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 public class CarbonPluginSource implements PluginSource {
@@ -57,23 +54,27 @@ public class CarbonPluginSource implements PluginSource {
 
     @Override
     public AsyncFuture<Void> start() {
-        return servers.bind(log, protocol, server, policy).transform(new Transform<ProtocolConnection, Void>() {
-            @Override
-            public Void transform(ProtocolConnection c) throws Exception {
-                if (!connection.compareAndSet(null, c))
-                    c.stop();
+        return servers
+            .bind(log, protocol, server, policy)
+            .transform(new Transform<ProtocolConnection, Void>() {
+                @Override
+                public Void transform(ProtocolConnection c) throws Exception {
+                    if (!connection.compareAndSet(null, c)) {
+                        c.stop();
+                    }
 
-                return null;
-            }
-        });
+                    return null;
+                }
+            });
     }
 
     @Override
     public AsyncFuture<Void> stop() {
         final ProtocolConnection c = connection.getAndSet(null);
 
-        if (c == null)
+        if (c == null) {
             return async.resolved(null);
+        }
 
         return c.stop();
     }

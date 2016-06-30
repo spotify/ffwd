@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -41,30 +40,36 @@ public class ProtobufDecoder extends MessageToMessageDecoder<ByteBuf> {
     public static final int MAX_FRAME_SIZE = 0xffffff;
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out)
+        throws Exception {
         while (in.readableBytes() >= 8) {
             decodeOne(ctx, in, out);
         }
 
-        if (in.readableBytes() > 0)
-            log.error("Garbage left in buffer, " + in.readableBytes() + " readable bytes have not been processed");
+        if (in.readableBytes() > 0) {
+            log.error("Garbage left in buffer, " + in.readableBytes() +
+                " readable bytes have not been processed");
+        }
     }
 
-    private void decodeOne(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+    private void decodeOne(ChannelHandlerContext ctx, ByteBuf in, List<Object> out)
+        throws Exception {
         final int version = (int) in.getUnsignedInt(0);
         final long totalLength = in.getUnsignedInt(4);
 
         if (totalLength > MAX_FRAME_SIZE) {
-            log.error("Received frame with length (" + totalLength + ") larger than maximum allowed ( "
-                    + MAX_FRAME_SIZE + ")");
+            log.error(
+                "Received frame with length (" + totalLength + ") larger than maximum allowed ( " +
+                    MAX_FRAME_SIZE + ")");
             in.clear();
             return;
         }
 
         // datagram underflow
         if (in.readableBytes() < totalLength) {
-            log.error("Received frame of shorter length (" + in.readableBytes() + ") than reported (" + totalLength
-                    + ")");
+            log.error(
+                "Received frame of shorter length (" + in.readableBytes() + ") than reported (" +
+                    totalLength + ")");
             in.clear();
             return;
         }
@@ -74,15 +79,16 @@ public class ProtobufDecoder extends MessageToMessageDecoder<ByteBuf> {
         final Object frame;
 
         switch (version) {
-        case 0:
-            frame = decodeFrame0(in);
-            break;
-        default:
-            throw new IllegalArgumentException("Unsupported protocol version: " + version);
+            case 0:
+                frame = decodeFrame0(in);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported protocol version: " + version);
         }
 
-        if (frame != null)
+        if (frame != null) {
             out.add(frame);
+        }
     }
 
     private Object decodeFrame0(ByteBuf buffer) throws Exception {
@@ -112,18 +118,19 @@ public class ProtobufDecoder extends MessageToMessageDecoder<ByteBuf> {
         final double value = metric.hasValue() ? metric.getValue() : Double.NaN;
         final Date time = metric.hasTime() ? new Date(metric.getTime()) : null;
         final String host = metric.hasHost() ? metric.getHost() : null;
-        final Set<String> riemann_tags = new HashSet<>(metric.getTagsList());
+        final Set<String> riemannTags = new HashSet<>(metric.getTagsList());
         final Map<String, String> tags = convertAttributes0(metric.getAttributesList());
         final String proc = metric.hasProc() ? metric.getProc() : null;
 
-        return new Metric(key, value, time, host, riemann_tags, tags, proc);
+        return new Metric(key, value, time, host, riemannTags, tags, proc);
     }
 
     private Map<String, String> convertAttributes0(List<Protocol0.Attribute> attributesList) {
         final Map<String, String> attributes = new HashMap<>();
 
-        for (final Protocol0.Attribute a : attributesList)
+        for (final Protocol0.Attribute a : attributesList) {
             attributes.put(a.getKey(), a.getValue());
+        }
 
         return attributes;
     }
@@ -136,9 +143,9 @@ public class ProtobufDecoder extends MessageToMessageDecoder<ByteBuf> {
         final String state = event.hasState() ? event.getState() : null;
         final String description = event.hasDescription() ? event.getDescription() : null;
         final String host = event.hasHost() ? event.getHost() : null;
-        final Set<String> riemann_tags = new HashSet<>(event.getTagsList());
+        final Set<String> riemannTags = new HashSet<>(event.getTagsList());
         final Map<String, String> tags = convertAttributes0(event.getAttributesList());
 
-        return new Event(key, value, time, ttl, state, description, host, riemann_tags, tags);
+        return new Event(key, value, time, ttl, state, description, host, riemannTags, tags);
     }
 }

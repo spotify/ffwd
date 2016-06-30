@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -56,9 +55,11 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
     private ObjectMapper mapper;
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        if (!in.isReadable())
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out)
+        throws Exception {
+        if (!in.isReadable()) {
             return;
+        }
 
         final Object frame;
 
@@ -72,7 +73,8 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
         out.add(frame);
     }
 
-    private Object decode0(ByteBuf in, List<Object> out) throws IOException, JsonProcessingException {
+    private Object decode0(ByteBuf in, List<Object> out)
+        throws IOException, JsonProcessingException {
         final JsonNode tree;
 
         try (final InputStream input = new ByteBufInputStream(in)) {
@@ -81,16 +83,19 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
 
         final JsonNode typeNode = tree.get("type");
 
-        if (typeNode == null)
+        if (typeNode == null) {
             throw new IllegalArgumentException("Missing field 'type'");
+        }
 
         final String type = typeNode.asText();
 
-        if ("event".equals(type))
+        if ("event".equals(type)) {
             return decodeEvent(tree, out);
+        }
 
-        if ("metric".equals(type))
+        if ("metric".equals(type)) {
             return decodeMetric(tree, out);
+        }
 
         throw new IllegalArgumentException("Invalid metric type '" + type + "'");
     }
@@ -100,11 +105,11 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
         final double value = decodeDouble(tree, "value");
         final Date time = decodeTime(tree, "time");
         final String host = decodeString(tree, "host");
-        final Set<String> riemann_tags = decodeTags(tree, "tags");
+        final Set<String> riemannTags = decodeTags(tree, "tags");
         final Map<String, String> tags = decodeAttributes(tree, "attributes");
         final String proc = decodeString(tree, "proc");
 
-        return new Metric(key, value, time, host, riemann_tags, tags, proc);
+        return new Metric(key, value, time, host, riemannTags, tags, proc);
     }
 
     private Object decodeEvent(JsonNode tree, List<Object> out) {
@@ -115,17 +120,18 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
         final String state = decodeString(tree, "state");
         final String description = decodeString(tree, "description");
         final String host = decodeString(tree, "host");
-        final Set<String> riemann_tags = decodeTags(tree, "tags");
+        final Set<String> riemannTags = decodeTags(tree, "tags");
         final Map<String, String> tags = decodeAttributes(tree, "attributes");
 
-        return new Event(key, value, time, ttl, state, description, host, riemann_tags, tags);
+        return new Event(key, value, time, ttl, state, description, host, riemannTags, tags);
     }
 
     private long decodeTtl(JsonNode tree, String name) {
         final JsonNode n = tree.get(name);
 
-        if (n == null)
+        if (n == null) {
             return 0;
+        }
 
         return n.asLong();
     }
@@ -133,8 +139,9 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
     private Date decodeTime(JsonNode tree, String name) {
         final JsonNode n = tree.get(name);
 
-        if (n == null)
+        if (n == null) {
             return null;
+        }
 
         final long time = n.asLong();
         return new Date(time);
@@ -143,8 +150,9 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
     private double decodeDouble(JsonNode tree, String name) {
         final JsonNode n = tree.get(name);
 
-        if (n == null)
+        if (n == null) {
             return Double.NaN;
+        }
 
         return n.asDouble();
     }
@@ -152,8 +160,9 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
     private String decodeString(JsonNode tree, String name) {
         final JsonNode n = tree.get(name);
 
-        if (n == null)
+        if (n == null) {
             return null;
+        }
 
         return n.asText();
     }
@@ -161,11 +170,13 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
     private Map<String, String> decodeAttributes(JsonNode tree, String name) {
         final JsonNode n = tree.get(name);
 
-        if (n == null)
+        if (n == null) {
             return EMPTY_ATTRIBUTES;
+        }
 
-        if (n.getNodeType() != JsonNodeType.OBJECT)
+        if (n.getNodeType() != JsonNodeType.OBJECT) {
             return EMPTY_ATTRIBUTES;
+        }
 
         final Map<String, String> attributes = Maps.newHashMap();
 
@@ -182,18 +193,21 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
     private Set<String> decodeTags(JsonNode tree, String name) {
         final JsonNode n = tree.get(name);
 
-        if (n == null)
+        if (n == null) {
             return EMPTY_TAGS;
+        }
 
-        if (n.getNodeType() != JsonNodeType.ARRAY)
+        if (n.getNodeType() != JsonNodeType.ARRAY) {
             return EMPTY_TAGS;
+        }
 
         final List<String> tags = Lists.newArrayList();
 
         final Iterator<JsonNode> iter = n.elements();
 
-        while (iter.hasNext())
+        while (iter.hasNext()) {
             tags.add(iter.next().asText());
+        }
 
         return Sets.newHashSet(tags);
     }

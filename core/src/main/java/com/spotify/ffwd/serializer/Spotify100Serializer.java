@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,11 +15,6 @@
  **/
 package com.spotify.ffwd.serializer;
 
-import java.io.ByteArrayOutputStream;
-import java.util.Map;
-
-import lombok.Data;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,6 +22,10 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
+import lombok.Data;
+
+import java.io.ByteArrayOutputStream;
+import java.util.Map;
 
 @JsonTypeName("spotify100")
 public class Spotify100Serializer implements Serializer {
@@ -63,7 +61,8 @@ public class Spotify100Serializer implements Serializer {
 
     @Override
     public byte[] serialize(Event source) throws Exception {
-        final Spotify100Event e = new Spotify100Event(source.getKey(), source.getHost(), source.getTime().getTime(),
+        final Spotify100Event e =
+            new Spotify100Event(source.getKey(), source.getHost(), source.getTime().getTime(),
                 source.getTags(), source.getValue());
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         mapper.writeValue(outputStream, e);
@@ -72,10 +71,12 @@ public class Spotify100Serializer implements Serializer {
 
     @Override
     public byte[] serialize(Metric source) throws Exception {
-        final Spotify100Metric m = new Spotify100Metric(source.getKey(), source.getHost(), source.getTime().getTime(),
+        final Spotify100Metric m =
+            new Spotify100Metric(source.getKey(), source.getHost(), source.getTime().getTime(),
                 source.getTags(), source.getValue());
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         mapper.writeValue(outputStream, m);
         return outputStream.toByteArray();
     }
 }
+

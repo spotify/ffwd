@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -19,7 +18,6 @@ package com.spotify.ffwd.kafka;
 import kafka.serializer.Encoder;
 import kafka.utils.VerifiableProperties;
 
-
 public class IntegerEncoder implements Encoder<Integer> {
     public IntegerEncoder(VerifiableProperties properties) {
     }
@@ -27,6 +25,9 @@ public class IntegerEncoder implements Encoder<Integer> {
     @Override
     public byte[] toBytes(Integer o) {
         final int i = o;
-        return new byte[]{(byte)(i & 0xff), (byte)((i << 8) & 0xff), (byte)((i << 16) & 0xff), (byte)((i << 24) & 0xff)};
+        return new byte[]{
+            (byte) (i & 0xff), (byte) ((i << 8) & 0xff), (byte) ((i << 16) & 0xff),
+            (byte) ((i << 24) & 0xff)
+        };
     }
 }

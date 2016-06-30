@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -19,16 +18,16 @@ package com.spotify.ffwd.template;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Sharable
 public class TemplateOutputEncoder extends MessageToMessageEncoder<Object> {
     @Override
-    protected void encode(ChannelHandlerContext ctx, Object msg, List<Object> out) throws Exception {
+    protected void encode(ChannelHandlerContext ctx, Object msg, List<Object> out)
+        throws Exception {
         out.add(msg.toString() + "\n");
     }
 }

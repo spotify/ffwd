@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,15 +15,14 @@
  **/
 package com.spotify.ffwd.carbon;
 
+import com.google.inject.Inject;
+import com.spotify.ffwd.protocol.ProtocolServer;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.util.CharsetUtil;
-
-import com.google.inject.Inject;
-import com.spotify.ffwd.protocol.ProtocolServer;
 
 public class CarbonLineServer implements ProtocolServer {
     public static final int MAX_LINE = 0xffff;
@@ -46,5 +44,4 @@ public class CarbonLineServer implements ProtocolServer {
             }
         };
     }
-
 }

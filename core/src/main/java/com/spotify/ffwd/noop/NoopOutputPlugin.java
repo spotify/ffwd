@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -16,8 +15,6 @@
  **/
 package com.spotify.ffwd.noop;
 
-import java.util.concurrent.TimeUnit;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
@@ -30,8 +27,11 @@ import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.output.OutputPluginModule;
 import com.spotify.ffwd.output.PluginSink;
 
+import java.util.concurrent.TimeUnit;
+
 public class NoopOutputPlugin implements OutputPlugin {
-    private static final long DEFAULT_FLUSH_INTERVAL = TimeUnit.MILLISECONDS.convert(10, TimeUnit.SECONDS);
+    private static final long DEFAULT_FLUSH_INTERVAL =
+        TimeUnit.MILLISECONDS.convert(10, TimeUnit.SECONDS);
 
     private final Long flushInterval;
 

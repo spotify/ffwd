@@ -9,4 +9,4 @@ cache:
     - .cache
 
 script:
-  - mvn -D environment=test test
+  - mvn -D environment=test verify

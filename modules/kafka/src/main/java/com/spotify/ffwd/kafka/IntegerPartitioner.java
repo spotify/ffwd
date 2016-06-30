@@ -1,4 +1,3 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
  *
@@ -18,7 +17,6 @@ package com.spotify.ffwd.kafka;
 
 import kafka.producer.Partitioner;
 import kafka.utils.VerifiableProperties;
-
 
 public class IntegerPartitioner implements Partitioner {
     public IntegerPartitioner(VerifiableProperties properties) {
