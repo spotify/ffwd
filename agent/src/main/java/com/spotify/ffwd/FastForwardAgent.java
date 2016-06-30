@@ -16,23 +16,40 @@
 package com.spotify.ffwd;
 
 import com.spotify.ffwd.module.FastForwardModule;
+import com.spotify.ffwd.statistics.SemanticCoreStatistics;
+import com.spotify.metrics.core.MetricId;
+import com.spotify.metrics.core.SemanticMetricRegistry;
+import com.spotify.metrics.ffwd.FastForwardReporter;
+import com.spotify.metrics.jvm.GarbageCollectorMetricSet;
+import com.spotify.metrics.jvm.MemoryUsageGaugeSet;
+import com.spotify.metrics.jvm.ThreadStatesMetricSet;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.lang.Thread.UncaughtExceptionHandler;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class FastForwardAgent {
     public static void main(String[] argv) {
-        Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-            @Override
-            public void uncaughtException(Thread t, Throwable e) {
-                log.error("Uncaught exception in thread {}, exiting (status = 2)", t.getName(), e);
-                System.exit(2);
-            }
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            log.error("Uncaught exception in thread {}, exiting (status = 2)", thread.getName(),
+                throwable);
+            System.exit(2);
         });
+
+        final Statistics s;
+
+        try {
+            s = setupStatistics();
+        } catch (Exception e) {
+            log.error("Failed to setup statistics", e);
+            System.exit(1);
+            return;
+        }
 
         final List<Class<? extends FastForwardModule>> modules = new ArrayList<>();
 
@@ -56,6 +73,8 @@ public class FastForwardAgent {
             builder.config(Paths.get(argv[0]));
         }
 
+        builder.statistics(s.statistics);
+
         final AgentCore core = builder.build();
 
         try {
@@ -66,6 +85,40 @@ public class FastForwardAgent {
             return;
         }
 
+        s.stop();
         System.exit(0);
+    }
+
+    private static Statistics setupStatistics() throws IOException {
+        final SemanticMetricRegistry registry = new SemanticMetricRegistry();
+        final SemanticCoreStatistics statistics = new SemanticCoreStatistics(registry);
+
+        final MetricId gauges = MetricId.build();
+
+        registry.register(gauges, new ThreadStatesMetricSet());
+        registry.register(gauges, new GarbageCollectorMetricSet());
+        registry.register(gauges, new MemoryUsageGaugeSet());
+
+        final MetricId metric = MetricId.build("ffwd-java");
+
+        final FastForwardReporter ffwd = FastForwardReporter
+            .forRegistry(registry)
+            .schedule(TimeUnit.SECONDS, 30)
+            .prefix(metric)
+            .build();
+
+        ffwd.start();
+
+        return new Statistics(ffwd, statistics);
+    }
+
+    @RequiredArgsConstructor
+    private static class Statistics {
+        private final FastForwardReporter ffwd;
+        private final SemanticCoreStatistics statistics;
+
+        void stop() {
+            ffwd.stop();
+        }
     }
 }
