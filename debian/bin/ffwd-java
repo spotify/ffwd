@@ -1,0 +1,49 @@
+#!/bin/bash
+
+CONFIG_DIR="/etc/ffwd"
+FFWD_JAR="/usr/share/ffwd-java/ffwd-full.jar"
+JVMARGS="${CONFIG_DIR}/ffwd.jvmargs"
+CONFIG="${CONFIG_DIR}/ffwd.yaml"
+
+if [[ -f /etc/default/ffwd-java ]]; then
+    . /etc/default/ffwd-java
+fi
+
+
+if [[ -z $FFWD_JAR ]]; then
+    echo "FFWD_JAR: not specified"
+    exit 1
+fi
+
+if [[ ! -f $FFWD_JAR ]]; then
+    echo "FFWD_JAR: no such file: $FFWD_JAR"
+    exit 1
+fi
+
+if [[ ! -f $JVMARGS ]]; then
+    echo "Missing jvmargs: $JVMARGS"
+    exit 1
+fi
+
+if [[ ! -f $CONFIG ]]; then
+    echo "Missing config: $CONFIG"
+    exit 1
+fi
+
+if [[ -z $JAVA ]]; then
+    for java in "/usr/lib/jvm/jre-8-oracle-x64-no-alt/bin/java"; do
+        if [[ -x $java ]]; then
+            JAVA=$java
+            break
+        fi
+    done
+
+    if [[ -z $JAVA ]]; then
+        echo "Could not detect available java runtime"
+        exit 1
+    fi
+fi
+
+JAVA_OPTS=$(grep -v '^\s*#' $JVMARGS)
+
+exec env CLASSPATH="$FFWD_JAR" $JAVA $JAVA_OPTS com.spotify.ffwd.FastForwardAgent "$@"
