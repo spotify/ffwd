@@ -54,12 +54,7 @@ public class ProtocolFactory {
      * @return
      */
     public static Supplier<ProtocolFactory> defaultFor() {
-        return new Supplier<ProtocolFactory>() {
-            @Override
-            public ProtocolFactory get() {
-                return new ProtocolFactory(null, null, null, null);
-            }
-        };
+        return () -> new ProtocolFactory(null, null, null, null);
     }
 
     /**

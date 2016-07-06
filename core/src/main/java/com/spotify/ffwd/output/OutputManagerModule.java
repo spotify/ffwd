@@ -119,11 +119,6 @@ public class OutputManagerModule {
     }
 
     public static Supplier<OutputManagerModule> supplyDefault() {
-        return new Supplier<OutputManagerModule>() {
-            @Override
-            public OutputManagerModule get() {
-                return new OutputManagerModule(null, null);
-            }
-        };
+        return () -> new OutputManagerModule(null, null);
     }
 }

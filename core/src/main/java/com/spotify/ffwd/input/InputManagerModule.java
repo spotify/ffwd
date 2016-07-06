@@ -98,11 +98,6 @@ public class InputManagerModule {
     }
 
     public static Supplier<InputManagerModule> supplyDefault() {
-        return new Supplier<InputManagerModule>() {
-            @Override
-            public InputManagerModule get() {
-                return new InputManagerModule(null, null);
-            }
-        };
+        return () -> new InputManagerModule(null, null);
     }
 }

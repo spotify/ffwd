@@ -51,11 +51,6 @@ public class TrueFilter implements Filter {
     }
 
     public static Supplier<TrueFilter> supplier() {
-        return new Supplier<TrueFilter>() {
-            @Override
-            public TrueFilter get() {
-                return new TrueFilter();
-            }
-        };
+        return TrueFilter::new;
     }
 }

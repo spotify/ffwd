@@ -78,12 +78,7 @@ public interface KafkaRouter {
         }
 
         public static Supplier<KafkaRouter> supplier() {
-            return new Supplier<KafkaRouter>() {
-                @Override
-                public KafkaRouter get() {
-                    return new Tag(null, null, null);
-                }
-            };
+            return () -> new Tag(null, null, null);
         }
     }
 
@@ -113,12 +108,7 @@ public interface KafkaRouter {
         }
 
         public static Supplier<KafkaRouter> supplier() {
-            return new Supplier<KafkaRouter>() {
-                @Override
-                public KafkaRouter get() {
-                    return new Static(null, null);
-                }
-            };
+            return () -> new Static(null, null);
         }
     }
 }

@@ -52,12 +52,7 @@ public interface KafkaPartitioner {
         }
 
         public static Supplier<KafkaPartitioner> supplier() {
-            return new Supplier<KafkaPartitioner>() {
-                @Override
-                public KafkaPartitioner get() {
-                    return new Host();
-                }
-            };
+            return Host::new;
         }
     }
 
@@ -96,12 +91,7 @@ public interface KafkaPartitioner {
         }
 
         public static Supplier<KafkaPartitioner> supplier() {
-            return new Supplier<KafkaPartitioner>() {
-                @Override
-                public KafkaPartitioner get() {
-                    return new Tag(null);
-                }
-            };
+            return () -> new Tag(null);
         }
     }
 
@@ -121,12 +111,7 @@ public interface KafkaPartitioner {
         }
 
         public static Supplier<KafkaPartitioner> supplier() {
-            return new Supplier<KafkaPartitioner>() {
-                @Override
-                public KafkaPartitioner get() {
-                    return new Hashed();
-                }
-            };
+            return Hashed::new;
         }
     }
 }

@@ -16,10 +16,11 @@
 package com.spotify.ffwd.serializer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.google.common.base.Supplier;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.function.Supplier;
 
 @Slf4j
 public class ToStringSerializer implements Serializer {
@@ -39,11 +40,6 @@ public class ToStringSerializer implements Serializer {
     }
 
     public static Supplier<Serializer> defaultSupplier() {
-        return new Supplier<Serializer>() {
-            @Override
-            public Serializer get() {
-                return new ToStringSerializer();
-            }
-        };
+        return () -> new ToStringSerializer();
     }
 }
