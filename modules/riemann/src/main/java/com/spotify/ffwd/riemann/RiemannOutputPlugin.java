@@ -17,7 +17,6 @@ package com.spotify.ffwd.riemann;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 import com.google.inject.Key;
 import com.google.inject.Module;
@@ -38,6 +37,7 @@ import com.spotify.ffwd.protocol.ProtocolType;
 import com.spotify.ffwd.protocol.RetryPolicy;
 
 import java.util.Set;
+import java.util.Optional;
 
 public class RiemannOutputPlugin implements OutputPlugin {
     private static final ProtocolType DEFAULT_PROTOCOL = ProtocolType.TCP;
@@ -60,15 +60,15 @@ public class RiemannOutputPlugin implements OutputPlugin {
         @JsonProperty("retry") RetryPolicy retry,
         @JsonProperty("riemannTags") Set<String> riemannTags
     ) {
-        this.filter = Optional.fromNullable(filter).or(TrueFilter.supplier());
-        this.flushInterval = Optional.fromNullable(flushInterval).or(DEFAULT_FLUSH_INTERVAL);
+        this.filter = Optional.ofNullable(filter).orElseGet(TrueFilter.supplier());
+        this.flushInterval = Optional.ofNullable(flushInterval).orElse(DEFAULT_FLUSH_INTERVAL);
         this.protocol = Optional
-            .fromNullable(protocol)
-            .or(ProtocolFactory.defaultFor())
+            .ofNullable(protocol)
+            .orElseGet(ProtocolFactory.defaultFor())
             .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
         this.protocolClient = parseProtocolClient();
-        this.retry = Optional.fromNullable(retry).or(new RetryPolicy.Exponential());
-        this.riemannTags = Optional.fromNullable(riemannTags).or(DEFAULT_TAGS);
+        this.retry = Optional.ofNullable(retry).orElseGet(() -> new RetryPolicy.Exponential());
+        this.riemannTags = Optional.ofNullable(riemannTags).orElse(DEFAULT_TAGS);
     }
 
     private Class<? extends ProtocolClient> parseProtocolClient() {

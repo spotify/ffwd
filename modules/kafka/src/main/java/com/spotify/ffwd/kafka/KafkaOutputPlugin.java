@@ -17,7 +17,6 @@ package com.spotify.ffwd.kafka;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.Provides;
@@ -35,6 +34,7 @@ import kafka.producer.ProducerConfig;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Optional;
 
 public class KafkaOutputPlugin implements OutputPlugin {
     public static final int DEFAULT_BATCH_SIZE = 1000;
@@ -43,8 +43,8 @@ public class KafkaOutputPlugin implements OutputPlugin {
     private final KafkaRouter router;
     private final KafkaPartitioner partitioner;
     private final Map<String, String> properties;
-    private final Long flushInterval;
-    private final Serializer serializer;
+    private final Optional<Long> flushInterval;
+    private final Optional<Serializer> serializer;
     private final int batchSize;
     private final boolean compression;
 
@@ -58,13 +58,14 @@ public class KafkaOutputPlugin implements OutputPlugin {
         @JsonProperty("batchSize") Integer batchSize,
         @JsonProperty("compression") Boolean compression
     ) {
-        this.router = Optional.fromNullable(router).or(KafkaRouter.Tag.supplier());
-        this.partitioner = Optional.fromNullable(partitioner).or(KafkaPartitioner.Host.supplier());
-        this.flushInterval = Optional.fromNullable(flushInterval).orNull();
-        this.properties = Optional.fromNullable(properties).or(new HashMap<String, String>());
-        this.serializer = Optional.fromNullable(serializer).orNull();
-        this.batchSize = Optional.fromNullable(batchSize).or(DEFAULT_BATCH_SIZE);
-        this.compression = Optional.fromNullable(compression).or(DEFAULT_COMPRESSION);
+        this.router = Optional.ofNullable(router).orElseGet(KafkaRouter.Tag.supplier());
+        this.partitioner = Optional.ofNullable(partitioner)
+                                   .orElseGet(KafkaPartitioner.Host.supplier());
+        this.flushInterval = Optional.ofNullable(flushInterval);
+        this.properties = Optional.ofNullable(properties).orElseGet(() -> new HashMap<>());
+        this.serializer = Optional.ofNullable(serializer);
+        this.batchSize = Optional.ofNullable(batchSize).orElse(DEFAULT_BATCH_SIZE);
+        this.compression = Optional.ofNullable(compression).orElse(DEFAULT_COMPRESSION);
     }
 
     @Override
@@ -92,16 +93,16 @@ public class KafkaOutputPlugin implements OutputPlugin {
                 bind(KafkaRouter.class).toInstance(router);
                 bind(KafkaPartitioner.class).toInstance(partitioner);
 
-                if (serializer == null) {
+                if (serializer.isPresent()) {
                     // bind to default implementation, provided by core.
                     bind(Serializer.class).to(Key.get(Serializer.class, Names.named("default")));
                 } else {
-                    bind(Serializer.class).toInstance(serializer);
+                    bind(Serializer.class).toInstance(serializer.get());
                 }
 
-                if (flushInterval != null) {
+                if (flushInterval.isPresent()) {
                     bind(BatchedPluginSink.class).toInstance(new KafkaPluginSink(batchSize));
-                    bind(key).toInstance(new FlushingPluginSink(flushInterval));
+                    bind(key).toInstance(new FlushingPluginSink(flushInterval.get()));
                 } else {
                     bind(key).toInstance(new KafkaPluginSink(batchSize));
                 }

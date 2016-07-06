@@ -17,7 +17,6 @@ package com.spotify.ffwd.json;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.PrivateModule;
@@ -29,6 +28,8 @@ import com.spotify.ffwd.protocol.ProtocolFactory;
 import com.spotify.ffwd.protocol.ProtocolServer;
 import com.spotify.ffwd.protocol.ProtocolType;
 import com.spotify.ffwd.protocol.RetryPolicy;
+
+import java.util.Optional;
 
 public class JsonInputPlugin implements InputPlugin {
     private static final ProtocolType DEFAULT_PROTOCOL = ProtocolType.UDP;
@@ -49,12 +50,12 @@ public class JsonInputPlugin implements InputPlugin {
         @JsonProperty("delimiter") String delimiter, @JsonProperty("retry") RetryPolicy retry
     ) {
         this.protocol = Optional
-            .fromNullable(protocol)
-            .or(ProtocolFactory.defaultFor())
+            .ofNullable(protocol)
+            .orElseGet(ProtocolFactory.defaultFor())
             .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
         this.protocolServer =
-            parseProtocolServer(Optional.fromNullable(delimiter).or(defaultDelimiter()));
-        this.retry = Optional.fromNullable(retry).or(new RetryPolicy.Exponential());
+            parseProtocolServer(Optional.ofNullable(delimiter).orElseGet(this::defaultDelimiter));
+        this.retry = Optional.ofNullable(retry).orElseGet(() -> new RetryPolicy.Exponential());
     }
 
     private String defaultDelimiter() {

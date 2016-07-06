@@ -17,7 +17,6 @@ package com.spotify.ffwd.carbon;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.PrivateModule;
@@ -29,6 +28,8 @@ import com.spotify.ffwd.protocol.ProtocolFactory;
 import com.spotify.ffwd.protocol.ProtocolServer;
 import com.spotify.ffwd.protocol.ProtocolType;
 import com.spotify.ffwd.protocol.RetryPolicy;
+
+import java.util.Optional;
 
 public class CarbonInputPlugin implements InputPlugin {
     private static final ProtocolType DEFAULT_PROTOCOL = ProtocolType.TCP;
@@ -51,13 +52,13 @@ public class CarbonInputPlugin implements InputPlugin {
         @JsonProperty("retry") final RetryPolicy retry, @JsonProperty("key") final String key
     ) {
         this.protocol = Optional
-            .fromNullable(protocol)
-            .or(ProtocolFactory.defaultFor())
+            .ofNullable(protocol)
+            .orElseGet(ProtocolFactory.defaultFor())
             .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
         this.protocolServer =
-            parseProtocolServer(Optional.fromNullable(delimiter).or(defaultDelimiter()));
-        this.retry = Optional.fromNullable(retry).or(new RetryPolicy.Exponential());
-        this.metricKey = Optional.fromNullable(key).or(DEFAULT_KEY);
+            parseProtocolServer(Optional.ofNullable(delimiter).orElseGet(this::defaultDelimiter));
+        this.retry = Optional.ofNullable(retry).orElseGet(() -> new RetryPolicy.Exponential());
+        this.metricKey = Optional.ofNullable(key).orElse(DEFAULT_KEY);
     }
 
     private String defaultDelimiter() {

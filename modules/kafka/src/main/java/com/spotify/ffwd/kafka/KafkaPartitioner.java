@@ -19,10 +19,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.google.common.base.Optional;
-import com.google.common.base.Supplier;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
+
+import java.util.Optional;
+import java.util.function.Supplier;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
@@ -67,7 +68,7 @@ public interface KafkaPartitioner {
 
         @JsonCreator
         public Tag(@JsonProperty("tag") final String tagKey) {
-            this.tagKey = Optional.fromNullable(tagKey).or(DEFAULT_TAGKEY);
+            this.tagKey = Optional.ofNullable(tagKey).orElse(DEFAULT_TAGKEY);
         }
 
         @Override

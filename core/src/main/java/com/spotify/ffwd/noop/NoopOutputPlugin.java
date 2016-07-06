@@ -17,7 +17,6 @@ package com.spotify.ffwd.noop;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
@@ -27,6 +26,7 @@ import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.output.OutputPluginModule;
 import com.spotify.ffwd.output.PluginSink;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class NoopOutputPlugin implements OutputPlugin {
@@ -37,7 +37,7 @@ public class NoopOutputPlugin implements OutputPlugin {
 
     @JsonCreator
     public NoopOutputPlugin(@JsonProperty("flushInterval") Long flushInterval) {
-        this.flushInterval = Optional.fromNullable(flushInterval).or(DEFAULT_FLUSH_INTERVAL);
+        this.flushInterval = Optional.ofNullable(flushInterval).orElse(DEFAULT_FLUSH_INTERVAL);
     }
 
     @Override

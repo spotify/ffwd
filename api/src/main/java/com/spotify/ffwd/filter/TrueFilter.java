@@ -19,12 +19,12 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import com.google.common.base.Supplier;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import lombok.Data;
 
 import java.io.IOException;
+import java.util.function.Supplier;
 
 @Data
 public class TrueFilter implements Filter {

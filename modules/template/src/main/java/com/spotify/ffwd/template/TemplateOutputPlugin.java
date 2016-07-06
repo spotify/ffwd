@@ -17,7 +17,6 @@ package com.spotify.ffwd.template;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.PrivateModule;
@@ -32,6 +31,8 @@ import com.spotify.ffwd.protocol.RetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
+
 public class TemplateOutputPlugin implements OutputPlugin {
     private static final ProtocolType DEFAULT_PROTOCOL = ProtocolType.TCP;
     private static final int DEFAULT_PORT = 8910;
@@ -45,10 +46,10 @@ public class TemplateOutputPlugin implements OutputPlugin {
         @JsonProperty("retry") final RetryPolicy retry
     ) {
         this.protocol = Optional
-            .fromNullable(protocol)
-            .or(ProtocolFactory.defaultFor())
+            .ofNullable(protocol)
+            .orElseGet(ProtocolFactory.defaultFor())
             .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
-        this.retry = Optional.fromNullable(retry).or(new RetryPolicy.Exponential());
+        this.retry = Optional.ofNullable(retry).orElseGet(() -> new RetryPolicy.Exponential());
     }
 
     @Override

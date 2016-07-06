@@ -17,19 +17,20 @@ package com.spotify.ffwd.generated;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.PrivateModule;
 import com.spotify.ffwd.input.InputPlugin;
 import com.spotify.ffwd.input.PluginSource;
 
+import java.util.Optional;
+
 public class GeneratedInputPlugin implements InputPlugin {
     private final boolean sameHost;
 
     @JsonCreator
     public GeneratedInputPlugin(@JsonProperty("sameHost") Boolean sameHost) {
-        this.sameHost = Optional.fromNullable(sameHost).or(false);
+        this.sameHost = Optional.ofNullable(sameHost).orElse(false);
     }
 
     @Override

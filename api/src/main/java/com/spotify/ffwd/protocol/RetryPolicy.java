@@ -20,8 +20,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.google.common.base.Optional;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
@@ -51,7 +51,7 @@ public interface RetryPolicy {
 
         @JsonCreator
         public Constant(@JsonProperty("value") Long value) {
-            this.value = Optional.fromNullable(value).or(DEFAULT_VALUE);
+            this.value = Optional.ofNullable(value).orElse(DEFAULT_VALUE);
         }
 
         @Override
@@ -75,8 +75,8 @@ public interface RetryPolicy {
 
         @JsonCreator
         public Exponential(@JsonProperty("initial") Long initial, @JsonProperty("max") Long max) {
-            this.initial = Optional.fromNullable(initial).or(DEFAULT_INITIAL);
-            this.max = Optional.fromNullable(max).or(DEFAULT_MAX);
+            this.initial = Optional.ofNullable(initial).orElse(DEFAULT_INITIAL);
+            this.max = Optional.ofNullable(max).orElse(DEFAULT_MAX);
             this.maxAttempt =
                 new Double(Math.floor(Math.log(this.max / this.initial) / Math.log(2))).intValue();
         }
@@ -108,8 +108,8 @@ public interface RetryPolicy {
 
         @JsonCreator
         public Linear(@JsonProperty("value") Long value, @JsonProperty("max") Long max) {
-            this.value = Optional.fromNullable(value).or(DEFAULT_VALUE);
-            this.max = Optional.fromNullable(max).or(DEFAULT_MAX);
+            this.value = Optional.ofNullable(value).orElse(DEFAULT_VALUE);
+            this.max = Optional.ofNullable(max).orElse(DEFAULT_MAX);
             this.maxAttempt = (int) ((this.max / this.value) - 1);
         }
 

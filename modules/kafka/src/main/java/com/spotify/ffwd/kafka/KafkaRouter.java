@@ -19,10 +19,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.google.common.base.Optional;
-import com.google.common.base.Supplier;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
+
+import java.util.Optional;
+import java.util.function.Supplier;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
@@ -49,9 +50,9 @@ public interface KafkaRouter {
             @JsonProperty("tag") final String tagKey, @JsonProperty("metrics") String metrics,
             @JsonProperty("events") String events
         ) {
-            this.tagKey = Optional.fromNullable(tagKey).or(DEFAULT_TAGKEY);
-            this.metrics = Optional.fromNullable(metrics).or(DEFAULT_METRICS);
-            this.events = Optional.fromNullable(events).or(DEFAULT_EVENTS);
+            this.tagKey = Optional.ofNullable(tagKey).orElse(DEFAULT_TAGKEY);
+            this.metrics = Optional.ofNullable(metrics).orElse(DEFAULT_METRICS);
+            this.events = Optional.ofNullable(events).orElse(DEFAULT_EVENTS);
         }
 
         @Override
@@ -97,8 +98,8 @@ public interface KafkaRouter {
         public Static(
             @JsonProperty("metrics") String metrics, @JsonProperty("events") String events
         ) {
-            this.metrics = Optional.fromNullable(metrics).or(DEFAULT_METRICS);
-            this.events = Optional.fromNullable(events).or(DEFAULT_EVENTS);
+            this.metrics = Optional.ofNullable(metrics).orElse(DEFAULT_METRICS);
+            this.events = Optional.ofNullable(events).orElse(DEFAULT_EVENTS);
         }
 
         @Override

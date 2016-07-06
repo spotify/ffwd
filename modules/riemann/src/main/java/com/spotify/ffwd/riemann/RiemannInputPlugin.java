@@ -17,7 +17,6 @@ package com.spotify.ffwd.riemann;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.PrivateModule;
@@ -32,6 +31,7 @@ import com.spotify.ffwd.protocol.ProtocolType;
 import com.spotify.ffwd.protocol.RetryPolicy;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
+import java.util.Optional;
 
 @Slf4j
 public class RiemannInputPlugin implements InputPlugin {
@@ -47,11 +47,11 @@ public class RiemannInputPlugin implements InputPlugin {
         @JsonProperty("protocol") ProtocolFactory protocol, @JsonProperty("retry") RetryPolicy retry
     ) {
         this.protocol = Optional
-            .fromNullable(protocol)
-            .or(ProtocolFactory.defaultFor())
+            .ofNullable(protocol)
+            .orElseGet(ProtocolFactory.defaultFor())
             .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
         this.protocolServer = parseProtocolServer();
-        this.retry = Optional.fromNullable(retry).or(new RetryPolicy.Exponential());
+        this.retry = Optional.ofNullable(retry).orElseGet(() -> new RetryPolicy.Exponential());
     }
 
     private Class<? extends ProtocolServer> parseProtocolServer() {

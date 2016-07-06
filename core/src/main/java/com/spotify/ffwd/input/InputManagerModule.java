@@ -17,8 +17,6 @@ package com.spotify.ffwd.input;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
-import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 import com.google.inject.Key;
 import com.google.inject.Module;
@@ -36,6 +34,8 @@ import io.netty.channel.ChannelInboundHandler;
 
 import java.util.List;
 import java.util.Set;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 public class InputManagerModule {
     private static final List<InputPlugin> DEFAULT_PLUGINS = Lists.newArrayList();
@@ -47,8 +47,8 @@ public class InputManagerModule {
     public InputManagerModule(
         @JsonProperty("plugins") List<InputPlugin> plugins, @JsonProperty("filter") Filter filter
     ) {
-        this.plugins = Optional.fromNullable(plugins).or(DEFAULT_PLUGINS);
-        this.filter = Optional.fromNullable(filter).or(new TrueFilter());
+        this.plugins = Optional.ofNullable(plugins).orElse(DEFAULT_PLUGINS);
+        this.filter = Optional.ofNullable(filter).orElseGet(() -> new TrueFilter());
     }
 
     public Module module() {
