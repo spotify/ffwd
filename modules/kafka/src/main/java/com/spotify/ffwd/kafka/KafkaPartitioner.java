@@ -50,10 +50,6 @@ public interface KafkaPartitioner {
         public int partition(final Metric metric) {
             return metric.getHost().hashCode();
         }
-
-        public static Supplier<KafkaPartitioner> supplier() {
-            return Host::new;
-        }
     }
 
     class Tag implements KafkaPartitioner {

@@ -60,14 +60,14 @@ public class RiemannOutputPlugin implements OutputPlugin {
         @JsonProperty("retry") RetryPolicy retry,
         @JsonProperty("riemannTags") Set<String> riemannTags
     ) {
-        this.filter = Optional.ofNullable(filter).orElseGet(TrueFilter.supplier());
+        this.filter = Optional.ofNullable(filter).orElseGet(TrueFilter::new);
         this.flushInterval = Optional.ofNullable(flushInterval).orElse(DEFAULT_FLUSH_INTERVAL);
         this.protocol = Optional
             .ofNullable(protocol)
             .orElseGet(ProtocolFactory.defaultFor())
             .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
         this.protocolClient = parseProtocolClient();
-        this.retry = Optional.ofNullable(retry).orElseGet(() -> new RetryPolicy.Exponential());
+        this.retry = Optional.ofNullable(retry).orElseGet(RetryPolicy.Exponential::new);
         this.riemannTags = Optional.ofNullable(riemannTags).orElse(DEFAULT_TAGS);
     }
 

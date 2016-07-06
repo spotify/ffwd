@@ -49,7 +49,7 @@ public class TemplateOutputPlugin implements OutputPlugin {
             .ofNullable(protocol)
             .orElseGet(ProtocolFactory.defaultFor())
             .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
-        this.retry = Optional.ofNullable(retry).orElseGet(() -> new RetryPolicy.Exponential());
+        this.retry = Optional.ofNullable(retry).orElseGet(RetryPolicy.Exponential::new);
     }
 
     @Override

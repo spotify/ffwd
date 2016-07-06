@@ -49,7 +49,7 @@ public class ProtobufInputPlugin implements InputPlugin {
             .orElseGet(ProtocolFactory.defaultFor())
             .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
         this.protocolServer = parseProtocolServer();
-        this.retry = Optional.ofNullable(retry).orElseGet(() -> new RetryPolicy.Exponential());
+        this.retry = Optional.ofNullable(retry).orElseGet(RetryPolicy.Exponential::new);
     }
 
     private Class<? extends ProtocolServer> parseProtocolServer() {

@@ -40,6 +40,6 @@ public class ToStringSerializer implements Serializer {
     }
 
     public static Supplier<Serializer> defaultSupplier() {
-        return () -> new ToStringSerializer();
+        return ToStringSerializer::new;
     }
 }

@@ -60,9 +60,9 @@ public class KafkaOutputPlugin implements OutputPlugin {
     ) {
         this.router = Optional.ofNullable(router).orElseGet(KafkaRouter.Tag.supplier());
         this.partitioner = Optional.ofNullable(partitioner)
-                                   .orElseGet(KafkaPartitioner.Host.supplier());
+                                   .orElseGet(KafkaPartitioner.Host::new);
         this.flushInterval = Optional.ofNullable(flushInterval);
-        this.properties = Optional.ofNullable(properties).orElseGet(() -> new HashMap<>());
+        this.properties = Optional.ofNullable(properties).orElseGet(HashMap::new);
         this.serializer = Optional.ofNullable(serializer);
         this.batchSize = Optional.ofNullable(batchSize).orElse(DEFAULT_BATCH_SIZE);
         this.compression = Optional.ofNullable(compression).orElse(DEFAULT_COMPRESSION);

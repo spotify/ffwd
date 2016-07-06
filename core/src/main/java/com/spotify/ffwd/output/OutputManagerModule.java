@@ -50,7 +50,7 @@ public class OutputManagerModule {
         @JsonProperty("plugins") List<OutputPlugin> plugins, @JsonProperty("filter") Filter filter
     ) {
         this.plugins = Optional.ofNullable(plugins).orElse(DEFAULT_PLUGINS);
-        this.filter = Optional.ofNullable(filter).orElseGet(() -> new TrueFilter());
+        this.filter = Optional.ofNullable(filter).orElseGet(TrueFilter::new);
     }
 
     public Module module() {

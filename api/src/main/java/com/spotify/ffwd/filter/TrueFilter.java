@@ -24,7 +24,6 @@ import com.spotify.ffwd.model.Metric;
 import lombok.Data;
 
 import java.io.IOException;
-import java.util.function.Supplier;
 
 @Data
 public class TrueFilter implements Filter {
@@ -48,9 +47,5 @@ public class TrueFilter implements Filter {
 
             return new TrueFilter();
         }
-    }
-
-    public static Supplier<TrueFilter> supplier() {
-        return TrueFilter::new;
     }
 }

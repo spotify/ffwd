@@ -55,7 +55,7 @@ public class JsonInputPlugin implements InputPlugin {
             .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
         this.protocolServer =
             parseProtocolServer(Optional.ofNullable(delimiter).orElseGet(this::defaultDelimiter));
-        this.retry = Optional.ofNullable(retry).orElseGet(() -> new RetryPolicy.Exponential());
+        this.retry = Optional.ofNullable(retry).orElseGet(RetryPolicy.Exponential::new);
     }
 
     private String defaultDelimiter() {
