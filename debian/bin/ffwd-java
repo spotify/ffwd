@@ -1,14 +1,14 @@
 #!/bin/bash
 
+RELEASE_NAME=$(basename $0)
+
 CONFIG_DIR="/etc/ffwd"
-FFWD_JAR="/usr/share/ffwd-java/ffwd-full.jar"
+FFWD_JAR="/usr/share/${RELEASE_NAME}/ffwd-full.jar"
 JVMARGS="${CONFIG_DIR}/ffwd.jvmargs"
-CONFIG="${CONFIG_DIR}/ffwd.yaml"
 
-if [[ -f /etc/default/ffwd-java ]]; then
-    . /etc/default/ffwd-java
+if [[ -f /etc/default/${RELEASE_NAME} ]]; then
+    . /etc/default/${RELEASE_NAME}
 fi
-
 
 if [[ -z $FFWD_JAR ]]; then
     echo "FFWD_JAR: not specified"
@@ -22,11 +22,6 @@ fi
 
 if [[ ! -f $JVMARGS ]]; then
     echo "Missing jvmargs: $JVMARGS"
-    exit 1
-fi
-
-if [[ ! -f $CONFIG ]]; then
-    echo "Missing config: $CONFIG"
     exit 1
 fi
 
