@@ -76,6 +76,13 @@ public class OutputManagerModule {
 
             @Provides
             @Singleton
+            @Named("riemannTags")
+            public Set<String> riemannTags(AgentConfig config) {
+                return config.getRiemannTags();
+            }
+
+            @Provides
+            @Singleton
             @Named("host")
             public String host(AgentConfig config) {
                 return config.getHost();

@@ -17,6 +17,7 @@ package com.spotify.ffwd.output;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.spotify.ffwd.debug.DebugServer;
@@ -32,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 public class CoreOutputManager implements OutputManager {
@@ -46,6 +48,10 @@ public class CoreOutputManager implements OutputManager {
     @Inject
     @Named("tags")
     private Map<String, String> tags;
+
+    @Inject
+    @Named("riemannTags")
+    private Set<String> riemannTags;
 
     @Inject
     @Named("host")
@@ -147,11 +153,14 @@ public class CoreOutputManager implements OutputManager {
         final Map<String, String> mergedTags = Maps.newHashMap(tags);
         mergedTags.putAll(event.getTags());
 
+        final Set<String> mergedRiemannTags = Sets.newHashSet(riemannTags);
+        mergedRiemannTags.addAll(event.getRiemannTags());
+
         final Date time = event.getTime() != null ? event.getTime() : new Date();
         final Long ttl = event.getTtl() != 0 ? event.getTtl() : this.ttl;
 
         return new Event(event.getKey(), event.getValue(), time, ttl, event.getState(),
-            event.getDescription(), host, event.getRiemannTags(), mergedTags);
+            event.getDescription(), host, mergedRiemannTags, mergedTags);
     }
 
     /**
@@ -167,9 +176,12 @@ public class CoreOutputManager implements OutputManager {
         final Map<String, String> mergedTags = Maps.newHashMap(tags);
         mergedTags.putAll(metric.getTags());
 
+        final Set<String> mergedRiemannTags = Sets.newHashSet(riemannTags);
+        mergedRiemannTags.addAll(metric.getRiemannTags());
+
         final Date time = metric.getTime() != null ? metric.getTime() : new Date();
 
-        return new Metric(metric.getKey(), metric.getValue(), time, host, metric.getRiemannTags(),
+        return new Metric(metric.getKey(), metric.getValue(), time, host, mergedRiemannTags,
             mergedTags, metric.getProc());
     }
 }
