@@ -17,7 +17,6 @@ package com.spotify.ffwd.riemann;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.Sets;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
@@ -36,7 +35,6 @@ import com.spotify.ffwd.protocol.ProtocolPluginSink;
 import com.spotify.ffwd.protocol.ProtocolType;
 import com.spotify.ffwd.protocol.RetryPolicy;
 
-import java.util.Set;
 import java.util.Optional;
 
 public class RiemannOutputPlugin implements OutputPlugin {
@@ -44,21 +42,18 @@ public class RiemannOutputPlugin implements OutputPlugin {
     private static final int DEFAULT_PORT = 5555;
     private static final long DEFAULT_FLUSH_INTERVAL = 0;
     // TimeUnit.MILLISECONDS.convert(10, TimeUnit.SECONDS);
-    public static final Set<String> DEFAULT_TAGS = Sets.newHashSet();
 
     private final Filter filter;
     private final Long flushInterval;
     private final Protocol protocol;
     private final Class<? extends ProtocolClient> protocolClient;
     private final RetryPolicy retry;
-    private final Set<String> riemannTags;
 
     @JsonCreator
     public RiemannOutputPlugin(
         @JsonProperty("filter") Filter filter, @JsonProperty("flushInterval") Long flushInterval,
         @JsonProperty("protocol") ProtocolFactory protocol,
-        @JsonProperty("retry") RetryPolicy retry,
-        @JsonProperty("riemannTags") Set<String> riemannTags
+        @JsonProperty("retry") RetryPolicy retry
     ) {
         this.filter = Optional.ofNullable(filter).orElseGet(TrueFilter::new);
         this.flushInterval = Optional.ofNullable(flushInterval).orElse(DEFAULT_FLUSH_INTERVAL);
@@ -68,7 +63,6 @@ public class RiemannOutputPlugin implements OutputPlugin {
             .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
         this.protocolClient = parseProtocolClient();
         this.retry = Optional.ofNullable(retry).orElseGet(RetryPolicy.Exponential::new);
-        this.riemannTags = Optional.ofNullable(riemannTags).orElse(DEFAULT_TAGS);
     }
 
     private Class<? extends ProtocolClient> parseProtocolClient() {
@@ -87,7 +81,6 @@ public class RiemannOutputPlugin implements OutputPlugin {
                 bind(Protocol.class).toInstance(protocol);
                 bind(RiemannMessageDecoder.class).in(Scopes.SINGLETON);
                 bind(ProtocolClient.class).to(protocolClient).in(Scopes.SINGLETON);
-                bind(RiemannSerialization.class).toInstance(new RiemannSerialization(riemannTags));
 
                 if (flushInterval != null && flushInterval > 0) {
                     bind(Key.get(Filter.class, Names.named("flushing"))).toInstance(filter);

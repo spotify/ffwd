@@ -18,6 +18,7 @@ package com.spotify.ffwd;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.spotify.ffwd.input.InputManagerModule;
 import com.spotify.ffwd.output.OutputManagerModule;
 import lombok.Data;
@@ -29,6 +30,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @Data
 public class AgentConfig {
@@ -38,11 +40,14 @@ public class AgentConfig {
     public static final int DEFAULT_WORKER_THREADS = 4;
 
     public static final Map<String, String> DEFAULT_TAGS = Maps.newHashMap();
+    public static final Set<String> DEFAULT_RIEMANNTAGS = Sets.newHashSet();
+
     public static final String DEFAULT_QLOG = "./qlog/";
 
     private final Optional<Debug> debug;
     private final String host;
     private final Map<String, String> tags;
+    private final Set<String> riemannTags;
     private final InputManagerModule input;
     private final OutputManagerModule output;
     private final int schedulerThreads;
@@ -56,6 +61,7 @@ public class AgentConfig {
     public AgentConfig(
         @JsonProperty("debug") Debug debug, @JsonProperty("host") String host,
         @JsonProperty("tags") Map<String, String> tags,
+        @JsonProperty("riemannTags") Set<String> riemannTags,
         @JsonProperty("input") InputManagerModule input,
         @JsonProperty("output") OutputManagerModule output,
         @JsonProperty("asyncThreads") Integer asyncThreads,
@@ -67,6 +73,7 @@ public class AgentConfig {
         this.debug = Optional.ofNullable(debug);
         this.host = Optional.ofNullable(host).orElseGet(this::buildDefaultHost);
         this.tags = Optional.ofNullable(tags).orElse(DEFAULT_TAGS);
+        this.riemannTags = Optional.ofNullable(riemannTags).orElse(DEFAULT_RIEMANNTAGS);
         this.input = Optional.ofNullable(input).orElseGet(InputManagerModule.supplyDefault());
         this.output = Optional.ofNullable(output).orElseGet(OutputManagerModule.supplyDefault());
         this.asyncThreads = Optional.ofNullable(asyncThreads).orElse(DEFAULT_ASYNC_THREADS);

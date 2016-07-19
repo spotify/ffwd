@@ -37,12 +37,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class RiemannSerialization {
-    private final Set<String> riemannTags;
-
-    public RiemannSerialization(Set<String> riemannTags) {
-        this.riemannTags = riemannTags;
-    }
-
     public Proto.Msg parse0(ByteBuf buffer) throws IOException {
         final InputStream inputStream = new ByteBufInputStream(buffer);
 
@@ -116,10 +110,7 @@ public class RiemannSerialization {
         b.setMetricD(d.getValue());
         b.addAllAttributes(convertTags0(d.getTags()));
 
-        final Set<String> riemannTags = new HashSet<>(this.riemannTags);
-        riemannTags.addAll(d.getRiemannTags());
-
-        b.addAllTags(riemannTags);
+        b.addAllTags(d.getRiemannTags());
         b.setTime(toRiemannTime(d.getTime()));
 
         return b;
@@ -138,10 +129,7 @@ public class RiemannSerialization {
         b.setMetricD(d.getValue());
         b.addAllAttributes(convertTags0(d.getTags()));
 
-        final Set<String> riemannTags = new HashSet<>(this.riemannTags);
-        riemannTags.addAll(d.getRiemannTags());
-
-        b.addAllTags(riemannTags);
+        b.addAllTags(d.getRiemannTags());
         b.setTime(toRiemannTime(d.getTime()));
 
         if (d.getDescription() != null) {
