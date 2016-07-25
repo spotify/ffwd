@@ -94,10 +94,10 @@ public class KafkaOutputPlugin implements OutputPlugin {
                 bind(KafkaPartitioner.class).toInstance(partitioner);
 
                 if (serializer.isPresent()) {
+                    bind(Serializer.class).toInstance(serializer.get());
+                } else {
                     // bind to default implementation, provided by core.
                     bind(Serializer.class).to(Key.get(Serializer.class, Names.named("default")));
-                } else {
-                    bind(Serializer.class).toInstance(serializer.get());
                 }
 
                 if (flushInterval.isPresent()) {
