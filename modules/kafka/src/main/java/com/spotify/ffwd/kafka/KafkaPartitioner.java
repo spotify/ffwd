@@ -24,6 +24,7 @@ import com.spotify.ffwd.model.Metric;
 
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.zip.CRC32;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
@@ -43,7 +44,9 @@ public interface KafkaPartitioner {
 
         @Override
         public int partition(final Event event) {
-            return event.getHost().hashCode();
+            final CRC32 crcGenerator = new CRC32();
+            crcGenerator.update(event.getHost().getBytes());
+            return (int) crcGenerator.getValue();
         }
 
         @Override
