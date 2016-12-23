@@ -17,6 +17,7 @@ package com.spotify.ffwd.kafka;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Iterators;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
@@ -34,6 +35,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -55,8 +59,12 @@ public class KafkaPluginSink implements BatchedPluginSink {
 
     private final int batchSize;
 
-    public KafkaPluginSink(int batchSize) {
+    private final ExecutorService executorService;
+
+    public KafkaPluginSink(int batchSize, int asyncThreads) {
         this.batchSize = batchSize;
+        executorService = Executors.newFixedThreadPool(asyncThreads, new ThreadFactoryBuilder()
+            .setNameFormat("ffwd-kafka-async-%d").build());
     }
 
     @Override
@@ -71,7 +79,7 @@ public class KafkaPluginSink implements BatchedPluginSink {
                 producer.send(eventConverter.toMessage(event));
                 return null;
             }
-        });
+        }, executorService);
     }
 
     @Override
@@ -82,7 +90,7 @@ public class KafkaPluginSink implements BatchedPluginSink {
                 producer.send(metricConverter.toMessage(metric));
                 return null;
             }
-        });
+        }, executorService);
     }
 
     @Override
@@ -109,7 +117,7 @@ public class KafkaPluginSink implements BatchedPluginSink {
                 log.info("{}: Done sending batch (timings in ms: {})", id, times);
                 return null;
             }
-        });
+        }, executorService);
     }
 
     @Override
@@ -130,7 +138,7 @@ public class KafkaPluginSink implements BatchedPluginSink {
                 producer.close();
                 return null;
             }
-        });
+        }, executorService);
     }
 
     @Override

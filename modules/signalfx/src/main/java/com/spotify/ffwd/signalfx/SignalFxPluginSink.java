@@ -16,6 +16,7 @@
  **/
 package com.spotify.ffwd.signalfx;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.signalfx.metrics.flush.AggregateMetricSender;
 import com.signalfx.metrics.protobuf.SignalFxProtocolBuffers;
@@ -29,6 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -40,6 +43,12 @@ public class SignalFxPluginSink implements BatchedPluginSink {
     @Inject
     private Supplier<AggregateMetricSender> senderSupplier;
 
+    private final ExecutorService executorService;
+
+    public SignalFxPluginSink(int asyncThreads) {
+        executorService = Executors.newFixedThreadPool(asyncThreads, new ThreadFactoryBuilder()
+            .setNameFormat("ffwd-signalfx-async-%d").build());
+    }
     @Override
     public void init() {
     }
@@ -62,7 +71,7 @@ public class SignalFxPluginSink implements BatchedPluginSink {
             public Void call() throws Exception {
                 return null;
             }
-        });
+        }, executorService);
     }
 
     @Override
@@ -98,7 +107,7 @@ public class SignalFxPluginSink implements BatchedPluginSink {
                 }
                 return null;
             }
-        });
+        }, executorService);
 
         future.on(new FutureFailed() {
             @Override
