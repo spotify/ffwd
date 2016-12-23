@@ -59,12 +59,11 @@ public class KafkaPluginSink implements BatchedPluginSink {
 
     private final int batchSize;
 
-    private final ExecutorService executorService;
+    private final ExecutorService executorService  = Executors.newCachedThreadPool(
+        new ThreadFactoryBuilder().setNameFormat("ffwd-kafka-async-%d").build());
 
-    public KafkaPluginSink(int batchSize, int asyncThreads) {
+    public KafkaPluginSink(int batchSize) {
         this.batchSize = batchSize;
-        executorService = Executors.newFixedThreadPool(asyncThreads, new ThreadFactoryBuilder()
-            .setNameFormat("ffwd-kafka-async-%d").build());
     }
 
     @Override

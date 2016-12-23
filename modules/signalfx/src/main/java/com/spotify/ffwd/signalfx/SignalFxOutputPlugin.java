@@ -52,14 +52,12 @@ public class SignalFxOutputPlugin implements OutputPlugin {
     public static final String DEFAULT_ID = "signalfx";
     public static final String DEFAULT_SOURCE_NAME = "ffwd/java";
     public static final Long DEFAULT_FLUSH_INTERVAL = 500L;
-    public static final int DEFAULT_ASYNC_THREADS = 2;
     public static final int DEFAULT_SO_TIMEOUT = 10000;
 
     private final String id;
     private final String sourceName;
     private final String authToken;
     private final Long flushInterval;
-    private final int asyncThreads;
     private final int soTimeout;
 
     @JsonCreator
@@ -68,13 +66,11 @@ public class SignalFxOutputPlugin implements OutputPlugin {
             @JsonProperty("sourceName") String sourceName,
             @JsonProperty("authToken") String authToken,
             @JsonProperty("flushInterval") Long flushInterval,
-            @JsonProperty("asyncThreads") Integer asyncThreads,
             @JsonProperty("soTimeout") Integer soTimeout) {
         this.id = Optional.ofNullable(id).orElse(DEFAULT_ID);
         this.sourceName = Optional.ofNullable(sourceName).orElse(DEFAULT_SOURCE_NAME);
         this.authToken = Optional.ofNullable(authToken).orElseThrow(() -> new IllegalArgumentException("authToken: must be defined"));
         this.flushInterval = Optional.ofNullable(flushInterval).orElse(DEFAULT_FLUSH_INTERVAL);
-        this.asyncThreads = Optional.ofNullable(asyncThreads).orElse(DEFAULT_ASYNC_THREADS);
         this.soTimeout = Optional.ofNullable(soTimeout).orElse(DEFAULT_SO_TIMEOUT);
     }
 
@@ -105,7 +101,7 @@ public class SignalFxOutputPlugin implements OutputPlugin {
 
             @Override
             protected void configure() {
-                bind(BatchedPluginSink.class).toInstance(new SignalFxPluginSink(asyncThreads));
+                bind(BatchedPluginSink.class).to(SignalFxPluginSink.class);
                 bind(key).toInstance(new FlushingPluginSink(flushInterval));
 
                 expose(key);

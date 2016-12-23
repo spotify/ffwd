@@ -43,12 +43,9 @@ public class SignalFxPluginSink implements BatchedPluginSink {
     @Inject
     private Supplier<AggregateMetricSender> senderSupplier;
 
-    private final ExecutorService executorService;
+    private final ExecutorService executorService = Executors.newCachedThreadPool(
+        new ThreadFactoryBuilder().setNameFormat("ffwd-signalfx-async-%d").build());
 
-    public SignalFxPluginSink(int asyncThreads) {
-        executorService = Executors.newFixedThreadPool(asyncThreads, new ThreadFactoryBuilder()
-            .setNameFormat("ffwd-signalfx-async-%d").build());
-    }
     @Override
     public void init() {
     }

@@ -39,7 +39,6 @@ import java.util.Optional;
 public class KafkaOutputPlugin implements OutputPlugin {
     public static final int DEFAULT_BATCH_SIZE = 1000;
     public static final boolean DEFAULT_COMPRESSION = true;
-    public static final int DEFAULT_ASYNC_THREADS = 2;
 
     private final KafkaRouter router;
     private final KafkaPartitioner partitioner;
@@ -48,7 +47,6 @@ public class KafkaOutputPlugin implements OutputPlugin {
     private final Optional<Serializer> serializer;
     private final int batchSize;
     private final boolean compression;
-    private final int asyncThreads;
 
     @JsonCreator
     public KafkaOutputPlugin(
@@ -58,8 +56,7 @@ public class KafkaOutputPlugin implements OutputPlugin {
         @JsonProperty("partitioner") KafkaPartitioner partitioner,
         @JsonProperty("serializer") Serializer serializer,
         @JsonProperty("batchSize") Integer batchSize,
-        @JsonProperty("compression") Boolean compression,
-        @JsonProperty("asyncThreads") Integer asyncThreads
+        @JsonProperty("compression") Boolean compression
     ) {
         this.router = Optional.ofNullable(router).orElseGet(KafkaRouter.Tag.supplier());
         this.partitioner = Optional.ofNullable(partitioner)
@@ -69,7 +66,6 @@ public class KafkaOutputPlugin implements OutputPlugin {
         this.serializer = Optional.ofNullable(serializer);
         this.batchSize = Optional.ofNullable(batchSize).orElse(DEFAULT_BATCH_SIZE);
         this.compression = Optional.ofNullable(compression).orElse(DEFAULT_COMPRESSION);
-        this.asyncThreads = Optional.ofNullable(asyncThreads).orElse(DEFAULT_ASYNC_THREADS);
     }
 
     @Override
@@ -105,10 +101,10 @@ public class KafkaOutputPlugin implements OutputPlugin {
                 }
 
                 if (flushInterval.isPresent()) {
-                    bind(BatchedPluginSink.class).toInstance(new KafkaPluginSink(batchSize, asyncThreads));
+                    bind(BatchedPluginSink.class).toInstance(new KafkaPluginSink(batchSize));
                     bind(key).toInstance(new FlushingPluginSink(flushInterval.get()));
                 } else {
-                    bind(key).toInstance(new KafkaPluginSink(batchSize, asyncThreads));
+                    bind(key).toInstance(new KafkaPluginSink(batchSize));
                 }
 
                 expose(key);
