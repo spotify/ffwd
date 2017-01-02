@@ -1,13 +1,12 @@
-// $LICENSE
 /**
  * Copyright 2013-2014 Spotify AB. All rights reserved.
- * <p>
+ *
  * The contents of this file are licensed under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License. You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -28,7 +27,11 @@ import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.FutureFailed;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -78,27 +81,35 @@ public class SignalFxPluginSink implements BatchedPluginSink {
             public Void call() throws Exception {
                 try (AggregateMetricSender.Session i = senderSupplier.get().createSession()) {
                     for (Metric metric : metrics) {
-                        SignalFxProtocolBuffers.DataPoint.Builder datapointBuilder = SignalFxProtocolBuffers.DataPoint.newBuilder()
+                        final SignalFxProtocolBuffers.DataPoint.Builder datapointBuilder =
+                            SignalFxProtocolBuffers.DataPoint
+                                .newBuilder()
                                 .setMetric(composeMetricIdentity(metric))
-                                .setMetricType(SignalFxProtocolBuffers.MetricType.GAUGE).setValue(
-                                        SignalFxProtocolBuffers.Datum.newBuilder()
-                                                .setDoubleValue(metric.getValue())
-                                )
+                                .setMetricType(SignalFxProtocolBuffers.MetricType.GAUGE)
+                                .setValue(SignalFxProtocolBuffers.Datum
+                                    .newBuilder()
+                                    .setDoubleValue(metric.getValue()))
                                 .setTimestamp(metric.getTime().getTime());
-                        metric.getTags().entrySet()
-                                .stream()
-                                .map(attribute -> SignalFxProtocolBuffers.Dimension.newBuilder()
-                                        .setKey(attribute.getKey())
-                                        .setValue(attribute.getValue())
-                                        .build())
-                                .forEach(datapointBuilder::addDimensions);
-                        datapointBuilder.addDimensions(
-                                SignalFxProtocolBuffers.Dimension.newBuilder()
-                                        .setKey("host")
-                                        .setValue(metric.getHost())
-                                        .build()
-                        );
-                        final SignalFxProtocolBuffers.DataPoint dataPoint = datapointBuilder.build();
+
+                        metric
+                            .getTags()
+                            .entrySet()
+                            .stream()
+                            .map(attribute -> SignalFxProtocolBuffers.Dimension
+                                .newBuilder()
+                                .setKey(attribute.getKey())
+                                .setValue(attribute.getValue())
+                                .build())
+                            .forEach(datapointBuilder::addDimensions);
+
+                        datapointBuilder.addDimensions(SignalFxProtocolBuffers.Dimension
+                            .newBuilder()
+                            .setKey("host")
+                            .setValue(metric.getHost())
+                            .build());
+
+                        final SignalFxProtocolBuffers.DataPoint dataPoint =
+                            datapointBuilder.build();
                         i.setDatapoint(dataPoint);
                     }
                 }
@@ -122,10 +133,10 @@ public class SignalFxPluginSink implements BatchedPluginSink {
 
         final Map<String, String> tags = metric.getTags();
         final String what = tags.get("what");
-        if (what != null){
+        if (what != null) {
             metricIdentity.add(what);
             final String stat = tags.get("stat");
-            if (stat != null){
+            if (stat != null) {
                 metricIdentity.add(stat);
             }
         }
