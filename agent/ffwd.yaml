@@ -1,9 +1,9 @@
 debug: {}
 
-attributes:
+tags:
   role: test
 
-tags:
+riemannTags:
   - ffwd
 
 input:
