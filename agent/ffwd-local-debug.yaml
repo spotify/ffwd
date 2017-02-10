@@ -1,0 +1,24 @@
+input:
+  plugins:
+    - type: json
+      protocol:
+        type: tcp
+    - type: json
+      protocol:
+        type: udp
+    - type: protobuf
+      protocol:
+        type: udp
+    - type: protobuf
+      protocol:
+        type: tcp
+    - type: riemann
+      protocol:
+        type: tcp
+    - type: riemann
+      protocol:
+        type: udp
+
+output:
+  plugins:
+    - type: debug
