@@ -54,6 +54,17 @@ If you encounter problems, you can troubleshoot the build with `DH_VERBOSE`:
 $ env DH_VERBOSE=1 dpkg-buildpackage -uc -us
 ```
 
+# Local Debugging
+
+Assuming you have [Maven][maven] installed, you can run the following to setup a local debug agent:
+
+```
+$> tools/ffwd agent/ffwd-local-debug.yaml
+```
+
+This will setup a ffwd with a lot of input plugins that are printed to stdout.
+
+[maven]: https://maven.apache.org/
 
 # Clients
 
