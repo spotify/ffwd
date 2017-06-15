@@ -83,6 +83,13 @@ public class OutputManagerModule {
 
             @Provides
             @Singleton
+            @Named("skipTagsForKeys")
+            public Set<String> skipTagsForKeys(AgentConfig config) {
+                return config.getSkipTagsForKeys();
+            }
+
+            @Provides
+            @Singleton
             @Named("host")
             public String host(AgentConfig config) {
                 return config.getHost();

@@ -3,6 +3,9 @@ debug: {}
 tags:
   role: test
 
+skipTagsForKeys:
+  - gcp
+
 riemannTags:
   - ffwd
 

@@ -54,6 +54,10 @@ public class CoreOutputManager implements OutputManager {
     private Set<String> riemannTags;
 
     @Inject
+    @Named("skipTagsForKeys")
+    private Set<String> skipTagsForKeys;
+
+    @Inject
     @Named("host")
     private String host;
 
@@ -167,7 +171,7 @@ public class CoreOutputManager implements OutputManager {
      * Filter the provided Metric and complete fields.
      */
     private Metric filter(Metric metric) {
-        if (tags.isEmpty()) {
+        if (tags.isEmpty() || skipTagsForKeys.contains(metric.getKey())) {
             return metric;
         }
 
