@@ -35,7 +35,7 @@ import java.util.zip.CRC32;
 public interface KafkaPartitioner {
     int partition(final Event event);
 
-    int partition(final Metric metric);
+    int partition(final Metric metric, final String defaultHost);
 
     class Host implements KafkaPartitioner {
         @JsonCreator
@@ -50,7 +50,10 @@ public interface KafkaPartitioner {
         }
 
         @Override
-        public int partition(final Metric metric) {
+        public int partition(final Metric metric, final String defaultHost) {
+            if (metric.getHost() == null) {
+                return defaultHost.hashCode();
+            }
             return metric.getHost().hashCode();
         }
     }
@@ -78,7 +81,7 @@ public interface KafkaPartitioner {
         }
 
         @Override
-        public int partition(final Metric metric) {
+        public int partition(final Metric metric, final String defaultHost) {
             final String tagValue = metric.getTags().get(tagKey);
 
             if (tagValue != null) {
@@ -105,7 +108,7 @@ public interface KafkaPartitioner {
         }
 
         @Override
-        public int partition(final Metric metric) {
+        public int partition(final Metric metric, final String defaultHost) {
             return metric.hashCode();
         }
 
