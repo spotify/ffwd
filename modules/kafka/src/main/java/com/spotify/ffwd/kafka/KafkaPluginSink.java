@@ -25,6 +25,7 @@ import com.spotify.ffwd.output.BatchedPluginSink;
 import com.spotify.ffwd.serializer.Serializer;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
+import javax.inject.Named;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +56,10 @@ public class KafkaPluginSink implements BatchedPluginSink {
 
     @Inject
     private Serializer serializer;
+
+    @Inject
+    @Named("host")
+    private String host;
 
     private final int batchSize;
 
@@ -164,7 +169,7 @@ public class KafkaPluginSink implements BatchedPluginSink {
         @Override
         public KeyedMessage<Integer, byte[]> toMessage(final Metric metric) throws Exception {
             final String topic = router.route(metric);
-            final int partition = partitioner.partition(metric);
+            final int partition = partitioner.partition(metric, host);
             final byte[] payload = serializer.serialize(metric);
             return new KeyedMessage<>(topic, partition, payload);
         }

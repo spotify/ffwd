@@ -170,22 +170,35 @@ public class CoreOutputManager implements OutputManager {
     /**
      * Filter the provided Metric and complete fields.
      */
-    private Metric filter(Metric metric) {
-        if (tags.isEmpty() || skipTagsForKeys.contains(metric.getKey())) {
-            return metric;
-        }
+    private Metric filter(final Metric metric) {
+        final Date time = metric.getTime() != null ? metric.getTime() : new Date();
 
-        final String host = metric.getHost() != null ? metric.getHost() : this.host;
-
-        final Map<String, String> mergedTags = Maps.newHashMap(tags);
-        mergedTags.putAll(metric.getTags());
+        final Map<String, String> mergedTags = selectTags(metric);
+        final String host = selectHost(metric);
 
         final Set<String> mergedRiemannTags = Sets.newHashSet(riemannTags);
         mergedRiemannTags.addAll(metric.getRiemannTags());
 
-        final Date time = metric.getTime() != null ? metric.getTime() : new Date();
-
         return new Metric(metric.getKey(), metric.getValue(), time, host, mergedRiemannTags,
             mergedTags, metric.getProc());
+    }
+
+    private Map<String, String> selectTags(Metric metric) {
+        if (skipTagsForKeys.contains(metric.getKey()) || tags.isEmpty()) {
+            return metric.getTags();
+        }
+
+        final Map<String, String> mergedTags;
+        mergedTags = Maps.newHashMap(tags);
+        mergedTags.putAll(metric.getTags());
+        return mergedTags;
+    }
+
+    private String selectHost(Metric metric) {
+        if (skipTagsForKeys.contains(metric.getKey())) {
+            return metric.getHost();
+        }
+
+        return metric.getHost() != null ? metric.getHost() : this.host;
     }
 }
