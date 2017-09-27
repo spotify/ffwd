@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/github/license/spotify/ffwd.svg)](LICENSE)
 
 
-This is a Java implementation of [ffwd](https://github.com/spotify/ffwd)
+This is a Java implementation of [ffwd](https://github.com/spotify/ffwd-ruby)
 
 This project is currently: __experimental__, use at your own risk.
 
