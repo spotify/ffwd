@@ -16,6 +16,7 @@
 package com.spotify.ffwd.input;
 
 import com.google.inject.Inject;
+import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -38,6 +39,11 @@ public class InputChannelInboundHandler extends ChannelInboundHandlerAdapter {
 
         if (msg instanceof Metric) {
             input.receiveMetric((Metric) msg);
+            return;
+        }
+
+        if (msg instanceof Batch) {
+            input.receiveBatch((Batch) msg);
             return;
         }
 

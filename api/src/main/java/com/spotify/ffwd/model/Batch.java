@@ -26,25 +26,25 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Batch {
     private final Map<String, String> commonTags;
-    private final List<Metric> metrics;
+    private final List<Point> points;
 
     @JsonCreator
     public Batch(
         @JsonProperty("commonTags") final Map<String, String> commonTags,
-        @JsonProperty("metrics") final List<Metric> metrics
+        @JsonProperty("points") final List<Point> points
     ) {
         this.commonTags = commonTags;
-        this.metrics = metrics;
+        this.points = points;
     }
 
     @Data
-    public static class Metric {
+    public static class Point {
         private final String key;
         private final Map<String, String> tags;
         private final double value;
         private final long timestamp;
 
-        public Metric(
+        public Point(
             @JsonProperty("key") final String key,
             @JsonProperty("tags") final Map<String, String> tags,
             @JsonProperty("value") final double value,

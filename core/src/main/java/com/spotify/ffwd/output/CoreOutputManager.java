@@ -22,6 +22,7 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.spotify.ffwd.debug.DebugServer;
 import com.spotify.ffwd.filter.Filter;
+import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.statistics.OutputManagerStatistics;
@@ -119,6 +120,19 @@ public class CoreOutputManager implements OutputManager {
         for (final PluginSink s : sinks) {
             if (s.isReady()) {
                 s.sendMetric(filtered);
+            }
+        }
+    }
+
+    @Override
+    public void sendBatch(Batch batch) {
+        statistics.reportSentMetrics(batch.getPoints().size());
+
+        debug.inspectBatch(DEBUG_ID, batch);
+
+        for (final PluginSink s : sinks) {
+            if (s.isReady()) {
+                s.sendBatch(batch);
             }
         }
     }

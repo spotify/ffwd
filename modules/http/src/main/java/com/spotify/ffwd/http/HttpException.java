@@ -13,28 +13,17 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.spotify.ffwd.input;
+package com.spotify.ffwd.http;
 
-import com.spotify.ffwd.Initializable;
-import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
-import com.spotify.ffwd.model.Metric;
-import eu.toolchain.async.AsyncFuture;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import lombok.Data;
 
-public interface InputManager extends Initializable {
-    /**
-     * Receive a single event.
-     */
-    public void receiveEvent(Event event);
+@Data
+public class HttpException extends RuntimeException {
+    private final HttpResponseStatus status;
 
-    /**
-     * Receive a single metric.
-     */
-    public void receiveMetric(Metric metric);
-
-    public void receiveBatch(Batch batch);
-
-    public AsyncFuture<Void> start();
-
-    public AsyncFuture<Void> stop();
+    public HttpException(final HttpResponseStatus status) {
+        super(status.reasonPhrase());
+        this.status = status;
+    }
 }

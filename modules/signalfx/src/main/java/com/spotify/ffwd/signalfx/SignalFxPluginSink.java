@@ -19,6 +19,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.signalfx.metrics.flush.AggregateMetricSender;
 import com.signalfx.metrics.protobuf.SignalFxProtocolBuffers;
+import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchedPluginSink;
@@ -61,6 +62,11 @@ public class SignalFxPluginSink implements BatchedPluginSink {
     @Override
     public void sendMetric(final Metric metric) {
         sendMetrics(Collections.singletonList(metric));
+    }
+
+    @Override
+    public void sendBatch(final Batch batch) {
+        // TODO: implement this
     }
 
     @Override
@@ -125,6 +131,12 @@ public class SignalFxPluginSink implements BatchedPluginSink {
         });
 
         return future;
+    }
+
+    @Override
+    public AsyncFuture<Void> sendBatches(final Collection<Batch> batches) {
+        // TODO: implement this
+        return async.resolved();
     }
 
     private String composeMetricIdentity(Metric metric) {

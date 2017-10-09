@@ -13,28 +13,18 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.spotify.ffwd.input;
+package com.spotify.ffwd;
 
-import com.spotify.ffwd.Initializable;
-import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
-import com.spotify.ffwd.model.Metric;
-import eu.toolchain.async.AsyncFuture;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
-public interface InputManager extends Initializable {
-    /**
-     * Receive a single event.
-     */
-    public void receiveEvent(Event event);
-
-    /**
-     * Receive a single metric.
-     */
-    public void receiveMetric(Metric metric);
-
-    public void receiveBatch(Batch batch);
-
-    public AsyncFuture<Void> start();
-
-    public AsyncFuture<Void> stop();
+public class Mappers {
+    public static ObjectMapper setupApplicationJson() {
+        final ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new Jdk8Module());
+        mapper.enable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES);
+        mapper.enable(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES);
+        return mapper;
+    }
 }

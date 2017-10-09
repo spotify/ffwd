@@ -16,6 +16,7 @@
 package com.spotify.ffwd.output;
 
 import com.spotify.ffwd.Initializable;
+import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import eu.toolchain.async.AsyncFuture;
@@ -40,6 +41,16 @@ public interface PluginSink extends Initializable {
      * @return A future that will be resolved when the metrics have been sent.
      */
     public void sendMetric(Metric metric);
+
+    /**
+     * Send the given collection of metrics.
+     *
+     * This method is fire-and-forget, because tracking each individual send is too expensive.
+     *
+     * @param batch Batch to send.
+     * @return A future that will be resolved when the metrics have been sent.
+     */
+    public void sendBatch(Batch batch);
 
     public AsyncFuture<Void> start();
 

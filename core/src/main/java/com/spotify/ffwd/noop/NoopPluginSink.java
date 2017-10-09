@@ -16,6 +16,7 @@
 package com.spotify.ffwd.noop;
 
 import com.google.inject.Inject;
+import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchedPluginSink;
@@ -48,6 +49,10 @@ public class NoopPluginSink implements BatchedPluginSink {
     }
 
     @Override
+    public void sendBatch(final Batch batch) {
+    }
+
+    @Override
     public AsyncFuture<Void> sendEvents(Collection<Event> events) {
         return count(events.size());
     }
@@ -55,6 +60,11 @@ public class NoopPluginSink implements BatchedPluginSink {
     @Override
     public AsyncFuture<Void> sendMetrics(Collection<Metric> metrics) {
         return count(metrics.size());
+    }
+
+    @Override
+    public AsyncFuture<Void> sendBatches(final Collection<Batch> batches) {
+        return count(batches.size());
     }
 
     private AsyncFuture<Void> count(int size) {

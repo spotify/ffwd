@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.spotify.ffwd.debug.DebugServer;
 import com.spotify.ffwd.filter.Filter;
+import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.OutputManager;
@@ -86,6 +87,14 @@ public class CoreInputManager implements InputManager {
         statistics.reportReceivedMetrics(1);
         debug.inspectMetric(DEBUG_ID, metric);
         output.sendMetric(metric);
+    }
+
+    @Override
+    public void receiveBatch(Batch batch) {
+        // TODO: consider filtering
+        statistics.reportReceivedMetrics(batch.getPoints().size());
+        debug.inspectBatch(DEBUG_ID, batch);
+        output.sendBatch(batch);
     }
 
     @Override
