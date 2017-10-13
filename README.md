@@ -56,6 +56,29 @@ If you encounter problems, you can troubleshoot the build with `DH_VERBOSE`:
 $ env DH_VERBOSE=1 dpkg-buildpackage -uc -us
 ```
 
+## Testing
+
+We run unit tests with Maven:
+
+```
+$ mvn test
+```
+
+A more comprehensive test suite is enabled with the `environment=test`
+property.
+
+```
+$ mvn -D environment=test verify
+```
+
+This adds:
+
+* [Checkstyle](http://checkstyle.sourceforge.net/)
+* [FindBugs](http://findbugs.sourceforge.net/)
+
+It is strongly recommended that you run the full test suite before setting up a
+pull request, otherwise it will be rejected by Travis.
+
 # Local Debugging
 
 Assuming you have [Maven][maven] installed, you can run the following to setup a local debug agent:
