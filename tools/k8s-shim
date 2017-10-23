@@ -1,0 +1,48 @@
+#!/bin/bash
+
+set -e
+
+project=$1
+
+MVN=${MVN:-mvn -B}
+jar="$PWD/agent/target/original-ffwd-agent-0.0.1-SNAPSHOT.jar"
+
+if [[ -z $project ]]; then
+    echo "Missing argument: project"
+    echo ""
+    echo "Usage: $0 <project>"
+    echo ""
+    echo "Builds and uploads ffwd as a shim, suitable for deployment as a Kubernetes DaemonSet."
+    exit 1
+fi
+
+if [[ ! -f $jar ]]; then
+    echo "Building: $jar"
+    $MVN package
+fi
+
+if [[ ! -f $jar ]]; then
+    echo "JAR does not exist: $jar"
+    exit 1
+fi
+
+timestamp=$(date +"%Y%m%dT%H%M%S")
+tag=gcr.io/$project/ffwd-java-shim:$timestamp
+
+gcloud docker -- build -t $tag -f docker/Dockerfile.shim .
+gcloud docker -- push $tag
+
+echo "Deployment Spec:"
+echo ""
+
+cat <<ENDL
+- name: ffwd-java-shim
+  image: $tag
+  env:
+  - name: FFWD_TAG_podname
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.name
+ENDL
+
+exit 0
