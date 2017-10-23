@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
+import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import eu.toolchain.async.AsyncFramework;
@@ -95,6 +96,19 @@ public class NettyDebugServer implements DebugServer {
             sendInspectPacket(new WriteMetricEvent(id, metric));
         } catch (Exception e) {
             log.error("Failed to inspect metric {}", metric, e);
+        }
+    }
+
+    @Override
+    public void inspectBatch(final String id, final Batch batch) {
+        if (connected.isEmpty()) {
+            return;
+        }
+
+        try {
+            sendInspectPacket(new WriteBatchEvent(id, batch));
+        } catch (Exception e) {
+            log.error("Failed to inspect batch {}", batch, e);
         }
     }
 
@@ -202,5 +216,12 @@ public class NettyDebugServer implements DebugServer {
         private final String type = "event";
         private final String id;
         private final Event data;
+    }
+
+    @Data
+    public static class WriteBatchEvent {
+        private final String type = "batch";
+        private final String id;
+        private final Batch data;
     }
 }

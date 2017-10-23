@@ -15,6 +15,7 @@
  */
 package com.spotify.ffwd.output;
 
+import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import eu.toolchain.async.AsyncFuture;
@@ -37,4 +38,12 @@ public interface BatchedPluginSink extends PluginSink {
      * @return A future that will be resolved when the metrics have been sent.
      */
     public AsyncFuture<Void> sendMetrics(Collection<Metric> metrics);
+
+    /**
+     * Send the given collection of batches.
+     *
+     * @param batches Batches to send.
+     * @return A future that will be resolved when the batches have been sent.
+     */
+    public AsyncFuture<Void> sendBatches(Collection<Batch> batches);
 }

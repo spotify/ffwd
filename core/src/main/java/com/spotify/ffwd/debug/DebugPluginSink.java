@@ -16,6 +16,7 @@
 package com.spotify.ffwd.debug;
 
 import com.google.inject.Inject;
+import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchedPluginSink;
@@ -45,6 +46,11 @@ public class DebugPluginSink implements BatchedPluginSink {
     }
 
     @Override
+    public void sendBatch(final Batch batch) {
+        log.info("B: {}", batch);
+    }
+
+    @Override
     public AsyncFuture<Void> sendEvents(Collection<Event> events) {
         int i = 0;
 
@@ -60,7 +66,18 @@ public class DebugPluginSink implements BatchedPluginSink {
         int i = 0;
 
         for (final Metric m : metrics) {
-            log.info("E#{}: {}", i++, m);
+            log.info("M#{}: {}", i++, m);
+        }
+
+        return async.resolved(null);
+    }
+
+    @Override
+    public AsyncFuture<Void> sendBatches(final Collection<Batch> batches) {
+        int i = 0;
+
+        for (final Batch b : batches) {
+            log.info("B#{}: {}", i++, b);
         }
 
         return async.resolved(null);

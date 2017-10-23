@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.filter.TrueFilter;
+import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchedPluginSink;
@@ -90,6 +91,17 @@ public class ProtocolPluginSink implements BatchedPluginSink {
     }
 
     @Override
+    public void sendBatch(Batch batch) {
+        final ProtocolConnection c = connection.get();
+
+        if (c == null) {
+            return;
+        }
+
+        c.send(batch);
+    }
+
+    @Override
     public AsyncFuture<Void> sendEvents(Collection<Event> events) {
         final ProtocolConnection c = connection.get();
 
@@ -109,6 +121,17 @@ public class ProtocolPluginSink implements BatchedPluginSink {
         }
 
         return c.sendAll(filterMetrics(metrics));
+    }
+
+    @Override
+    public AsyncFuture<Void> sendBatches(final Collection<Batch> batches) {
+        final ProtocolConnection c = connection.get();
+
+        if (c == null) {
+            return async.failed(new IllegalStateException("not connected to " + protocol));
+        }
+
+        return c.sendAll(batches);
     }
 
     public Collection<Event> filterEvents(Collection<Event> input) {

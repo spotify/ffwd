@@ -16,29 +16,33 @@
 package com.spotify.ffwd.kafka;
 
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
+import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchedPluginSink;
 import com.spotify.ffwd.serializer.Serializer;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
-import javax.inject.Named;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import javax.inject.Named;
+import kafka.javaapi.producer.Producer;
+import kafka.producer.KeyedMessage;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class KafkaPluginSink implements BatchedPluginSink {
@@ -63,7 +67,7 @@ public class KafkaPluginSink implements BatchedPluginSink {
 
     private final int batchSize;
 
-    private final ExecutorService executorService  = Executors.newCachedThreadPool(
+    private final ExecutorService executorService = Executors.newCachedThreadPool(
         new ThreadFactoryBuilder().setNameFormat("ffwd-kafka-async-%d").build());
 
     public KafkaPluginSink(int batchSize) {
@@ -94,6 +98,26 @@ public class KafkaPluginSink implements BatchedPluginSink {
                 return null;
             }
         }, executorService);
+    }
+
+    @Override
+    public void sendBatch(final Batch batch) {
+        send(toBatches(
+            iteratorFor(batch.getPoints(), metric -> convertBatchMetric(batch, metric))));
+    }
+
+    private KeyedMessage<Integer, byte[]> convertBatchMetric(
+        final Batch batch, final Batch.Point point
+    ) throws Exception {
+        final Map<String, String> allTags = new HashMap<>();
+        allTags.putAll(batch.getCommonTags());
+        allTags.putAll(point.getTags());
+
+        final String host = allTags.remove("host");
+
+        return metricConverter.toMessage(
+            new Metric(point.getKey(), point.getValue(), new Date(point.getTimestamp()), host,
+                ImmutableSet.of(), allTags, null));
     }
 
     @Override
@@ -129,6 +153,15 @@ public class KafkaPluginSink implements BatchedPluginSink {
     }
 
     @Override
+    public AsyncFuture<Void> sendBatches(final Collection<Batch> batches) {
+        final List<Iterator<KeyedMessage<Integer, byte[]>>> iterators = new ArrayList<>();
+        batches.forEach(batch -> iterators.add(
+            iteratorFor(batch.getPoints(), metric -> convertBatchMetric(batch, metric))));
+
+        return send(toBatches(Iterators.concat(iterators.iterator())));
+    }
+
+    @Override
     public AsyncFuture<Void> start() {
         return async.resolved(null);
     }
@@ -152,12 +185,11 @@ public class KafkaPluginSink implements BatchedPluginSink {
 
     /**
      * Convert the given message iterator to an iterator of batches of a specific size.
-     *
-     * This is an attempt to reduce the required maximum amount of live memory required at a
-     * single time.
+     * <p>
+     * This is an attempt to reduce the required maximum amount of live memory required at a single
+     * time.
      *
      * @param iterator Iterator to convert into batches.
-     * @return
      */
     private Iterator<List<KeyedMessage<Integer, byte[]>>> toBatches(
         final Iterator<KeyedMessage<Integer, byte[]>> iterator

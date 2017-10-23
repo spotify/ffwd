@@ -15,15 +15,17 @@
  */
 package com.spotify.ffwd.model;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+/**
+ * TODO: rename to 'Point' to follow along with internal guidelines.
+ */
 @Data
-@EqualsAndHashCode(of = { "key", "riemannTags", "tags" })
+@EqualsAndHashCode(of = {"key", "riemannTags", "tags"})
 public class Metric {
     private final String key;
     private final double value;
@@ -32,4 +34,13 @@ public class Metric {
     private final Set<String> riemannTags;
     private final Map<String, String> tags;
     private final String proc;
+
+    /**
+     * Convert into a batch point, lose information that is not relevant for batches.
+     *
+     * @return a batch point
+     */
+    public Batch.Point toBatchPoint() {
+        return new Batch.Point(key, tags, value, time.getTime());
+    }
 }

@@ -1,0 +1,26 @@
+{
+  "commonTags": {
+    "host": "database.example.com"
+  },
+  "points": [
+    {
+      "key": "system",
+      "tags": {
+        "what": "cpu-used-percentage",
+        "unit": "%"
+      },
+      "value": 0.42,
+      "timestamp": 1508508795000
+    },
+    {
+      "key": "system",
+      "tags": {
+        "what": "disk-used-bytes",
+        "unit": "B",
+        "disk_name": "/dev/sda"
+      },
+      "value": 42000000000,
+      "timestamp": 1508508795000
+    }
+  ]
+}

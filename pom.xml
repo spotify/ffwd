@@ -24,6 +24,7 @@
     <module>modules/protobuf</module>
     <module>modules/json</module>
     <module>modules/signalfx</module>
+    <module>modules/http</module>
   </modules>
 
   <licenses>
@@ -168,6 +169,11 @@
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-module-signalfx</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.spotify.ffwd</groupId>
+          <artifactId>ffwd-module-http</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

@@ -16,6 +16,7 @@
 package com.spotify.ffwd.output;
 
 import com.spotify.ffwd.Initializable;
+import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import eu.toolchain.async.AsyncFuture;
@@ -30,6 +31,11 @@ public interface OutputManager extends Initializable {
      * Send a collection of metrics to all output plugins.
      */
     public void sendMetric(Metric metric);
+
+    /**
+     * Send a batch collection of metrics to all output plugins.
+     */
+    public void sendBatch(Batch batch);
 
     public AsyncFuture<Void> start();
 

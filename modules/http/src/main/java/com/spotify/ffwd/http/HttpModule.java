@@ -13,28 +13,19 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.spotify.ffwd.input;
+package com.spotify.ffwd.http;
 
-import com.spotify.ffwd.Initializable;
-import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
-import com.spotify.ffwd.model.Metric;
-import eu.toolchain.async.AsyncFuture;
+import com.google.inject.Inject;
+import com.spotify.ffwd.module.FastForwardModule;
+import com.spotify.ffwd.module.PluginContext;
 
-public interface InputManager extends Initializable {
-    /**
-     * Receive a single event.
-     */
-    public void receiveEvent(Event event);
+public class HttpModule implements FastForwardModule {
+    @Inject
+    private PluginContext context;
 
-    /**
-     * Receive a single metric.
-     */
-    public void receiveMetric(Metric metric);
-
-    public void receiveBatch(Batch batch);
-
-    public AsyncFuture<Void> start();
-
-    public AsyncFuture<Void> stop();
+    @Override
+    public void setup() throws Exception {
+        context.registerInput("http", HttpInputPlugin.class);
+        context.registerOutput("http", HttpOutputPlugin.class);
+    }
 }

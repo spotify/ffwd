@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 
@@ -34,6 +35,8 @@ public interface KafkaRouter {
     String route(final Event event);
 
     String route(final Metric metric);
+
+    String route(final Batch.Point point);
 
     class Tag implements KafkaRouter {
         private static final String DEFAULT = "default";
@@ -77,6 +80,17 @@ public interface KafkaRouter {
             return String.format(metrics, DEFAULT);
         }
 
+        @Override
+        public String route(final Batch.Point point) {
+            final String tagValue = point.getTags().get(tagKey);
+
+            if (tagValue != null) {
+                return String.format(metrics, tagValue);
+            }
+
+            return String.format(metrics, DEFAULT);
+        }
+
         public static Supplier<KafkaRouter> supplier() {
             return () -> new Tag(null, null, null);
         }
@@ -104,6 +118,11 @@ public interface KafkaRouter {
 
         @Override
         public String route(final Metric metric) {
+            return metrics;
+        }
+
+        @Override
+        public String route(final Batch.Point point) {
             return metrics;
         }
 

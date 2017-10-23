@@ -63,6 +63,11 @@
       <artifactId>ffwd-module-signalfx</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>com.spotify.ffwd</groupId>
+      <artifactId>ffwd-module-http</artifactId>
+    </dependency>
+
     <!-- logging -->
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>

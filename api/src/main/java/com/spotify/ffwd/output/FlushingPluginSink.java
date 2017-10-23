@@ -25,6 +25,7 @@ import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.FutureFinished;
 import eu.toolchain.async.LazyTransform;
 import eu.toolchain.async.Transform;
+import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 
@@ -41,9 +42,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Facade implementation of a plugin sink that receives metrics and events, puts them on a
- * buffer, then flushes them at
- * regular intervals.
+ * Facade implementation of a plugin sink that receives metrics and events, puts them on a buffer,
+ * then flushes them at regular intervals.
  *
  * @author udoprog
  */
@@ -87,8 +87,8 @@ public class FlushingPluginSink implements PluginSink {
 
     /**
      * lock that governs access to the pending set of futures, this is preferred over eventually
-     * consistent concurrent
-     * data structures since we desire a clean shutdown that tracks _all_ pending flushes.
+     * consistent concurrent data structures since we desire a clean shutdown that tracks _all_
+     * pending flushes.
      */
     final Object pendingLock = new Object();
     /**
@@ -98,22 +98,23 @@ public class FlushingPluginSink implements PluginSink {
 
     /**
      * The default flush interval in milliseconds.
-     *
+     * <p>
      * Flushes will not be scheduled if this value is lower than, or equal to {@code 0}.
      */
     final long flushInterval;
 
     /**
      * Max size of each batch.
-     *
+     * <p>
      * A size limit will not be imposed if this value is lower than, or equal to {@code 0}.
      */
     final long batchSizeLimit;
 
     /**
      * Max number of pending flushes allowed.
-     *
-     * A pending flush limit will not be imposed if this value is lower than, or equal to {@code 0}.
+     * <p>
+     * A pending flush limit will not be imposed if this value is lower than, or equal to {@code
+     * 0}.
      */
     final long maxPendingFlushes;
 
@@ -133,23 +134,12 @@ public class FlushingPluginSink implements PluginSink {
             return;
         }
 
-        // shortcut: check before synchronized block.
-        if (nextBatch == null) {
-            // TODO: instrument dropped metric.
-            return;
-        }
+        queueToBatch(batch -> batch.metrics.add(metric));
+    }
 
-        synchronized (nextBatchLock) {
-            final Batch batch = nextBatch;
-
-            if (batch == null) {
-                // TODO: instrument dropped metric.
-                return;
-            }
-
-            batch.metrics.add(metric);
-            checkBatch(batch);
-        }
+    @Override
+    public void sendBatch(final com.spotify.ffwd.model.Batch b) {
+        queueToBatch(batch -> batch.batches.add(b));
     }
 
     @Override
@@ -158,6 +148,10 @@ public class FlushingPluginSink implements PluginSink {
             return;
         }
 
+        queueToBatch(batch -> batch.events.add(event));
+    }
+
+    private void queueToBatch(final Consumer<Batch> consumer) {
         // shortcut: check before synchronized block.
         if (nextBatch == null) {
             // TODO: instrument dropped metric.
@@ -172,7 +166,7 @@ public class FlushingPluginSink implements PluginSink {
                 return;
             }
 
-            batch.events.add(event);
+            consumer.accept(batch);
             checkBatch(batch);
         }
     }
@@ -253,7 +247,7 @@ public class FlushingPluginSink implements PluginSink {
 
     /**
      * Flushes the current batch and schedules the next one
-     *
+     * <p>
      * Maintains the set of pending tasks.
      */
     void flushNowThenScheduleNext() {
@@ -336,12 +330,11 @@ public class FlushingPluginSink implements PluginSink {
 
     /**
      * Perform a flush of the next batch.
-     *
+     * <p>
      * The given parameter will be set as the next batch.
      *
      * @param newBatch The next batch to flush, setting to {@code null} will cause all subsequent
-     * batches to be
-     *            rejected.
+     * batches to be rejected.
      * @return A future associated with the current flush, or {@code null} if we are stopping.
      */
     AsyncFuture<Void> doFlush(Batch newBatch) {
@@ -357,7 +350,7 @@ public class FlushingPluginSink implements PluginSink {
             nextBatch = newBatch;
         }
 
-        if (batch == null || batch.isEmpty()) {
+        if (batch.isEmpty()) {
             return async.resolved();
         }
 
@@ -383,13 +376,17 @@ public class FlushingPluginSink implements PluginSink {
             futures.add(sink.sendMetrics(batch.metrics));
         }
 
+        if (!batch.batches.isEmpty()) {
+            futures.add(sink.sendBatches(batch.batches));
+        }
+
         // chain into batch future.
         return async.collectAndDiscard(futures);
     }
 
     /**
      * Build a new batch.
-     *
+     * <p>
      * This is primarily to make mocking easier.
      *
      * @return A new batch.
@@ -402,17 +399,23 @@ public class FlushingPluginSink implements PluginSink {
     static class Batch {
         private final List<Event> events = new ArrayList<>();
         private final List<Metric> metrics = new ArrayList<>();
+        private final List<com.spotify.ffwd.model.Batch> batches = new ArrayList<>();
+
+        private int getBatchesSize() {
+            return batches.stream().mapToInt(batch -> batch.getPoints().size()).sum();
+        }
 
         public int size() {
-            return events.size() + metrics.size();
+            return events.size() + metrics.size() + getBatchesSize();
         }
 
         public boolean isEmpty() {
-            return events.isEmpty() && metrics.isEmpty();
+            return events.isEmpty() && metrics.isEmpty() && batches.isEmpty();
         }
 
         public String toString() {
-            return "Batch{metrics=" + metrics.size() + ", events=" + events.size() + "}";
+            return "Batch{metrics=" + metrics.size() + ", events=" + events.size() + ", batches=" +
+                getBatchesSize() + "}";
         }
     }
 }
