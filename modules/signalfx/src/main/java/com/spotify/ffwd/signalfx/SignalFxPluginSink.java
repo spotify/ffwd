@@ -15,6 +15,7 @@
  */
 package com.spotify.ffwd.signalfx;
 
+import com.google.common.base.Strings;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.signalfx.metrics.flush.AggregateMetricSender;
@@ -42,10 +43,14 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SignalFxPluginSink implements BatchedPluginSink {
     @Inject
-    private AsyncFramework async;
+    AsyncFramework async;
 
     @Inject
-    private Supplier<AggregateMetricSender> senderSupplier;
+    Supplier<AggregateMetricSender> senderSupplier;
+
+    /* @see https://docs.signalfx.com/en/latest/best-practices/naming-conventions.html */
+
+    private static final int CHAR_LIMIT = 256;
 
     private final ExecutorService executorService = Executors.newCachedThreadPool(
         new ThreadFactoryBuilder().setNameFormat("ffwd-signalfx-async-%d").build());
@@ -104,7 +109,7 @@ public class SignalFxPluginSink implements BatchedPluginSink {
                             .map(attribute -> SignalFxProtocolBuffers.Dimension
                                 .newBuilder()
                                 .setKey(attribute.getKey())
-                                .setValue(attribute.getValue())
+                                .setValue(composeDimensionValue(attribute.getValue()))
                                 .build())
                             .forEach(datapointBuilder::addDimensions);
 
@@ -139,7 +144,7 @@ public class SignalFxPluginSink implements BatchedPluginSink {
         return async.resolved();
     }
 
-    private String composeMetricIdentity(Metric metric) {
+    private String composeMetricIdentity(final Metric metric) {
         final List<String> metricIdentity = new ArrayList<>();
         metricIdentity.add(metric.getKey());
 
@@ -152,7 +157,17 @@ public class SignalFxPluginSink implements BatchedPluginSink {
                 metricIdentity.add(stat);
             }
         }
-        return metricIdentity.stream().collect(Collectors.joining("."));
+        String resultIdentity = metricIdentity.stream().collect(Collectors.joining("."));
+
+        return resultIdentity.length() > CHAR_LIMIT ?
+            resultIdentity.substring(0, CHAR_LIMIT) : resultIdentity;
+    }
+
+    private String composeDimensionValue(final String value) {
+        final String dimensionVal = Strings.nullToEmpty(value);
+
+        return dimensionVal.length() > CHAR_LIMIT ?
+            dimensionVal.substring(0, CHAR_LIMIT) : dimensionVal;
     }
 
     @Override
