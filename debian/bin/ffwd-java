@@ -4,7 +4,7 @@ RELEASE_NAME=$(basename $0)
 
 CONFIG_DIR="/etc/ffwd"
 FFWD_JAR="/usr/share/${RELEASE_NAME}/ffwd-full.jar"
-JVMARGS="${CONFIG_DIR}/ffwd.jvmargs"
+JVMARGS=${JVMARGS:-"${CONFIG_DIR}/ffwd.jvmargs"}
 
 if [[ -f /etc/default/${RELEASE_NAME} ]]; then
     . /etc/default/${RELEASE_NAME}
