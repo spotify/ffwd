@@ -23,6 +23,8 @@ import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
+import com.netflix.loadbalancer.ILoadBalancer;
+import com.netflix.loadbalancer.LoadBalancerBuilder;
 import com.spotify.ffwd.output.BatchedPluginSink;
 import com.spotify.ffwd.output.FlushingPluginSink;
 import com.spotify.ffwd.output.OutputPlugin;
@@ -37,21 +39,19 @@ import lombok.extern.slf4j.Slf4j;
 public class HttpOutputPlugin implements OutputPlugin {
     public static final String DEFAULT_ID = "http";
     public static final Long DEFAULT_FLUSH_INTERVAL = 500L;
-    private static final String DEFAULT_BASE_URL = "http://localhost:8080";
 
     private final String id;
     private final Long flushInterval;
-    private final String baseUrl;
+    private final HttpDiscovery discovery;
 
     @JsonCreator
     public HttpOutputPlugin(
-        @JsonProperty("id") String id,
-        @JsonProperty("flushInterval") Long flushInterval,
-        @JsonProperty("baseUrl") String baseUrl
+        @JsonProperty("id") String id, @JsonProperty("flushInterval") Long flushInterval,
+        @JsonProperty("discovery") HttpDiscovery discovery
     ) {
         this.id = Optional.ofNullable(id).orElse(DEFAULT_ID);
         this.flushInterval = Optional.ofNullable(flushInterval).orElse(DEFAULT_FLUSH_INTERVAL);
-        this.baseUrl = Optional.ofNullable(baseUrl).orElse(DEFAULT_BASE_URL);
+        this.discovery = Optional.ofNullable(discovery).orElseGet(HttpDiscovery::supplyDefault);
     }
 
     @Override
@@ -67,9 +67,11 @@ public class HttpOutputPlugin implements OutputPlugin {
 
             @Provides
             @Singleton
-            @Named("baseUrl")
-            public String baseUrl() {
-                return baseUrl;
+            public ILoadBalancer setupRibbonClient(HttpPing httpPing) {
+                return discovery
+                    .apply(LoadBalancerBuilder.newBuilder())
+                    .withPing(httpPing)
+                    .buildDynamicServerListLoadBalancer();
             }
 
             @Override

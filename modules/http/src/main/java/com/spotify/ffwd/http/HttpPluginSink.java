@@ -15,38 +15,31 @@
  */
 package com.spotify.ffwd.http;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.netflix.loadbalancer.ILoadBalancer;
+import com.netflix.loadbalancer.reactive.LoadBalancerCommand;
 import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchedPluginSink;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
+import eu.toolchain.async.FutureDone;
 import eu.toolchain.async.ResolvableFuture;
 import eu.toolchain.async.StreamCollector;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import javax.inject.Inject;
-import javax.inject.Named;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import rx.Observable;
+import rx.Observer;
 
 @Slf4j
 public class HttpPluginSink implements BatchedPluginSink {
-    public static final String V1_BATCH_ENDPOINT = "v1/batch";
     public static final StreamCollector<Void, Void> VOID_COLLECTOR =
         new StreamCollector<Void, Void>() {
             @Override
@@ -76,15 +69,10 @@ public class HttpPluginSink implements BatchedPluginSink {
     private AsyncFramework async;
 
     @Inject
-    @Named("application/json")
-    private ObjectMapper mapper;
+    private HttpClientFactory clientFactory;
 
     @Inject
-    private OkHttpClient httpClient;
-
-    @Inject
-    @Named("baseUrl")
-    private String baseUrl;
+    private ILoadBalancer loadBalancer;
 
     @Override
     public void init() {
@@ -130,39 +118,63 @@ public class HttpPluginSink implements BatchedPluginSink {
 
         for (final Batch b : batches) {
             callables.add(() -> {
-                final byte[] body;
+                final Observable<Void> observable = LoadBalancerCommand.<Void>builder()
+                    .withLoadBalancer(loadBalancer)
+                    .build()
+                    .submit(server -> toObservable(clientFactory.newClient(server).sendBatch(b)));
 
-                try {
-                    body = mapper.writeValueAsBytes(b);
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
-                }
-
-                final Request.Builder request = new Request.Builder();
-
-                request.url(baseUrl + "/" + V1_BATCH_ENDPOINT);
-                request.post(RequestBody.create(MediaType.parse("application/json"), body));
-
-                final ResolvableFuture<Void> future = async.future();
-
-                httpClient.newCall(request.build()).enqueue(new Callback() {
-                    @Override
-                    public void onFailure(final Call call, final IOException e) {
-                        future.fail(e);
-                    }
-
-                    @Override
-                    public void onResponse(final Call call, final Response response)
-                        throws IOException {
-                        future.resolve(null);
-                    }
-                });
-
-                return future;
+                return fromObservable(observable);
             });
         }
 
         return async.eventuallyCollect(callables, VOID_COLLECTOR, PARALLELISM);
+    }
+
+    private <T> AsyncFuture<T> fromObservable(final Observable<T> observable) {
+        final ResolvableFuture<T> future = async.future();
+
+        observable.subscribe(new Observer<T>() {
+            @Override
+            public void onCompleted() {
+                if (future.cancel()) {
+                    throw new IllegalStateException();
+                }
+            }
+
+            @Override
+            public void onError(final Throwable e) {
+                future.fail(e);
+            }
+
+            @Override
+            public void onNext(final T v) {
+                future.resolve(v);
+            }
+        });
+
+        return future;
+    }
+
+    private <T> Observable<T> toObservable(final AsyncFuture<T> future) {
+        return Observable.create(observer -> {
+            future.onDone(new FutureDone<T>() {
+                @Override
+                public void failed(final Throwable throwable) throws Exception {
+                    observer.onError(throwable);
+                }
+
+                @Override
+                public void resolved(final T v) throws Exception {
+                    observer.onNext(v);
+                    observer.onCompleted();
+                }
+
+                @Override
+                public void cancelled() throws Exception {
+                    observer.onCompleted();
+                }
+            });
+        });
     }
 
     @Override
