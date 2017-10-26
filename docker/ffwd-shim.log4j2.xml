@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" shutdownHook="disable">
+  <Appenders>
+    <RollingFile name="primary" fileName="/var/log/ffwd/ffwd-shim.log"
+        filePattern="/var/log/ffwd/ffwd-shim-%d{MM-dd-yyyy}-%i.log.gz">
+    <Policies>
+      <TimeBasedTriggeringPolicy />
+    </Policies>
+    <DefaultRolloverStrategy>
+      <Delete basePath="/var/log/ffwd">
+        <IfAccumulatedFileCount exceeds="14"/>
+      </Delete>
+    </DefaultRolloverStrategy>
+    <PatternLayout>
+      <Pattern>%d %p %c{1.} [%t] %m %ex%n</Pattern>
+    </PatternLayout>
+    </RollingFile>
+  </Appenders>
+  <Loggers>
+    <Logger name="com.spotify.ffwd" level="INFO" additivity="false">
+      <AppenderRef ref="primary" />
+    </Logger>
+    <Logger name="kafka" level="INFO" additivity="false">
+      <AppenderRef ref="primary" />
+    </Logger>
+    <Root level="INFO">
+      <AppenderRef ref="primary" />
+    </Root>
+  </Loggers>
+</Configuration>

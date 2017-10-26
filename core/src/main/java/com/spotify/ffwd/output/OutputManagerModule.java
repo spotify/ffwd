@@ -32,7 +32,7 @@ import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.filter.TrueFilter;
 import com.spotify.ffwd.statistics.CoreStatistics;
 import com.spotify.ffwd.statistics.OutputManagerStatistics;
-
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,6 +41,10 @@ import java.util.function.Supplier;
 
 public class OutputManagerModule {
     private static final List<OutputPlugin> DEFAULT_PLUGINS = Lists.newArrayList();
+    /**
+     * Prefix of environment variable that adds additional tags.
+     */
+    public static final String FFWD_TAG_PREFIX = "FFWD_TAG_";
 
     private final List<OutputPlugin> plugins;
     private final Filter filter;
@@ -70,8 +74,16 @@ public class OutputManagerModule {
             @Provides
             @Singleton
             @Named("tags")
-            public Map<String, String> tags(AgentConfig config) {
-                return config.getTags();
+            public Map<String, String> tags(final AgentConfig config) {
+                final Map<String, String> systemEnvTags = systemEnvTags();
+
+                if (systemEnvTags.isEmpty()) {
+                    return config.getTags();
+                }
+
+                final Map<String, String> merged = new HashMap<>(config.getTags());
+                merged.putAll(systemEnvTags);
+                return merged;
             }
 
             @Provides
@@ -130,6 +142,31 @@ public class OutputManagerModule {
                 }
             }
         };
+    }
+
+    /**
+     * Extract tags from the system environment.
+     */
+    static Map<String, String> systemEnvTags() {
+        return filterEnvironmentTags(System.getenv());
+    }
+
+    /**
+     * Extract tags from a map that can correspond to a system environment.
+     *
+     * @return extracted tags.
+     */
+    static Map<String, String> filterEnvironmentTags(final Map<String, String> env) {
+        final Map<String, String> tags = new HashMap<>();
+
+        for (final Map.Entry<String, String> e : env.entrySet()) {
+            if (e.getKey().startsWith(FFWD_TAG_PREFIX)) {
+                final String tag = e.getKey().substring(FFWD_TAG_PREFIX.length());
+                tags.put(tag, e.getValue());
+            }
+        }
+
+        return tags;
     }
 
     public static Supplier<OutputManagerModule> supplyDefault() {

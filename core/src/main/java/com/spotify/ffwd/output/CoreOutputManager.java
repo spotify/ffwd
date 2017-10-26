@@ -28,6 +28,7 @@ import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.statistics.OutputManagerStatistics;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
+import java.util.HashMap;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -128,11 +129,13 @@ public class CoreOutputManager implements OutputManager {
     public void sendBatch(Batch batch) {
         statistics.reportSentMetrics(batch.getPoints().size());
 
-        debug.inspectBatch(DEBUG_ID, batch);
+        final Batch filtered = filter(batch);
+
+        debug.inspectBatch(DEBUG_ID, filtered);
 
         for (final PluginSink s : sinks) {
             if (s.isReady()) {
-                s.sendBatch(batch);
+                s.sendBatch(filtered);
             }
         }
     }
@@ -195,6 +198,20 @@ public class CoreOutputManager implements OutputManager {
 
         return new Metric(metric.getKey(), metric.getValue(), time, host, mergedRiemannTags,
             mergedTags, metric.getProc());
+    }
+
+    /**
+     * Filter the provided Batch and complete fields.
+     */
+    private Batch filter(final Batch batch) {
+        if (batch.getCommonTags().isEmpty()) {
+            return new Batch(tags, batch.getPoints());
+        }
+
+        final Map<String, String> commonTags;
+        commonTags = new HashMap<>(this.tags);
+        commonTags.putAll(tags);
+        return new Batch(commonTags, batch.getPoints());
     }
 
     private Map<String, String> selectTags(Metric metric) {

@@ -1,0 +1,22 @@
+input:
+  plugins:
+    - type: protobuf
+      protocol:
+        type: udp
+        receiveBufferSize: 26214400
+        host: "0.0.0.0"
+    - type: json
+      protocol:
+        type: tcp
+        host: "0.0.0.0"
+    - type: json
+      protocol:
+        type: udp
+        receiveBufferSize: 26214400
+        host: "0.0.0.0"
+
+output:
+  plugins:
+    - type: http
+      baseUrl: "http://ffwd.example.com"
+    - type: debug

@@ -45,16 +45,18 @@ public class HttpDecoder extends MessageToMessageDecoder<FullHttpRequest> {
     @Override
     protected void decode(ChannelHandlerContext ctx, FullHttpRequest in, List<Object> out)
         throws Exception {
-        // TODO: Handle compressed payloads (Application-Encoding)
-
         switch (in.uri()) {
             case "/v1/batch":
-                if (in.method() == POST && matchContentType(in, "application/json")) {
-                    doBatch(ctx, in, out);
-                    return;
+                if (in.method() == POST) {
+                    if (matchContentType(in, "application/json")) {
+                        postBatch(ctx, in, out);
+                        return;
+                    }
+
+                    throw new HttpException(HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE);
                 }
 
-                break;
+                throw new HttpException(HttpResponseStatus.METHOD_NOT_ALLOWED);
             default:
                 /* do nothing */
                 break;
@@ -68,7 +70,7 @@ public class HttpDecoder extends MessageToMessageDecoder<FullHttpRequest> {
         return value != null && value.equals(expected);
     }
 
-    private void doBatch(
+    private void postBatch(
         final ChannelHandlerContext ctx, final FullHttpRequest in, final List<Object> out
     ) {
         final Batch batch;

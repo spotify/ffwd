@@ -75,9 +75,9 @@ public class HttpProtocolServer implements ProtocolServer {
                 ch
                     .pipeline()
                     .addLast(new HttpRequestDecoder(), new HttpContentDecompressor(),
-                        new HttpObjectAggregator(Integer.MAX_VALUE), decoder, handler);
+                        new HttpObjectAggregator(Integer.MAX_VALUE), decoder, exceptionHandler,
+                        handler);
                 ch.pipeline().addLast(new HttpResponseEncoder());
-                ch.pipeline().addLast(exceptionHandler);
             }
         };
     }
