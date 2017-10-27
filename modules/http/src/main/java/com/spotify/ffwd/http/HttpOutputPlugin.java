@@ -67,9 +67,11 @@ public class HttpOutputPlugin implements OutputPlugin {
 
             @Provides
             @Singleton
-            public ILoadBalancer setupRibbonClient(HttpPing httpPing) {
+            public ILoadBalancer setupRibbonClient(
+                HttpPing httpPing, @Named("searchDomain") final Optional<String> searchDomain
+            ) {
                 return discovery
-                    .apply(LoadBalancerBuilder.newBuilder())
+                    .apply(LoadBalancerBuilder.newBuilder(), searchDomain)
                     .withPing(httpPing)
                     .buildDynamicServerListLoadBalancer();
             }

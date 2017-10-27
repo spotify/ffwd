@@ -19,10 +19,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.spotify.ffwd.domain.SearchDomainDiscovery;
 import com.spotify.ffwd.input.InputManagerModule;
 import com.spotify.ffwd.output.OutputManagerModule;
-import lombok.Data;
-
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -31,6 +30,7 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import lombok.Data;
 
 @Data
 public class AgentConfig {
@@ -51,6 +51,7 @@ public class AgentConfig {
     private final Set<String> skipTagsForKeys;
     private final InputManagerModule input;
     private final OutputManagerModule output;
+    private final SearchDomainDiscovery searchDomain;
     private final int schedulerThreads;
     private final int asyncThreads;
     private final int bossThreads;
@@ -66,6 +67,7 @@ public class AgentConfig {
         @JsonProperty("skipTagsForKeys") Set<String> skipTagsForKeys,
         @JsonProperty("input") InputManagerModule input,
         @JsonProperty("output") OutputManagerModule output,
+        @JsonProperty("searchDomain") SearchDomainDiscovery searchDomain,
         @JsonProperty("asyncThreads") Integer asyncThreads,
         @JsonProperty("schedulerThreads") Integer schedulerThreads,
         @JsonProperty("bossThreads") Integer bossThreads,
@@ -79,6 +81,8 @@ public class AgentConfig {
         this.skipTagsForKeys = Optional.ofNullable(skipTagsForKeys).orElse(Sets.newHashSet());
         this.input = Optional.ofNullable(input).orElseGet(InputManagerModule.supplyDefault());
         this.output = Optional.ofNullable(output).orElseGet(OutputManagerModule.supplyDefault());
+        this.searchDomain =
+            Optional.ofNullable(searchDomain).orElseGet(SearchDomainDiscovery::supplyDefault);
         this.asyncThreads = Optional.ofNullable(asyncThreads).orElse(DEFAULT_ASYNC_THREADS);
         this.schedulerThreads =
             Optional.ofNullable(schedulerThreads).orElse(DEFAULT_SCHEDULER_THREADS);

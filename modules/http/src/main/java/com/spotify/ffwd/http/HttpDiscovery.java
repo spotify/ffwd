@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableList;
 import com.netflix.loadbalancer.LoadBalancerBuilder;
 import com.netflix.loadbalancer.Server;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.Data;
 
@@ -33,7 +34,9 @@ import lombok.Data;
 public interface HttpDiscovery {
     HostAndPort DEFAULT_SERVER = new HostAndPort("localhost", 8080);
 
-    LoadBalancerBuilder<Server> apply(LoadBalancerBuilder<Server> builder);
+    LoadBalancerBuilder<Server> apply(
+        LoadBalancerBuilder<Server> builder, Optional<String> searchDomain
+    );
 
     @JsonTypeName("static")
     @Data
@@ -42,10 +45,11 @@ public interface HttpDiscovery {
 
         @Override
         public LoadBalancerBuilder<Server> apply(
-            final LoadBalancerBuilder<Server> builder
+            final LoadBalancerBuilder<Server> builder, final Optional<String> searchDomain
         ) {
             final List<Server> servers = this.servers
                 .stream()
+                .map(hostAndPort -> hostAndPort.withOptionalSearchDomain(searchDomain))
                 .map(hostAndPort -> new Server(hostAndPort.getHost(), hostAndPort.getPort()))
                 .collect(Collectors.toList());
             return builder.withDynamicServerList(new StaticServerList(servers));
@@ -59,8 +63,9 @@ public interface HttpDiscovery {
 
         @Override
         public LoadBalancerBuilder<Server> apply(
-            final LoadBalancerBuilder<Server> builder
+            final LoadBalancerBuilder<Server> builder, final Optional<String> searchDomain
         ) {
+            final String record = searchDomain.map(s -> this.record + "." + s).orElse(this.record);
             return builder.withDynamicServerList(new SrvServerList(record));
         }
     }
@@ -88,6 +93,10 @@ public interface HttpDiscovery {
             final int port = Integer.parseUnsignedInt(parts[1]);
 
             return new HostAndPort(host, port);
+        }
+
+        public HostAndPort withOptionalSearchDomain(final Optional<String> searchDomain) {
+            return searchDomain.map(s -> new HostAndPort(host + "." + s, port)).orElse(this);
         }
     }
 }
