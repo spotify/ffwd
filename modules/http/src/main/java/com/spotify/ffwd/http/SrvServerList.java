@@ -54,7 +54,8 @@ public class SrvServerList implements ServerList<Server> {
         final Record[] result = lookup.run();
 
         if (lookup.getResult() != Lookup.SUCCESSFUL) {
-            throw new RuntimeException("DNS lookup failed: " + lookup.getErrorString());
+            throw new RuntimeException(
+                "DNS lookup failed: " + lookup.getErrorString() + ": " + record);
         }
 
         final ImmutableList.Builder<Server> results = ImmutableList.builder();
