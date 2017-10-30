@@ -27,7 +27,7 @@ import lombok.Data;
 @Data
 public class PluginContextImpl implements PluginContext {
     @Inject
-    @Named("application/yaml+config")
+    @Named("config")
     private SimpleModule module;
 
     @Override

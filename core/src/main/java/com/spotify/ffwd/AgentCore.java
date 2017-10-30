@@ -76,6 +76,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -103,6 +104,7 @@ public class AgentCore {
     public void run() throws Exception {
         final Injector early = setupEarlyInjector();
         final AgentConfig config = readConfig(early);
+
         final Injector primary = setupPrimaryInjector(early, config);
 
         start(primary);
@@ -110,6 +112,17 @@ public class AgentCore {
 
         waitUntilStopped(primary);
         log.info("Stopped, Bye Bye!");
+    }
+
+    private Optional<String> lookupSearchDomain(final AgentConfig config) {
+        log.info("Looking up domain using {}", config.getSearchDomain());
+        final Optional<String> domain = config.getSearchDomain().discover();
+
+        domain.ifPresent(d -> {
+            log.info("Found domain: {}", d);
+        });
+
+        return domain;
     }
 
     private void waitUntilStopped(final Injector primary) throws InterruptedException {
@@ -245,7 +258,11 @@ public class AgentCore {
      *
      * @return The primary injector.
      */
-    private Injector setupPrimaryInjector(final Injector early, final AgentConfig config) {
+    private Injector setupPrimaryInjector(
+        final Injector early, final AgentConfig config
+    ) {
+        final Optional<String> searchDomain = lookupSearchDomain(config);
+
         final List<Module> modules = Lists.newArrayList();
 
         modules.add(new AbstractModule() {
@@ -320,6 +337,13 @@ public class AgentCore {
             @Named("application/json")
             public ObjectMapper jsonMapper() {
                 return Mappers.setupApplicationJson();
+            }
+
+            @Singleton
+            @Provides
+            @Named("searchDomain")
+            public Optional<String> searchDomain() {
+                return searchDomain;
             }
 
             @Singleton

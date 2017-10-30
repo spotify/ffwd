@@ -15,6 +15,7 @@
  */
 package com.spotify.ffwd.http;
 
+import static io.netty.handler.codec.http.HttpMethod.GET;
 import static io.netty.handler.codec.http.HttpMethod.POST;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,6 +47,13 @@ public class HttpDecoder extends MessageToMessageDecoder<FullHttpRequest> {
     protected void decode(ChannelHandlerContext ctx, FullHttpRequest in, List<Object> out)
         throws Exception {
         switch (in.uri()) {
+            case "/ping":
+                if (in.method() == GET) {
+                    getPing(ctx, in, out);
+                    return;
+                }
+
+                throw new HttpException(HttpResponseStatus.METHOD_NOT_ALLOWED);
             case "/v1/batch":
                 if (in.method() == POST) {
                     if (matchContentType(in, "application/json")) {
@@ -82,6 +90,15 @@ public class HttpDecoder extends MessageToMessageDecoder<FullHttpRequest> {
 
         out.add(batch);
 
+        ctx
+            .channel()
+            .writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK))
+            .addListener((ChannelFutureListener) future -> future.channel().close());
+    }
+
+    private void getPing(
+        final ChannelHandlerContext ctx, final FullHttpRequest in, final List<Object> out
+    ) {
         ctx
             .channel()
             .writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK))
