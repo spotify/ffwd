@@ -22,10 +22,9 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.google.common.collect.ImmutableList;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
-import lombok.Data;
-
 import java.io.IOException;
 import java.util.List;
+import lombok.Data;
 
 @Data
 public class AndFilter implements Filter {

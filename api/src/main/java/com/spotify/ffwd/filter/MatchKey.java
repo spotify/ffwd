@@ -21,9 +21,8 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
-import lombok.Data;
-
 import java.io.IOException;
+import lombok.Data;
 
 @Data
 public class MatchKey implements Filter {

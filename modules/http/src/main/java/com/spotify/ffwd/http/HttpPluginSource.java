@@ -25,9 +25,8 @@ import com.spotify.ffwd.protocol.RetryPolicy;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.Transform;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.concurrent.atomic.AtomicReference;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class HttpPluginSource implements PluginSource {

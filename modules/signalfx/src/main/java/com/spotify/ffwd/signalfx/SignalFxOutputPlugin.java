@@ -34,13 +34,12 @@ import com.spotify.ffwd.output.FlushingPluginSink;
 import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.output.OutputPluginModule;
 import com.spotify.ffwd.output.PluginSink;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.http.config.SocketConfig;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
-
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Supplier;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 
 @Slf4j
 public class SignalFxOutputPlugin implements OutputPlugin {

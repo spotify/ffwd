@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
-
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.zip.CRC32;

@@ -23,12 +23,11 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.handler.codec.MessageToMessageDecoder;
-
 import java.util.List;
 
 /**
  * Decode a stream of data which is length-prefixed.
- *
+ * <p>
  * Should only be used with TCP-based protocols.
  *
  * @author udoprog

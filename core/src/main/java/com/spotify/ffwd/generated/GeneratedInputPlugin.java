@@ -22,7 +22,6 @@ import com.google.inject.Module;
 import com.google.inject.PrivateModule;
 import com.spotify.ffwd.input.InputPlugin;
 import com.spotify.ffwd.input.PluginSource;
-
 import java.util.Optional;
 
 public class GeneratedInputPlugin implements InputPlugin {

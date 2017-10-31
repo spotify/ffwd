@@ -77,8 +77,7 @@ public class HttpClient {
             }
 
             @Override
-            public void onResponse(final Call call, final Response response)
-                throws IOException {
+            public void onResponse(final Call call, final Response response) throws IOException {
                 future.resolve(null);
             }
         });

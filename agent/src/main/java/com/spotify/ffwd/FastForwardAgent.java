@@ -23,14 +23,13 @@ import com.spotify.metrics.ffwd.FastForwardReporter;
 import com.spotify.metrics.jvm.GarbageCollectorMetricSet;
 import com.spotify.metrics.jvm.MemoryUsageGaugeSet;
 import com.spotify.metrics.jvm.ThreadStatesMetricSet;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class FastForwardAgent {

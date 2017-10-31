@@ -17,10 +17,9 @@ package com.spotify.ffwd.protocol;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-
 import java.net.InetSocketAddress;
 import java.util.function.Supplier;
+import lombok.Data;
 
 /**
  * Data type suitable for building using a @JsonCreator block.

@@ -22,9 +22,8 @@ import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchedPluginSink;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Collection;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class DebugPluginSink implements BatchedPluginSink {

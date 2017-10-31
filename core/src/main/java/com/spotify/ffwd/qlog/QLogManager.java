@@ -16,7 +16,6 @@
 package com.spotify.ffwd.qlog;
 
 import eu.toolchain.async.AsyncFuture;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 

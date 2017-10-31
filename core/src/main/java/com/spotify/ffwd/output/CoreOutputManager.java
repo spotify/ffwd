@@ -28,14 +28,13 @@ import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.statistics.OutputManagerStatistics;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
-import java.util.HashMap;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class CoreOutputManager implements OutputManager {

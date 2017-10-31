@@ -1,9 +1,7 @@
 package com.spotify.ffwd.signalfx;
 
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
@@ -32,82 +30,89 @@ import org.mockito.runners.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class SignalFxPluginSinkTest {
 
-  private SignalFxPluginSink sink;
+    private SignalFxPluginSink sink;
 
-  private AsyncFramework async;
-  private Supplier<AggregateMetricSender> senderSupplier;
+    private AsyncFramework async;
+    private Supplier<AggregateMetricSender> senderSupplier;
 
-  private final int threadCount = Runtime.getRuntime().availableProcessors();
+    private final int threadCount = Runtime.getRuntime().availableProcessors();
 
-  private final ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+    private final ExecutorService executor = Executors.newFixedThreadPool(threadCount);
 
-  @Mock
-  private AggregateMetricSender sender;
+    @Mock
+    private AggregateMetricSender sender;
 
-  @Mock
-  private AggregateMetricSender.Session mockSession;
+    @Mock
+    private AggregateMetricSender.Session mockSession;
 
-  private final String METRIC_KEY_NOT_EXCEEDING = "signalfx_test";
-  private final String METRIC_KEY_EXCEEDING = "signalfx_test_8217398173982139821739872198372198372198379djsfjjksdfhkdsjhfkjdsh2187392187392183798213982173982139219382198329379218739821739821723982179871298379128739281739827398273747874657678478384787498983598984759837598439583498734985793487";
-  private final String WHAT = "error-reply-ratio";
-  private final String TAG_VAL_NOT_EXCEEDING = "awsus";
-  private final String TAG_VAL_EXCEEDING = "awsuskjdfkjsfvlsdjldskfjsdlkfdskfds;kfmdkslfmsdkfjdlsjflksvmjnskjdkjsdkdbkdbv dklmlskkmxvmkmvdkmvkclx;d;skf;smvkvmdskmvdsvmdsvxmv kxmvlxmldksdmlksdmvdlsjcxzm.xmldkm;dvsmv;dskmv;dslvmlx,xmlkvxmd;md;mdknvldnvldnsvlndlsnlnvlcnvlkndlvndlvnjslnvc";
+    private final String METRIC_KEY_NOT_EXCEEDING = "signalfx_test";
+    private final String METRIC_KEY_EXCEEDING =
+        "signalfx_test_8217398173982139821739872198372198372198379djsfjjksdfhkdsjhfkjdsh2187392187392183798213982173982139219382198329379218739821739821723982179871298379128739281739827398273747874657678478384787498983598984759837598439583498734985793487";
+    private final String WHAT = "error-reply-ratio";
+    private final String TAG_VAL_NOT_EXCEEDING = "awsus";
+    private final String TAG_VAL_EXCEEDING =
+        "awsuskjdfkjsfvlsdjldskfjsdlkfdskfds;kfmdkslfmsdkfjdlsjflksvmjnskjdkjsdkdbkdbv " +
+            "dklmlskkmxvmkmvdkmvkclx;d;skf;smvkvmdskmvdsvmdsvxmv kxmvlxmldksdmlksdmvdlsjcxzm" +
+            ".xmldkm;dvsmv;dskmv;dslvmlx,xmlkvxmd;md;mdknvldnvldnsvlndlsnlnvlcnvlkndlvndlvnjslnvc";
 
-  private static final int CHAR_LIMIT = 256;
+    private static final int CHAR_LIMIT = 256;
 
-  @Before
-  public void setup() {
-    sink = new SignalFxPluginSink();
-    async = TinyAsync.builder().executor(executor).build();
-    senderSupplier = () -> sender;
-    sink.async = async;
-    sink.senderSupplier = senderSupplier;
-  }
-
-  @Test
-  public void sendMetricNotExceedCharLim() throws ExecutionException, InterruptedException {
-    Metric metric = new Metric(METRIC_KEY_NOT_EXCEEDING, 1278, new Date(), "", ImmutableSet.of(), ImmutableMap.of("what", WHAT, "pod", TAG_VAL_NOT_EXCEEDING), "test_proc");
-    final List<Metric> metricsList = Collections.singletonList(metric);
-
-    ArgumentCaptor<DataPoint> captor = ArgumentCaptor.forClass(DataPoint.class);
-    when(sender.createSession()).thenReturn(mockSession);
-    when(mockSession.setDatapoint(captor.capture())).thenReturn(mockSession);
-
-    sink.start();
-    Future<Void> future = sink.sendMetrics(metricsList);
-    future.get();
-    sink.stop();
-    List<DataPoint> points = captor.getAllValues();
-    assertEquals(1, points.size());
-    DataPoint point = points.get(0);
-    assertEquals(METRIC_KEY_NOT_EXCEEDING.length() + 1 + WHAT.length(), point.getMetric().length());
-    for (Dimension d : point.getDimensionsList()){
-      String dimVal = d.getValue();
-      assertTrue(dimVal.length() <= CHAR_LIMIT);
+    @Before
+    public void setup() {
+        sink = new SignalFxPluginSink();
+        async = TinyAsync.builder().executor(executor).build();
+        senderSupplier = () -> sender;
+        sink.async = async;
+        sink.senderSupplier = senderSupplier;
     }
-  }
 
-  @Test
-  public void sendMetricExceedCharLim() throws InterruptedException, ExecutionException {
-    Metric metric = new Metric(METRIC_KEY_EXCEEDING, 1278, new Date(), "", ImmutableSet.of(), ImmutableMap.of("what", WHAT, "pod", TAG_VAL_EXCEEDING), "test_proc");
-    final List<Metric> metricsList = Collections.singletonList(metric);
+    @Test
+    public void sendMetricNotExceedCharLim() throws ExecutionException, InterruptedException {
+        Metric metric =
+            new Metric(METRIC_KEY_NOT_EXCEEDING, 1278, new Date(), "", ImmutableSet.of(),
+                ImmutableMap.of("what", WHAT, "pod", TAG_VAL_NOT_EXCEEDING), "test_proc");
+        final List<Metric> metricsList = Collections.singletonList(metric);
 
-    ArgumentCaptor<DataPoint> captor = ArgumentCaptor.forClass(DataPoint.class);
-    when(sender.createSession()).thenReturn(mockSession);
-    when(mockSession.setDatapoint(captor.capture())).thenReturn(mockSession);
+        ArgumentCaptor<DataPoint> captor = ArgumentCaptor.forClass(DataPoint.class);
+        when(sender.createSession()).thenReturn(mockSession);
+        when(mockSession.setDatapoint(captor.capture())).thenReturn(mockSession);
 
-    sink.start();
-    Future<Void> future = sink.sendMetrics(metricsList);
-    future.get();
-    sink.stop();
-    List<DataPoint> points = captor.getAllValues();
-    assertEquals(1, points.size());
-    DataPoint point = points.get(0);
-    assertEquals(CHAR_LIMIT, point.getMetric().length());
-    for (Dimension d : point.getDimensionsList()){
-      String dimVal = d.getValue();
-      assertTrue(dimVal.length() <= CHAR_LIMIT);
+        sink.start();
+        Future<Void> future = sink.sendMetrics(metricsList);
+        future.get();
+        sink.stop();
+        List<DataPoint> points = captor.getAllValues();
+        assertEquals(1, points.size());
+        DataPoint point = points.get(0);
+        assertEquals(METRIC_KEY_NOT_EXCEEDING.length() + 1 + WHAT.length(),
+            point.getMetric().length());
+        for (Dimension d : point.getDimensionsList()) {
+            String dimVal = d.getValue();
+            assertTrue(dimVal.length() <= CHAR_LIMIT);
+        }
     }
-  }
 
+    @Test
+    public void sendMetricExceedCharLim() throws InterruptedException, ExecutionException {
+        Metric metric = new Metric(METRIC_KEY_EXCEEDING, 1278, new Date(), "", ImmutableSet.of(),
+            ImmutableMap.of("what", WHAT, "pod", TAG_VAL_EXCEEDING), "test_proc");
+        final List<Metric> metricsList = Collections.singletonList(metric);
+
+        ArgumentCaptor<DataPoint> captor = ArgumentCaptor.forClass(DataPoint.class);
+        when(sender.createSession()).thenReturn(mockSession);
+        when(mockSession.setDatapoint(captor.capture())).thenReturn(mockSession);
+
+        sink.start();
+        Future<Void> future = sink.sendMetrics(metricsList);
+        future.get();
+        sink.stop();
+        List<DataPoint> points = captor.getAllValues();
+        assertEquals(1, points.size());
+        DataPoint point = points.get(0);
+        assertEquals(CHAR_LIMIT, point.getMetric().length());
+        for (Dimension d : point.getDimensionsList()) {
+            String dimVal = d.getValue();
+            assertTrue(dimVal.length() <= CHAR_LIMIT);
+        }
+    }
 }

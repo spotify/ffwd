@@ -27,8 +27,6 @@ import com.spotify.ffwd.output.BatchedPluginSink;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.FutureFailed;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -39,6 +37,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class SignalFxPluginSink implements BatchedPluginSink {
@@ -159,15 +158,15 @@ public class SignalFxPluginSink implements BatchedPluginSink {
         }
         String resultIdentity = metricIdentity.stream().collect(Collectors.joining("."));
 
-        return resultIdentity.length() > CHAR_LIMIT ?
-            resultIdentity.substring(0, CHAR_LIMIT) : resultIdentity;
+        return resultIdentity.length() > CHAR_LIMIT ? resultIdentity.substring(0, CHAR_LIMIT)
+            : resultIdentity;
     }
 
     private String composeDimensionValue(final String value) {
         final String dimensionVal = Strings.nullToEmpty(value);
 
-        return dimensionVal.length() > CHAR_LIMIT ?
-            dimensionVal.substring(0, CHAR_LIMIT) : dimensionVal;
+        return dimensionVal.length() > CHAR_LIMIT ? dimensionVal.substring(0, CHAR_LIMIT)
+            : dimensionVal;
     }
 
     @Override

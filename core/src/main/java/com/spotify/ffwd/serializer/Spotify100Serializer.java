@@ -22,10 +22,9 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
-import lombok.Data;
-
 import java.io.ByteArrayOutputStream;
 import java.util.Map;
+import lombok.Data;
 
 @JsonTypeName("spotify100")
 public class Spotify100Serializer implements Serializer {

@@ -32,7 +32,7 @@ public interface OutputManagerStatistics {
 
     /**
      * Reported that the given number of events were filtered.
-     *
+     * <p>
      * Filtered events are <em>not</em> sent to output plugins.
      *
      * @param filtered The number of filtered events.
@@ -41,7 +41,7 @@ public interface OutputManagerStatistics {
 
     /**
      * Reported that the given number of metrics were filtered.
-     *
+     * <p>
      * Filtered metrics are <em>not</em> sent to output plugins.
      *
      * @param filtered The number of filtered metrics.

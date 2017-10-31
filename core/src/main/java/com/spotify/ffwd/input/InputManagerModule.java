@@ -31,10 +31,9 @@ import com.spotify.ffwd.filter.TrueFilter;
 import com.spotify.ffwd.statistics.CoreStatistics;
 import com.spotify.ffwd.statistics.InputManagerStatistics;
 import io.netty.channel.ChannelInboundHandler;
-
 import java.util.List;
-import java.util.Set;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public class InputManagerModule {

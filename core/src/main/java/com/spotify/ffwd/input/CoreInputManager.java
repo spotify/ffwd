@@ -26,10 +26,9 @@ import com.spotify.ffwd.output.OutputManager;
 import com.spotify.ffwd.statistics.InputManagerStatistics;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
-import lombok.ToString;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.ToString;
 
 /**
  * Responsible for receiving, logging and transforming the event.

@@ -17,14 +17,12 @@ package com.spotify.ffwd.filter;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.Before;
+import org.junit.Test;
 
 public class FilterDeserializerTest {
     ObjectMapper mapper;
@@ -49,6 +47,7 @@ public class FilterDeserializerTest {
     public void testArray() throws Exception {
         assertEquals(new MatchKey("value"), mapper.readValue("[\"key\", \"value\"]", Filter.class));
         assertEquals(new FalseFilter(), mapper.readValue("[\"or\"]", Filter.class));
-        assertEquals(new MatchKey("value"), mapper.readValue("[\"or\", [\"key\", \"value\"]]", Filter.class));
+        assertEquals(new MatchKey("value"),
+            mapper.readValue("[\"or\", [\"key\", \"value\"]]", Filter.class));
     }
 }

@@ -20,9 +20,8 @@ import com.spotify.ffwd.input.PluginSource;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.Transform;
-import org.slf4j.Logger;
-
 import java.util.concurrent.atomic.AtomicReference;
+import org.slf4j.Logger;
 
 public class ProtocolPluginSource implements PluginSource {
     @Inject

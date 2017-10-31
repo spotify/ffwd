@@ -102,8 +102,8 @@ public class KafkaPluginSink implements BatchedPluginSink {
 
     @Override
     public void sendBatch(final Batch batch) {
-        send(toBatches(
-            iteratorFor(batch.getPoints(), metric -> convertBatchMetric(batch, metric))));
+        send(
+            toBatches(iteratorFor(batch.getPoints(), metric -> convertBatchMetric(batch, metric))));
     }
 
     private KeyedMessage<Integer, byte[]> convertBatchMetric(

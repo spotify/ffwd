@@ -20,10 +20,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import lombok.RequiredArgsConstructor;
-
 import java.io.IOException;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
 /**
  * A filter deserializer.
