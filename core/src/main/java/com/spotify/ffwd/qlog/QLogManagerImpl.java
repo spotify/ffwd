@@ -20,10 +20,6 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -41,6 +37,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class QLogManagerImpl implements QLogManager {
@@ -165,7 +164,7 @@ public class QLogManagerImpl implements QLogManager {
 
     /**
      * Write a buffer.
-     *
+     * <p>
      * It's limit will be used as the size of the buffer.
      *
      * @param input

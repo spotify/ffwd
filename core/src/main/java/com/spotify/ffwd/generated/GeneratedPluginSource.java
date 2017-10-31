@@ -24,7 +24,6 @@ import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.OutputManager;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;

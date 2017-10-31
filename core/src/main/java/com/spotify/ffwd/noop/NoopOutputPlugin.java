@@ -25,7 +25,6 @@ import com.spotify.ffwd.output.FlushingPluginSink;
 import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.output.OutputPluginModule;
 import com.spotify.ffwd.output.PluginSink;
-
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 

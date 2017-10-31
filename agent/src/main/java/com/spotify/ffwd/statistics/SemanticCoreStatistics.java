@@ -18,7 +18,6 @@ package com.spotify.ffwd.statistics;
 import com.codahale.metrics.Meter;
 import com.spotify.metrics.core.MetricId;
 import com.spotify.metrics.core.SemanticMetricRegistry;
-
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor

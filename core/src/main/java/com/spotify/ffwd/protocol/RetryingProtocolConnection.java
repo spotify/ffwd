@@ -24,13 +24,12 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.util.Timeout;
 import io.netty.util.Timer;
 import io.netty.util.TimerTask;
-import org.slf4j.Logger;
-
 import java.util.Collection;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import org.slf4j.Logger;
 
 public class RetryingProtocolConnection implements ProtocolConnection {
     private final AtomicBoolean stopped = new AtomicBoolean(false);

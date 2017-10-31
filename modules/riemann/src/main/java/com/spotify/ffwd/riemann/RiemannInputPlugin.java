@@ -29,9 +29,9 @@ import com.spotify.ffwd.protocol.ProtocolPluginSource;
 import com.spotify.ffwd.protocol.ProtocolServer;
 import com.spotify.ffwd.protocol.ProtocolType;
 import com.spotify.ffwd.protocol.RetryPolicy;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
-import java.util.Optional;
 
 @Slf4j
 public class RiemannInputPlugin implements InputPlugin {

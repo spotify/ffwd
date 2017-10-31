@@ -24,7 +24,7 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
 /**
  * Decode a stream of data which is length-prefixed.
- *
+ * <p>
  * Should only be used with TCP-based protocols.
  *
  * @author udoprog

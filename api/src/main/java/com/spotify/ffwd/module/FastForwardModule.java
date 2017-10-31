@@ -17,7 +17,7 @@ package com.spotify.ffwd.module;
 
 /**
  * Base interface for external modules.
- *
+ * <p>
  * Modules are wired with the early Injector, and has access to all of its dependencies.
  *
  * @author udoprog
@@ -25,7 +25,7 @@ package com.spotify.ffwd.module;
 public interface FastForwardModule {
     /**
      * Configure the external module.
-     *
+     * <p>
      * The intention is for the module to inject and setup the hooks which it needs to perform
      * its operation.
      */

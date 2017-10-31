@@ -22,19 +22,16 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+import com.spotify.ffwd.model.Event;
+import com.spotify.ffwd.model.Metric;
+import eu.toolchain.async.AsyncFramework;
 import java.util.concurrent.ScheduledExecutorService;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
-
-import com.spotify.ffwd.model.Event;
-import com.spotify.ffwd.model.Metric;
-
-import eu.toolchain.async.AsyncFramework;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FlushingPluginSinkTest {

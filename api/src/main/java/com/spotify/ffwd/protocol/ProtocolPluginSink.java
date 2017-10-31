@@ -26,11 +26,10 @@ import com.spotify.ffwd.output.BatchedPluginSink;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.LazyTransform;
-import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
 
 @RequiredArgsConstructor
 public class ProtocolPluginSink implements BatchedPluginSink {

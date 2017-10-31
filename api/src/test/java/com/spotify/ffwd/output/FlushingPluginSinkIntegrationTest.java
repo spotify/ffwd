@@ -22,6 +22,10 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
+import com.spotify.ffwd.model.Metric;
+import eu.toolchain.async.AsyncFramework;
+import eu.toolchain.async.ResolvableFuture;
+import eu.toolchain.async.TinyAsync;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -30,7 +34,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,12 +43,6 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
-
-import com.spotify.ffwd.model.Metric;
-
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.ResolvableFuture;
-import eu.toolchain.async.TinyAsync;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FlushingPluginSinkIntegrationTest {
@@ -66,7 +63,8 @@ public class FlushingPluginSinkIntegrationTest {
     private FlushingPluginSink sink;
     private AsyncFramework async;
 
-    private final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private final ExecutorService executor =
+        Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     @Before
     public void setup() {
@@ -89,7 +87,8 @@ public class FlushingPluginSinkIntegrationTest {
     }
 
     /**
-     * Tests that the component creates batches that are being individually sized, and sent to the underlying sink.
+     * Tests that the component creates batches that are being individually sized, and sent to the
+     * underlying sink.
      */
     @Test
     public void testSizeLimitedFlushing() throws InterruptedException, ExecutionException {
@@ -107,7 +106,8 @@ public class FlushingPluginSinkIntegrationTest {
         // send the given number of metrics, over the given number of threads.
         sendMetrics(sink, 4, metricCount);
 
-        // Metrics will have been divided into batches because none of the batches have been successfully sent yet,
+        // Metrics will have been divided into batches because none of the batches have been
+        // successfully sent yet,
         // which is indicated by resolving `sendFuture'.
         synchronized (sink.pendingLock) {
             assertEquals(batches, sink.pending.size());
@@ -137,7 +137,7 @@ public class FlushingPluginSinkIntegrationTest {
     }
 
     private void sendMetrics(final PluginSink sink, final int threadCount, final int metricCount)
-            throws InterruptedException {
+        throws InterruptedException {
         final ExecutorService threads = Executors.newFixedThreadPool(threadCount);
 
         final AtomicInteger count = new AtomicInteger();

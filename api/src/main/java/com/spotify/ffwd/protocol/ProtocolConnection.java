@@ -16,7 +16,6 @@
 package com.spotify.ffwd.protocol;
 
 import eu.toolchain.async.AsyncFuture;
-
 import java.util.Collection;
 
 public interface ProtocolConnection {

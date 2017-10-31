@@ -18,9 +18,8 @@ package com.spotify.ffwd.serializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.function.Supplier;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ToStringSerializer implements Serializer {

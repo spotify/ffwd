@@ -15,9 +15,8 @@
  */
 package com.spotify.ffwd.protocol;
 
-import lombok.Data;
-
 import java.net.InetSocketAddress;
+import lombok.Data;
 
 @Data
 public class Protocol {

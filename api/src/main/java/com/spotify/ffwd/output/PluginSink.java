@@ -24,7 +24,7 @@ import eu.toolchain.async.AsyncFuture;
 public interface PluginSink extends Initializable {
     /**
      * Send the given collection of events.
-     *
+     * <p>
      * This method is fire-and-forget, because tracking each individual send is too expensive.
      *
      * @param events Collection of events to send.
@@ -34,7 +34,7 @@ public interface PluginSink extends Initializable {
 
     /**
      * Send the given collection of metrics.
-     *
+     * <p>
      * This method is fire-and-forget, because tracking each individual send is too expensive.
      *
      * @param metrics Metrics to send.
@@ -44,7 +44,7 @@ public interface PluginSink extends Initializable {
 
     /**
      * Send the given collection of metrics.
-     *
+     * <p>
      * This method is fire-and-forget, because tracking each individual send is too expensive.
      *
      * @param batch Batch to send.

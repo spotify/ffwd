@@ -25,11 +25,6 @@ import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.FutureFinished;
 import eu.toolchain.async.LazyTransform;
 import eu.toolchain.async.Transform;
-import java.util.function.Consumer;
-import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-
-import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -40,6 +35,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import javax.inject.Named;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
 
 /**
  * Facade implementation of a plugin sink that receives metrics and events, puts them on a buffer,

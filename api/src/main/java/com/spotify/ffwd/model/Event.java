@@ -15,15 +15,14 @@
  */
 package com.spotify.ffwd.model;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(of = { "key", "riemannTags", "tags" })
+@EqualsAndHashCode(of = {"key", "riemannTags", "tags"})
 public class Event {
     private final String key;
     private final double value;

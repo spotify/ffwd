@@ -19,7 +19,6 @@ import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import eu.toolchain.async.AsyncFuture;
-
 import java.util.Collection;
 
 public interface BatchedPluginSink extends PluginSink {

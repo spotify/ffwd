@@ -28,10 +28,9 @@ import com.spotify.ffwd.protocol.ProtocolFactory;
 import com.spotify.ffwd.protocol.ProtocolPluginSink;
 import com.spotify.ffwd.protocol.ProtocolType;
 import com.spotify.ffwd.protocol.RetryPolicy;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Optional;
 
 public class TemplateOutputPlugin implements OutputPlugin {
     private static final ProtocolType DEFAULT_PROTOCOL = ProtocolType.TCP;

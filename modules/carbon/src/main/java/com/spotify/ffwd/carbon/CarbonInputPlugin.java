@@ -28,7 +28,6 @@ import com.spotify.ffwd.protocol.ProtocolFactory;
 import com.spotify.ffwd.protocol.ProtocolServer;
 import com.spotify.ffwd.protocol.ProtocolType;
 import com.spotify.ffwd.protocol.RetryPolicy;
-
 import java.util.Optional;
 
 public class CarbonInputPlugin implements InputPlugin {

@@ -28,13 +28,12 @@ import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.output.OutputPluginModule;
 import com.spotify.ffwd.output.PluginSink;
 import com.spotify.ffwd.serializer.Serializer;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.ProducerConfig;
-
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Optional;
+import java.util.Properties;
+import kafka.javaapi.producer.Producer;
+import kafka.producer.ProducerConfig;
 
 public class KafkaOutputPlugin implements OutputPlugin {
     public static final int DEFAULT_BATCH_SIZE = 1000;
@@ -59,8 +58,7 @@ public class KafkaOutputPlugin implements OutputPlugin {
         @JsonProperty("compression") Boolean compression
     ) {
         this.router = Optional.ofNullable(router).orElseGet(KafkaRouter.Tag.supplier());
-        this.partitioner = Optional.ofNullable(partitioner)
-                                   .orElseGet(KafkaPartitioner.Host::new);
+        this.partitioner = Optional.ofNullable(partitioner).orElseGet(KafkaPartitioner.Host::new);
         this.flushInterval = Optional.ofNullable(flushInterval);
         this.properties = Optional.ofNullable(properties).orElseGet(HashMap::new);
         this.serializer = Optional.ofNullable(serializer);
