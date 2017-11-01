@@ -16,6 +16,7 @@
 package com.spotify.ffwd.output;
 
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
@@ -36,7 +37,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import javax.inject.Named;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 
@@ -47,6 +48,7 @@ import org.slf4j.Logger;
  * @author udoprog
  */
 @RequiredArgsConstructor
+@Data
 public class FlushingPluginSink implements PluginSink {
     public static final long DEFAULT_BATCH_SIZE_LIMIT = 10000;
     public static final long DEFAULT_MAX_PENDING_FLUSHES = 10;
@@ -185,14 +187,9 @@ public class FlushingPluginSink implements PluginSink {
 
     @Override
     public AsyncFuture<Void> start() {
-        log.info("Starting (Filter: {})", filter);
-
-        return sink.start().transform(new Transform<Void, Void>() {
-            @Override
-            public Void transform(Void result) throws Exception {
-                scheduleNext();
-                return null;
-            }
+        return sink.start().transform((Transform<Void, Void>) result -> {
+            scheduleNext();
+            return null;
         });
     }
 

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.PrivateModule;
+import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.output.PluginSink;
 import com.spotify.ffwd.protocol.Protocol;
@@ -32,7 +33,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TemplateOutputPlugin implements OutputPlugin {
+public class TemplateOutputPlugin extends OutputPlugin {
     private static final ProtocolType DEFAULT_PROTOCOL = ProtocolType.TCP;
     private static final int DEFAULT_PORT = 8910;
 
@@ -42,8 +43,11 @@ public class TemplateOutputPlugin implements OutputPlugin {
     @JsonCreator
     public TemplateOutputPlugin(
         @JsonProperty("protocol") final ProtocolFactory protocol,
-        @JsonProperty("retry") final RetryPolicy retry
+        @JsonProperty("retry") final RetryPolicy retry,
+        @JsonProperty("filter") Optional<Filter> filter,
+        @JsonProperty("flushInterval") Optional<Long> flushInterval
     ) {
+        super(filter, flushInterval);
         this.protocol = Optional
             .ofNullable(protocol)
             .orElseGet(ProtocolFactory.defaultFor())
@@ -65,10 +69,5 @@ public class TemplateOutputPlugin implements OutputPlugin {
                 expose(key);
             }
         };
-    }
-
-    @Override
-    public String id(int index) {
-        return protocol.toString();
     }
 }

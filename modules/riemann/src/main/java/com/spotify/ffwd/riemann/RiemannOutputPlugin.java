@@ -20,9 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
-import com.google.inject.name.Names;
 import com.spotify.ffwd.filter.Filter;
-import com.spotify.ffwd.filter.TrueFilter;
 import com.spotify.ffwd.output.BatchedPluginSink;
 import com.spotify.ffwd.output.FlushingPluginSink;
 import com.spotify.ffwd.output.OutputPlugin;
@@ -36,25 +34,22 @@ import com.spotify.ffwd.protocol.ProtocolType;
 import com.spotify.ffwd.protocol.RetryPolicy;
 import java.util.Optional;
 
-public class RiemannOutputPlugin implements OutputPlugin {
+public class RiemannOutputPlugin extends OutputPlugin {
     private static final ProtocolType DEFAULT_PROTOCOL = ProtocolType.TCP;
     private static final int DEFAULT_PORT = 5555;
-    private static final long DEFAULT_FLUSH_INTERVAL = 0;
-    // TimeUnit.MILLISECONDS.convert(10, TimeUnit.SECONDS);
 
-    private final Filter filter;
-    private final Long flushInterval;
     private final Protocol protocol;
     private final Class<? extends ProtocolClient> protocolClient;
     private final RetryPolicy retry;
 
     @JsonCreator
     public RiemannOutputPlugin(
-        @JsonProperty("filter") Filter filter, @JsonProperty("flushInterval") Long flushInterval,
-        @JsonProperty("protocol") ProtocolFactory protocol, @JsonProperty("retry") RetryPolicy retry
+        @JsonProperty("flushInterval") Optional<Long> flushInterval,
+        @JsonProperty("protocol") ProtocolFactory protocol,
+        @JsonProperty("retry") RetryPolicy retry, @JsonProperty("filter") Optional<Filter> filter
+
     ) {
-        this.filter = Optional.ofNullable(filter).orElseGet(TrueFilter::new);
-        this.flushInterval = Optional.ofNullable(flushInterval).orElse(DEFAULT_FLUSH_INTERVAL);
+        super(filter, flushInterval);
         this.protocol = Optional
             .ofNullable(protocol)
             .orElseGet(ProtocolFactory.defaultFor())
@@ -80,22 +75,18 @@ public class RiemannOutputPlugin implements OutputPlugin {
                 bind(RiemannMessageDecoder.class).in(Scopes.SINGLETON);
                 bind(ProtocolClient.class).to(protocolClient).in(Scopes.SINGLETON);
 
-                if (flushInterval != null && flushInterval > 0) {
-                    bind(Key.get(Filter.class, Names.named("flushing"))).toInstance(filter);
+                if (flushInterval != null && flushInterval.isPresent()) {
                     bind(BatchedPluginSink.class).toInstance(new ProtocolPluginSink(retry));
-                    bind(key).toInstance(new FlushingPluginSink(flushInterval));
+                    bind(key).toInstance(new FlushingPluginSink(flushInterval.get()));
                 } else {
-                    bind(Filter.class).toInstance(filter);
                     bind(key).toInstance(new ProtocolPluginSink(retry));
+                }
+                if (filter != null && filter.isPresent()) {
+                    bind(Filter.class).toInstance(filter.get());
                 }
 
                 expose(key);
             }
         };
-    }
-
-    @Override
-    public String id(int index) {
-        return protocol.toString();
     }
 }

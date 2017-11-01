@@ -135,7 +135,7 @@ public class OutputManagerModule {
                 int i = 0;
 
                 for (final OutputPlugin p : plugins) {
-                    final String id = p.id(i++);
+                    final String id = String.valueOf(++i);
                     final Key<PluginSink> k = Key.get(PluginSink.class, Names.named(id));
                     install(p.module(k, id));
                     sinks.addBinding().to(k);

@@ -85,11 +85,10 @@ public class InputManagerModule {
                     Multibinder.newSetBinder(binder(), PluginSource.class);
 
                 int i = 0;
-
                 for (final InputPlugin p : plugins) {
-                    final String id = p.id(i++);
+                    final String id = String.valueOf(++i);
                     final Key<PluginSource> k = Key.get(PluginSource.class, Names.named(id));
-                    install(p.module(k, id));
+                    install(p.module(k, String.valueOf(id)));
                     sources.addBinding().to(k);
                 }
             }

@@ -23,10 +23,11 @@ import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
+import com.google.inject.name.Names;
 import com.netflix.loadbalancer.ILoadBalancer;
 import com.netflix.loadbalancer.LoadBalancerBuilder;
+import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.output.BatchedPluginSink;
-import com.spotify.ffwd.output.FlushingPluginSink;
 import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.output.OutputPluginModule;
 import com.spotify.ffwd.output.PluginSink;
@@ -36,21 +37,20 @@ import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class HttpOutputPlugin implements OutputPlugin {
-    public static final String DEFAULT_ID = "http";
+public class HttpOutputPlugin extends OutputPlugin {
     public static final Long DEFAULT_FLUSH_INTERVAL = 500L;
 
-    private final String id;
-    private final Long flushInterval;
     private final HttpDiscovery discovery;
 
     @JsonCreator
     public HttpOutputPlugin(
-        @JsonProperty("id") String id, @JsonProperty("flushInterval") Long flushInterval,
-        @JsonProperty("discovery") HttpDiscovery discovery
+        @JsonProperty("id") String id, @JsonProperty("flushInterval") Optional<Long> flushInterval,
+        @JsonProperty("discovery") HttpDiscovery discovery,
+        @JsonProperty("filter") Optional<Filter> filter
+
     ) {
-        this.id = Optional.ofNullable(id).orElse(DEFAULT_ID);
-        this.flushInterval = Optional.ofNullable(flushInterval).orElse(DEFAULT_FLUSH_INTERVAL);
+        super(filter,
+            flushInterval.isPresent() ? flushInterval : Optional.of(DEFAULT_FLUSH_INTERVAL));
         this.discovery = Optional.ofNullable(discovery).orElseGet(HttpDiscovery::supplyDefault);
     }
 
@@ -59,7 +59,7 @@ public class HttpOutputPlugin implements OutputPlugin {
         return new OutputPluginModule(id) {
             @Provides
             @Singleton
-            @Named(DEFAULT_ID)
+            @Named("http")
             public ExecutorService threadPool() {
                 return Executors.newCachedThreadPool(
                     new ThreadFactoryBuilder().setNameFormat("ffwd-okhttp-async-%d").build());
@@ -79,14 +79,11 @@ public class HttpOutputPlugin implements OutputPlugin {
             @Override
             protected void configure() {
                 bind(BatchedPluginSink.class).to(HttpPluginSink.class);
-                bind(key).toInstance(new FlushingPluginSink(flushInterval));
+                Key<PluginSink> sinkKey = Key.get(PluginSink.class, Names.named("httpSink"));
+                bind(sinkKey).to(HttpPluginSink.class);
+                install(wrapPluginSink(sinkKey, key));
                 expose(key);
             }
         };
-    }
-
-    @Override
-    public String id(int index) {
-        return this.id;
     }
 }

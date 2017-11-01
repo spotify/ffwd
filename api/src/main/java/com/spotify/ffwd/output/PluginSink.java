@@ -30,7 +30,7 @@ public interface PluginSink extends Initializable {
      * @param events Collection of events to send.
      * @return A future that will be resolved when the events have been sent.
      */
-    public void sendEvent(Event event);
+    void sendEvent(Event event);
 
     /**
      * Send the given collection of metrics.
@@ -40,7 +40,7 @@ public interface PluginSink extends Initializable {
      * @param metrics Metrics to send.
      * @return A future that will be resolved when the metrics have been sent.
      */
-    public void sendMetric(Metric metric);
+    void sendMetric(Metric metric);
 
     /**
      * Send the given collection of metrics.
@@ -50,11 +50,11 @@ public interface PluginSink extends Initializable {
      * @param batch Batch to send.
      * @return A future that will be resolved when the metrics have been sent.
      */
-    public void sendBatch(Batch batch);
+    void sendBatch(Batch batch);
 
-    public AsyncFuture<Void> start();
+    AsyncFuture<Void> start();
 
-    public AsyncFuture<Void> stop();
+    AsyncFuture<Void> stop();
 
-    public boolean isReady();
+    boolean isReady();
 }

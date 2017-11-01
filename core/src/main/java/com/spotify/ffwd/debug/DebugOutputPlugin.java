@@ -19,19 +19,27 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.Key;
 import com.google.inject.Module;
-import com.google.inject.Scopes;
+import com.google.inject.name.Names;
+import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.output.BatchedPluginSink;
-import com.spotify.ffwd.output.FlushingPluginSink;
 import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.output.OutputPluginModule;
 import com.spotify.ffwd.output.PluginSink;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
-public class DebugOutputPlugin implements OutputPlugin {
-    private final Long flushInterval;
+public class DebugOutputPlugin extends OutputPlugin {
+
+    private static final long DEFAULT_FLUSH_INTERVAL =
+        TimeUnit.MILLISECONDS.convert(10, TimeUnit.SECONDS);
 
     @JsonCreator
-    public DebugOutputPlugin(@JsonProperty("flushInterval") Long flushInterval) {
-        this.flushInterval = flushInterval;
+    public DebugOutputPlugin(
+        @JsonProperty("flushInterval") Optional<Long> flushInterval,
+        @JsonProperty("filter") Optional<Filter> filter
+    ) {
+        super(filter,
+            flushInterval.isPresent() ? flushInterval : Optional.of(DEFAULT_FLUSH_INTERVAL));
     }
 
     @Override
@@ -39,20 +47,13 @@ public class DebugOutputPlugin implements OutputPlugin {
         return new OutputPluginModule(id) {
             @Override
             protected void configure() {
-                if (flushInterval != null) {
-                    bind(BatchedPluginSink.class).to(DebugPluginSink.class);
-                    bind(key).toInstance(new FlushingPluginSink(flushInterval));
-                } else {
-                    bind(key).to(DebugPluginSink.class).in(Scopes.SINGLETON);
-                }
-
+                bind(BatchedPluginSink.class).to(DebugPluginSink.class);
+                Key<PluginSink> sinkKey = Key.get(PluginSink.class, Names.named("debugSinkSink"));
+                bind(sinkKey).to(DebugPluginSink.class);
+                install(wrapPluginSink(sinkKey, key));
                 expose(key);
             }
         };
     }
 
-    @Override
-    public String id(int index) {
-        return Integer.toString(index);
-    }
 }
