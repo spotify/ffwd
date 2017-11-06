@@ -223,7 +223,7 @@ public class AgentCore {
 
             @Singleton
             @Provides
-            @Named("application/yaml+config")
+            @Named("config")
             public SimpleModule configModule(
                 Map<String, FilterDeserializer.PartialDeserializer> filters
             ) {
@@ -372,7 +372,7 @@ public class AgentCore {
     private AgentConfig readConfig(Injector early) throws IOException {
         final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         final SimpleModule module =
-            early.getInstance(Key.get(SimpleModule.class, Names.named("application/yaml+config")));
+            early.getInstance(Key.get(SimpleModule.class, Names.named("config")));
 
         mapper.registerModule(module);
 
