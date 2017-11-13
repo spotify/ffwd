@@ -21,6 +21,7 @@ import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.PrivateModule;
 import com.google.inject.Scopes;
+import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.input.InputPlugin;
 import com.spotify.ffwd.input.PluginSource;
 import com.spotify.ffwd.protocol.Protocol;
@@ -44,7 +45,8 @@ public class RiemannInputPlugin implements InputPlugin {
 
     @JsonCreator
     public RiemannInputPlugin(
-        @JsonProperty("protocol") ProtocolFactory protocol, @JsonProperty("retry") RetryPolicy retry
+        @JsonProperty("protocol") ProtocolFactory protocol,
+        @JsonProperty("retry") RetryPolicy retry, @JsonProperty("filter") Optional<Filter> filter
     ) {
         this.protocol = Optional
             .ofNullable(protocol)
@@ -86,10 +88,5 @@ public class RiemannInputPlugin implements InputPlugin {
                 expose(key);
             }
         };
-    }
-
-    @Override
-    public String id(int index) {
-        return String.format("%s[%s]", getClass().getPackage().getName(), protocol.toString());
     }
 }

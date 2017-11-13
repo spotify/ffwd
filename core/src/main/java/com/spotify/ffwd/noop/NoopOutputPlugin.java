@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
+import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.output.BatchedPluginSink;
 import com.spotify.ffwd.output.FlushingPluginSink;
 import com.spotify.ffwd.output.OutputPlugin;
@@ -28,15 +29,17 @@ import com.spotify.ffwd.output.PluginSink;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-public class NoopOutputPlugin implements OutputPlugin {
+public class NoopOutputPlugin extends OutputPlugin {
     private static final long DEFAULT_FLUSH_INTERVAL =
         TimeUnit.MILLISECONDS.convert(10, TimeUnit.SECONDS);
 
-    private final Long flushInterval;
-
     @JsonCreator
-    public NoopOutputPlugin(@JsonProperty("flushInterval") Long flushInterval) {
-        this.flushInterval = Optional.ofNullable(flushInterval).orElse(DEFAULT_FLUSH_INTERVAL);
+    public NoopOutputPlugin(
+        @JsonProperty("flushInterval") Optional<Long> flushInterval,
+        @JsonProperty("filter") Optional<Filter> filter
+    ) {
+        super(filter,
+            flushInterval.isPresent() ? flushInterval : Optional.of(DEFAULT_FLUSH_INTERVAL));
     }
 
     @Override
@@ -46,7 +49,7 @@ public class NoopOutputPlugin implements OutputPlugin {
             protected void configure() {
                 if (flushInterval != null) {
                     bind(BatchedPluginSink.class).to(NoopPluginSink.class).in(Scopes.SINGLETON);
-                    bind(key).toInstance(new FlushingPluginSink(flushInterval));
+                    bind(key).toInstance(new FlushingPluginSink(flushInterval.get()));
                 } else {
                     bind(key).to(NoopPluginSink.class).in(Scopes.SINGLETON);
                 }
@@ -56,8 +59,4 @@ public class NoopOutputPlugin implements OutputPlugin {
         };
     }
 
-    @Override
-    public String id(int index) {
-        return Integer.toString(index);
-    }
 }

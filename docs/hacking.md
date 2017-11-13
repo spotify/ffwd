@@ -25,7 +25,7 @@ purpose.
 
 * _com.spotify.ffwd.module.PluginContext_
   Register input and output plugins.
-* _com.fasterxml.jackson.databind.ObjectMapper (application/yaml+config)_
+* _com.fasterxml.jackson.databind.ObjectMapper (config)_
   ObjectMapper used to parse provided configuration file.
 
 #### Primary Injector

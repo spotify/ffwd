@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.Provides;
+import com.google.inject.name.Names;
 import com.signalfx.endpoint.SignalFxEndpoint;
 import com.signalfx.metrics.auth.AuthToken;
 import com.signalfx.metrics.auth.StaticAuthToken;
@@ -29,8 +30,8 @@ import com.signalfx.metrics.connection.HttpDataPointProtobufReceiverFactory;
 import com.signalfx.metrics.connection.HttpEventProtobufReceiverFactory;
 import com.signalfx.metrics.errorhandler.OnSendErrorHandler;
 import com.signalfx.metrics.flush.AggregateMetricSender;
+import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.output.BatchedPluginSink;
-import com.spotify.ffwd.output.FlushingPluginSink;
 import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.output.OutputPluginModule;
 import com.spotify.ffwd.output.PluginSink;
@@ -42,31 +43,29 @@ import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 
 @Slf4j
-public class SignalFxOutputPlugin implements OutputPlugin {
-    public static final String DEFAULT_ID = "signalfx";
+public class SignalFxOutputPlugin extends OutputPlugin {
     public static final String DEFAULT_SOURCE_NAME = "ffwd/java";
     public static final Long DEFAULT_FLUSH_INTERVAL = 500L;
     public static final int DEFAULT_SO_TIMEOUT = 10000;
 
-    private final String id;
     private final String sourceName;
     private final String authToken;
-    private final Long flushInterval;
     private final int soTimeout;
 
     @JsonCreator
     public SignalFxOutputPlugin(
-        @JsonProperty("id") String id, @JsonProperty("sourceName") String sourceName,
+        @JsonProperty("sourceName") String sourceName,
         @JsonProperty("authToken") String authToken,
-        @JsonProperty("flushInterval") Long flushInterval,
-        @JsonProperty("soTimeout") Integer soTimeout
+        @JsonProperty("flushInterval") Optional<Long> flushInterval,
+        @JsonProperty("soTimeout") Integer soTimeout,
+        @JsonProperty("filter") Optional<Filter> filter
     ) {
-        this.id = Optional.ofNullable(id).orElse(DEFAULT_ID);
+        super(filter,
+            flushInterval.isPresent() ? flushInterval : Optional.of(DEFAULT_FLUSH_INTERVAL));
         this.sourceName = Optional.ofNullable(sourceName).orElse(DEFAULT_SOURCE_NAME);
         this.authToken = Optional
             .ofNullable(authToken)
             .orElseThrow(() -> new IllegalArgumentException("authToken: must be defined"));
-        this.flushInterval = Optional.ofNullable(flushInterval).orElse(DEFAULT_FLUSH_INTERVAL);
         this.soTimeout = Optional.ofNullable(soTimeout).orElse(DEFAULT_SO_TIMEOUT);
     }
 
@@ -105,15 +104,11 @@ public class SignalFxOutputPlugin implements OutputPlugin {
             @Override
             protected void configure() {
                 bind(BatchedPluginSink.class).to(SignalFxPluginSink.class);
-                bind(key).toInstance(new FlushingPluginSink(flushInterval));
-
+                Key<PluginSink> sinkKey = Key.get(PluginSink.class, Names.named("signalfxSink"));
+                bind(sinkKey).to(SignalFxPluginSink.class);
+                install(wrapPluginSink(sinkKey, key));
                 expose(key);
             }
         };
-    }
-
-    @Override
-    public String id(int index) {
-        return this.id;
     }
 }

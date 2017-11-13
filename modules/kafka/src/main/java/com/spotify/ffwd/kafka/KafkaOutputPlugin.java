@@ -22,6 +22,7 @@ import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Names;
+import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.output.BatchedPluginSink;
 import com.spotify.ffwd.output.FlushingPluginSink;
 import com.spotify.ffwd.output.OutputPlugin;
@@ -35,14 +36,13 @@ import java.util.Properties;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.ProducerConfig;
 
-public class KafkaOutputPlugin implements OutputPlugin {
+public class KafkaOutputPlugin extends OutputPlugin {
     public static final int DEFAULT_BATCH_SIZE = 1000;
     public static final boolean DEFAULT_COMPRESSION = true;
 
     private final KafkaRouter router;
     private final KafkaPartitioner partitioner;
     private final Map<String, String> properties;
-    private final Optional<Long> flushInterval;
     private final Optional<Serializer> serializer;
     private final int batchSize;
     private final boolean compression;
@@ -50,16 +50,17 @@ public class KafkaOutputPlugin implements OutputPlugin {
     @JsonCreator
     public KafkaOutputPlugin(
         @JsonProperty("producer") Map<String, String> properties,
-        @JsonProperty("flushInterval") Long flushInterval,
+        @JsonProperty("flushInterval") Optional<Long> flushInterval,
         @JsonProperty("router") KafkaRouter router,
         @JsonProperty("partitioner") KafkaPartitioner partitioner,
         @JsonProperty("serializer") Serializer serializer,
         @JsonProperty("batchSize") Integer batchSize,
-        @JsonProperty("compression") Boolean compression
+        @JsonProperty("compression") Boolean compression,
+        @JsonProperty("filter") Optional<Filter> filter
     ) {
+        super(filter, flushInterval);
         this.router = Optional.ofNullable(router).orElseGet(KafkaRouter.Tag.supplier());
         this.partitioner = Optional.ofNullable(partitioner).orElseGet(KafkaPartitioner.Host::new);
-        this.flushInterval = Optional.ofNullable(flushInterval);
         this.properties = Optional.ofNullable(properties).orElseGet(HashMap::new);
         this.serializer = Optional.ofNullable(serializer);
         this.batchSize = Optional.ofNullable(batchSize).orElse(DEFAULT_BATCH_SIZE);
@@ -83,7 +84,7 @@ public class KafkaOutputPlugin implements OutputPlugin {
                 }
 
                 final ProducerConfig config = new ProducerConfig(props);
-                return new Producer<Integer, byte[]>(config);
+                return new Producer<>(config);
             }
 
             @Override
@@ -110,14 +111,4 @@ public class KafkaOutputPlugin implements OutputPlugin {
         };
     }
 
-    @Override
-    public String id(int index) {
-        final String brokers = properties.get("metadata.broker.list");
-
-        if (brokers != null) {
-            return brokers;
-        }
-
-        return Integer.toString(index);
-    }
 }

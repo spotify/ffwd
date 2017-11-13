@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.AbstractModule;
@@ -36,6 +37,7 @@ import com.spotify.ffwd.debug.DebugServer;
 import com.spotify.ffwd.debug.NettyDebugServer;
 import com.spotify.ffwd.debug.NoopDebugServer;
 import com.spotify.ffwd.filter.AndFilter;
+import com.spotify.ffwd.filter.FalseFilter;
 import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.filter.FilterDeserializer;
 import com.spotify.ffwd.filter.MatchKey;
@@ -78,7 +80,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -151,7 +152,7 @@ public class AgentCore {
     }
 
     private void start(final Injector primary)
-        throws Exception, InterruptedException, ExecutionException {
+        throws Exception {
         final InputManager input = primary.getInstance(InputManager.class);
         final OutputManager output = primary.getInstance(OutputManager.class);
         final DebugServer debug = primary.getInstance(DebugServer.class);
@@ -213,7 +214,7 @@ public class AgentCore {
                 filters.put("key", new MatchKey.Deserializer());
                 filters.put("=", new MatchTag.Deserializer());
                 filters.put("true", new TrueFilter.Deserializer());
-                filters.put("false", new TrueFilter.Deserializer());
+                filters.put("false", new FalseFilter.Deserializer());
                 filters.put("and", new AndFilter.Deserializer());
                 filters.put("or", new OrFilter.Deserializer());
                 filters.put("not", new NotFilter.Deserializer());
@@ -374,6 +375,7 @@ public class AgentCore {
         final SimpleModule module =
             early.getInstance(Key.get(SimpleModule.class, Names.named("config")));
 
+        mapper.registerModule(new Jdk8Module());
         mapper.registerModule(module);
 
         try (final InputStream input = Files.newInputStream(this.config)) {

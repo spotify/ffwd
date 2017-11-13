@@ -28,7 +28,7 @@ public interface BatchedPluginSink extends PluginSink {
      * @param events Collection of events to send.
      * @return A future that will be resolved when the events have been sent.
      */
-    public AsyncFuture<Void> sendEvents(Collection<Event> events);
+    AsyncFuture<Void> sendEvents(Collection<Event> events);
 
     /**
      * Send the given collection of metrics.
@@ -36,7 +36,7 @@ public interface BatchedPluginSink extends PluginSink {
      * @param metrics Metrics to send.
      * @return A future that will be resolved when the metrics have been sent.
      */
-    public AsyncFuture<Void> sendMetrics(Collection<Metric> metrics);
+    AsyncFuture<Void> sendMetrics(Collection<Metric> metrics);
 
     /**
      * Send the given collection of batches.
@@ -44,5 +44,5 @@ public interface BatchedPluginSink extends PluginSink {
      * @param batches Batches to send.
      * @return A future that will be resolved when the batches have been sent.
      */
-    public AsyncFuture<Void> sendBatches(Collection<Batch> batches);
+    AsyncFuture<Void> sendBatches(Collection<Batch> batches);
 }

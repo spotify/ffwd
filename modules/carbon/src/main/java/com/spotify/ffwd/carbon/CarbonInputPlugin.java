@@ -21,6 +21,7 @@ import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.PrivateModule;
 import com.google.inject.Scopes;
+import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.input.InputPlugin;
 import com.spotify.ffwd.input.PluginSource;
 import com.spotify.ffwd.protocol.Protocol;
@@ -48,7 +49,8 @@ public class CarbonInputPlugin implements InputPlugin {
     public CarbonInputPlugin(
         @JsonProperty("protocol") final ProtocolFactory protocol,
         @JsonProperty("delimiter") final String delimiter,
-        @JsonProperty("retry") final RetryPolicy retry, @JsonProperty("key") final String key
+        @JsonProperty("retry") final RetryPolicy retry, @JsonProperty("key") final String key,
+        @JsonProperty("filter") Optional<Filter> filter
     ) {
         this.protocol = Optional
             .ofNullable(protocol)
@@ -106,10 +108,5 @@ public class CarbonInputPlugin implements InputPlugin {
                 expose(key);
             }
         };
-    }
-
-    @Override
-    public String id(int index) {
-        return String.format("%s[%s]", getClass().getPackage().getName(), protocol.toString());
     }
 }

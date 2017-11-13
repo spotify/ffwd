@@ -15,11 +15,16 @@
  */
 package com.spotify.ffwd.filter;
 
+import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 
 public interface Filter {
-    public boolean matchesEvent(Event event);
+    boolean matchesEvent(Event event);
 
-    public boolean matchesMetric(Metric metric);
+    boolean matchesMetric(Metric metric);
+
+    default boolean matchesBatch(Batch batch) {
+        return true;
+    }
 }

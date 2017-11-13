@@ -15,29 +15,20 @@
  */
 package com.spotify.ffwd.output;
 
-import com.spotify.ffwd.Initializable;
-import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
-import com.spotify.ffwd.model.Metric;
-import eu.toolchain.async.AsyncFuture;
+import com.google.inject.Key;
+import com.google.inject.PrivateModule;
+import lombok.Data;
 
-public interface OutputManager extends Initializable {
-    /**
-     * Send a collection of events to all output plugins.
-     */
-    void sendEvent(Event event);
+@Data
+public class OutputDelegatingModule<T extends PluginSink> extends PrivateModule {
+    private final Key<PluginSink> input;
+    private final Key<PluginSink> output;
+    private final T impl;
 
-    /**
-     * Send a collection of metrics to all output plugins.
-     */
-    void sendMetric(Metric metric);
-
-    /**
-     * Send a batch collection of metrics to all output plugins.
-     */
-    void sendBatch(Batch batch);
-
-    AsyncFuture<Void> start();
-
-    AsyncFuture<Void> stop();
+    @Override
+    protected void configure() {
+        bind(input.getTypeLiteral()).to(input);
+        bind(output).toInstance(impl);
+        expose(output);
+    }
 }
