@@ -25,6 +25,7 @@
     <module>modules/json</module>
     <module>modules/signalfx</module>
     <module>modules/http</module>
+    <module>ffwd-http-client</module>
   </modules>
 
   <licenses>
