@@ -6,6 +6,8 @@ target
 .classpath
 .project
 .settings
+!/.idea/codeStyleSettings.xml
 .idea
 dependency-reduced-pom.xml
 /.cache/*
+.DS_Store

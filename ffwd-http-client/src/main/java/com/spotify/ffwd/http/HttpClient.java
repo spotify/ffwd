@@ -36,10 +36,7 @@ public class HttpClient {
     private final ILoadBalancer loadBalancer;
 
     public Observable<Void> sendBatch(final Batch batch) {
-
-        return LoadBalancerCommand.<Void>builder()
-            .withLoadBalancer(loadBalancer)
-            .build()
+        return buildCommand()
             .submit(server -> clientFactory.newClient(server).sendBatch(batch));
     }
 
@@ -49,7 +46,7 @@ public class HttpClient {
 
         private Optional<String> searchDomain = Optional.empty();
 
-        private static ObjectMapper setupApplicationJson() {
+        public static ObjectMapper setupApplicationJson() {
             final ObjectMapper mapper = new ObjectMapper();
             mapper.registerModule(new Jdk8Module());
             mapper.enable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES);
@@ -57,15 +54,15 @@ public class HttpClient {
             return mapper;
         }
 
-        public HttpClient build(){
+        public HttpClient build() {
             final HttpDiscovery discovery = this.discovery.orElseGet(HttpDiscovery::supplyDefault);
-            OkHttpClient okHttpClient = new OkHttpClient();
-            ObjectMapper objectMapper = setupApplicationJson();
-            RawHttpClientFactory
-                httpClientFactory = new RawHttpClientFactory(objectMapper, okHttpClient);
-            HttpPing httpPing = new HttpPing(httpClientFactory);
+            final OkHttpClient okHttpClient = new OkHttpClient();
+            final ObjectMapper objectMapper = setupApplicationJson();
+            final RawHttpClientFactory httpClientFactory =
+                new RawHttpClientFactory(objectMapper, okHttpClient);
+            final HttpPing httpPing = new HttpPing(httpClientFactory);
 
-            ILoadBalancer loadBalancer = discovery
+            final ILoadBalancer loadBalancer = discovery
                 .apply(LoadBalancerBuilder.newBuilder(), searchDomain)
                 .withPing(httpPing)
                 .buildDynamicServerListLoadBalancer();
@@ -73,14 +70,18 @@ public class HttpClient {
             return new HttpClient(httpClientFactory, loadBalancer);
         }
 
-        public Builder discovery(HttpDiscovery discovery){
+        public Builder discovery(HttpDiscovery discovery) {
             this.discovery = Optional.of(discovery);
             return this;
         }
 
-        public Builder searchDomain(String searchDomain){
+        public Builder searchDomain(String searchDomain) {
             this.searchDomain = Optional.of(searchDomain);
             return this;
         }
+    }
+
+    protected LoadBalancerCommand<Void> buildCommand(){
+        return LoadBalancerCommand.<Void>builder().withLoadBalancer(loadBalancer).build();
     }
 }

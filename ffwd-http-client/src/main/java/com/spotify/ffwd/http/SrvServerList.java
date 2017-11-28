@@ -15,9 +15,10 @@
  */
 package com.spotify.ffwd.http;
 
-import com.google.common.collect.ImmutableList;
 import com.netflix.loadbalancer.Server;
 import com.netflix.loadbalancer.ServerList;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -58,7 +59,7 @@ public class SrvServerList implements ServerList<Server> {
                 "DNS lookup failed: " + lookup.getErrorString() + ": " + record);
         }
 
-        final ImmutableList.Builder<Server> results = ImmutableList.builder();
+        final List<Server> results = new ArrayList<>();
 
         if (result != null) {
             for (final Record a : result) {
@@ -67,6 +68,6 @@ public class SrvServerList implements ServerList<Server> {
             }
         }
 
-        return results.build();
+        return Collections.unmodifiableList(results);
     }
 }
