@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import rx.Observable;
 
+
 @Slf4j
 @Data
 public class HttpClient {

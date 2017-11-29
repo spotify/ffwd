@@ -13,6 +13,7 @@
   <properties>
     <jackson.version>2.7.4</jackson.version>
     <slf4j.version>1.7.10</slf4j.version>
+    <ribbon.version>2.2.2</ribbon.version>
   </properties>
 
   <build>
@@ -24,6 +25,87 @@
           <source>1.8</source>
           <target>1.8</target>
         </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.4.3</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
+              <createDependencyReducedPom>true</createDependencyReducedPom>
+              <!-- excluded dependencies will be kept as a promoted dependency -->
+              <artifactSet>
+                <excludes>
+                  <exclude>com.google.code.findbugs:annotations</exclude>
+                  <exclude>org.slf4j:slf4j-api</exclude>
+                </excludes>
+              </artifactSet>
+
+              <filters>
+                <filter>
+                  <artifact>dnsjava:dnsjava</artifact>
+                  <excludes>
+                    <exclude>*.class</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+
+              <relocations>
+                <relocation>
+                  <pattern>com.fasterxml</pattern>
+                  <shadedPattern>com.spotify.ffwd.http.fasterxml</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>okhttp3</pattern>
+                  <shadedPattern>com.spotify.ffwd.http.okhttp3</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.netflix</pattern>
+                  <shadedPattern>com.spotify.ffwd.http.netflix</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.google</pattern>
+                  <shadedPattern>com.spotify.ffwd.http.google</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.xbill</pattern>
+                  <shadedPattern>com.spotify.ffwd.http.xbill</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>rx</pattern>
+                  <shadedPattern>com.spotify.ffwd.http.rx</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons</pattern>
+                  <shadedPattern>com.spotify.ffwd.http.commons</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>okio</pattern>
+                  <shadedPattern>com.spotify.ffwd.http.okio</shadedPattern>
+                </relocation>
+              </relocations>
+              <transformers>
+                <transformer
+                    implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                <transformer
+                    implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                  <resources>
+                    <resource>pom.xml</resource>
+                    <resource>pom.properties</resource>
+                  </resources>
+                </transformer>
+              </transformers>
+
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
@@ -63,13 +145,19 @@
     <dependency>
       <groupId>com.netflix.ribbon</groupId>
       <artifactId>ribbon-loadbalancer</artifactId>
-      <version>2.2.2</version>
+      <version>${ribbon.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>jsr305</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
       <groupId>com.netflix.ribbon</groupId>
       <artifactId>ribbon-core</artifactId>
-      <version>2.2.2</version>
+      <version>${ribbon.version}</version>
     </dependency>
 
     <dependency>
