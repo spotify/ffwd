@@ -10,6 +10,10 @@
   <packaging>jar</packaging>
   <name>FastForward HTTP Client</name>
 
+  <description>
+    High-level HTTP client for sending metrics to a remove FFWD instances.
+  </description>
+
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
