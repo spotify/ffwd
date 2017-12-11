@@ -10,6 +10,8 @@
   <packaging>jar</packaging>
   <name>FastForward HTTP Client</name>
 
+  <url>https://github.com/spotify/ffwd</url>
+
   <description>
     High-level HTTP client for sending metrics to a remove FFWD instances.
   </description>
