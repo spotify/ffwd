@@ -91,6 +91,7 @@
                 <excludes>
                   <exclude>com.google.code.findbugs:annotations</exclude>
                   <exclude>org.slf4j:slf4j-api</exclude>
+                  <exclude>io.reactivex:rxjava</exclude>
                 </excludes>
               </artifactSet>
 
@@ -123,10 +124,6 @@
                 <relocation>
                   <pattern>org.xbill</pattern>
                   <shadedPattern>com.spotify.ffwd.http.xbill</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>rx</pattern>
-                  <shadedPattern>com.spotify.ffwd.http.rx</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.apache.commons</pattern>
