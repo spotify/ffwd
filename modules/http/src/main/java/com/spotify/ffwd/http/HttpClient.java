@@ -78,7 +78,14 @@ public class HttpClient {
 
             @Override
             public void onResponse(final Call call, final Response response) throws IOException {
-                future.resolve(null);
+                if (response.isSuccessful()) {
+                    future.resolve(null);
+                } else {
+                    future.fail(new RuntimeException(
+                        "HTTP request failed: " + response.code() + ": " + response.message()));
+                }
+
+                response.close();
             }
         });
 

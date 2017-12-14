@@ -85,6 +85,8 @@ public class RawHttpClient {
                                 "HTTP request failed: " + response.code() + ": " +
                                     response.message()));
                         }
+
+                        response.close();
                     }
                 });
             }
