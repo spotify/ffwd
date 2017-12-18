@@ -8,12 +8,14 @@ import rx.functions.Func1;
 public class RetryWithDelay implements Func1<Observable<? extends Throwable>, Observable<?>> {
     private final int maxRetries;
     private long retryDelayMillis;
+    private final long maxDelayMillis;
     private int retryCount;
     private final Random random = new Random();
 
-    public RetryWithDelay(final int maxRetries, final long retryDelayMillis) {
+    public RetryWithDelay(final int maxRetries, final long retryDelayMillis, final long maxDelayMillis) {
         this.maxRetries = maxRetries;
         this.retryDelayMillis = retryDelayMillis;
+        this.maxDelayMillis = maxDelayMillis;
         this.retryCount = 0;
     }
 
@@ -26,7 +28,7 @@ public class RetryWithDelay implements Func1<Observable<? extends Throwable>, Ob
                     final long retryMillis = retryDelayMillis;
                     final long jitter = (long)(random.nextFloat() * retryMillis);
 
-                    retryDelayMillis *= 2;
+                    retryDelayMillis = Math.min(retryDelayMillis * 2, maxDelayMillis);
                     return Observable.timer(retryMillis + jitter, TimeUnit.MILLISECONDS);
                 }
 

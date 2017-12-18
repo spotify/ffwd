@@ -36,21 +36,24 @@ public class HttpClient {
     private final ILoadBalancer loadBalancer;
     private final int retries;
     private final long baseDelayMillis;
+    private final long maxDelayMillis;
 
     public Observable<Void> sendBatch(final Batch batch) {
         return buildCommand()
             .submit(server -> clientFactory.newClient(server).sendBatch(batch))
-            .retryWhen(new RetryWithDelay(retries, baseDelayMillis));
+            .retryWhen(new RetryWithDelay(retries, baseDelayMillis, maxDelayMillis));
     }
 
     public static class Builder {
         public static final int DEFAULT_RETRIES = 3;
         public static final long DEFAULT_BASE_DELAY_MILLIS = 50L;
+        public static final long DEFAULT_MAX_DELAY_MILLIS = 10000L;
 
         private Optional<HttpDiscovery> discovery = Optional.empty();
         private Optional<String> searchDomain = Optional.empty();
         private Optional<Integer> retries = Optional.empty();
         private Optional<Long> baseDelayMillis = Optional.empty();
+        private Optional<Long> maxDelayMillis = Optional.empty();
 
         public static ObjectMapper setupApplicationJson() {
             final ObjectMapper mapper = new ObjectMapper();
@@ -79,8 +82,10 @@ public class HttpClient {
 
             final int retries = this.retries.orElse(DEFAULT_RETRIES);
             final long baseDelayMillis = this.baseDelayMillis.orElse(DEFAULT_BASE_DELAY_MILLIS);
+            final long maxDelayMillis = this.maxDelayMillis.orElse(DEFAULT_MAX_DELAY_MILLIS);
 
-            return new HttpClient(httpClientFactory, loadBalancer, retries, baseDelayMillis);
+            return new HttpClient(httpClientFactory, loadBalancer, retries, baseDelayMillis,
+                maxDelayMillis);
         }
 
         /**
@@ -143,6 +148,18 @@ public class HttpClient {
          */
         public Builder baseDelayMillis(long baseDelayMillis) {
             this.baseDelayMillis = Optional.of(baseDelayMillis);
+            return this;
+        }
+
+        /**
+         * Max delay between retries.
+         * <p>
+         * If delay would exceed the max delay, max delay would be used instead.
+         *
+         * @return this builder
+         */
+        public Builder maxDelayMillis(long maxDelayMillis) {
+            this.maxDelayMillis = Optional.of(maxDelayMillis);
             return this;
         }
     }
