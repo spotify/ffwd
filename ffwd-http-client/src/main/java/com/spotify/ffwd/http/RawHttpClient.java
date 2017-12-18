@@ -39,7 +39,6 @@ public class RawHttpClient {
     private final String baseUrl;
 
     public Observable<Void> sendBatch(final Batch batch) {
-        System.out.println("Haha1");
         final byte[] body;
 
         try {

@@ -1,12 +1,12 @@
 /**
  * Copyright 2013-2017 Spotify AB. All rights reserved.
- *
+ * <p>
  * The contents of this file are licensed under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License. You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -18,18 +18,21 @@ package com.spotify.ffwd.http;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import okhttp3.OkHttpClient;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockserver.client.server.MockServerClient;
 import org.mockserver.junit.MockServerRule;
+import org.mockserver.model.HttpRequest;
+import org.mockserver.verify.VerificationTimes;
 
-public class RawHttpClientTest {
+public class HttpClientTest {
     @Rule
     public MockServerRule mockServer = new MockServerRule(this);
 
@@ -38,28 +41,26 @@ public class RawHttpClientTest {
 
     private MockServerClient mockServerClient;
 
-    private final ObjectMapper mapper = HttpClient.Builder.setupApplicationJson();
+    private HttpClient httpClient;
 
-    private final OkHttpClient okHttpClient = new OkHttpClient();
+    private final HttpRequest pingRequest = request().withMethod("GET").withPath("/ping");
 
-    private RawHttpClient rawHttpClient;
+    final List<HttpDiscovery.HostAndPort> servers = new ArrayList<>();
 
     @Before
     public void setUp() throws Exception {
-        mockServer.getPort();
+        mockServerClient.when(pingRequest).respond(response().withStatusCode(200));
 
-        rawHttpClient =
-            new RawHttpClient(mapper, okHttpClient, "http://localhost:" + mockServer.getPort());
+        servers.add(new HttpDiscovery.HostAndPort("localhost", mockServer.getPort()));
+        servers.add(new HttpDiscovery.HostAndPort("localhost", mockServer.getPort()));
+        servers.add(new HttpDiscovery.HostAndPort("localhost", mockServer.getPort()));
 
-
+        httpClient = new HttpClient.Builder().discovery(new HttpDiscovery.Static(servers)).build();
     }
 
-    @Test
-    public void testPing() {
-        mockServerClient
-            .when(request().withMethod("GET").withPath("/ping"))
-            .respond(response().withStatusCode(200));
-        rawHttpClient.ping().toCompletable().await();
+    @After
+    public void tearDown() {
+        mockServerClient.verify(pingRequest, VerificationTimes.atLeast(1));
     }
 
     @Test
@@ -68,20 +69,22 @@ public class RawHttpClientTest {
             "{\"commonTags\":{\"what\":\"error-rate\"},\"points\":[{\"key\":\"test_key\"," +
                 "\"tags\":{\"what\":\"error-rate\"},\"value\":1234.0,\"timestamp\":11111}]}";
 
-        mockServerClient
-            .when(request()
-                .withMethod("POST")
-                .withPath("/v1/batch")
-                .withHeader("content-type", "application/json")
-                .withBody(batchRequest))
-            .respond(response().withStatusCode(200));
+        final HttpRequest request = request()
+            .withMethod("POST")
+            .withPath("/v1/batch")
+            .withHeader("content-type", "application/json")
+            .withBody(batchRequest);
+
+        mockServerClient.when(request).respond(response().withStatusCode(200));
 
         final Batch.Point point =
             new Batch.Point("test_key", ImmutableMap.of("what", "error-rate"), 1234L, 11111L);
         final Batch batch =
             new Batch(ImmutableMap.of("what", "error-rate"), ImmutableList.of(point));
 
-        rawHttpClient.sendBatch(batch).toCompletable().await();
+        httpClient.sendBatch(batch).toCompletable().await();
+
+        mockServerClient.verify(request, VerificationTimes.atLeast(1));
     }
 
     @Test
@@ -92,19 +95,23 @@ public class RawHttpClientTest {
             "{\"commonTags\":{\"what\":\"error-rate\"},\"points\":[{\"key\":\"test_key\"," +
                 "\"tags\":{\"what\":\"error-rate\"},\"value\":1234.0,\"timestamp\":11111}]}";
 
-        mockServerClient
-            .when(request()
-                .withMethod("POST")
-                .withPath("/v1/batch")
-                .withHeader("content-type", "application/json")
-                .withBody(batchRequest))
-            .respond(response().withStatusCode(500));
+        final HttpRequest request = request()
+            .withMethod("POST")
+            .withPath("/v1/batch")
+            .withHeader("content-type", "application/json")
+            .withBody(batchRequest);
+
+        mockServerClient.when(request).respond(response().withStatusCode(500));
 
         final Batch.Point point =
             new Batch.Point("test_key", ImmutableMap.of("what", "error-rate"), 1234L, 11111L);
         final Batch batch =
             new Batch(ImmutableMap.of("what", "error-rate"), ImmutableList.of(point));
 
-        rawHttpClient.sendBatch(batch).toCompletable().await();
+        try {
+            httpClient.sendBatch(batch).toCompletable().await();
+        } finally {
+            mockServerClient.verify(request, VerificationTimes.atLeast(3));
+        }
     }
 }
