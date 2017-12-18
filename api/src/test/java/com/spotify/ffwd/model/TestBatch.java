@@ -32,8 +32,7 @@ public class TestBatch {
     @Test(expected = Exception.class)
     public void testBatchBad() throws Exception {
         final String value = readResources("TestBatch.bad.json");
-        final Batch batch = mapper.readValue(value, Batch.class);
-        System.out.println(batch);
+        mapper.readValue(value, Batch.class);
     }
 
     private String readResources(final String name) throws IOException {
