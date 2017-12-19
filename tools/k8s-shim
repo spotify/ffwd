@@ -39,7 +39,7 @@ cat <<ENDL
 - name: ffwd-java-shim
   image: $tag
   env:
-  - name: FFWD_TAG_podname
+  - name: FFWD_TAG_PODNAME
     valueFrom:
       fieldRef:
         fieldPath: metadata.name

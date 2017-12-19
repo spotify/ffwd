@@ -162,7 +162,7 @@ public class OutputManagerModule {
         for (final Map.Entry<String, String> e : env.entrySet()) {
             if (e.getKey().startsWith(FFWD_TAG_PREFIX)) {
                 final String tag = e.getKey().substring(FFWD_TAG_PREFIX.length());
-                tags.put(tag, e.getValue());
+                tags.put(tag.toLowerCase(), e.getValue());
             }
         }
 
