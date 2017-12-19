@@ -14,7 +14,7 @@ public class OutputManagerModuleTest {
     @Test
     public void testFilterEnvironment() {
         final Map<String, String> out = OutputManagerModule.filterEnvironmentTags(
-            ImmutableMap.of("FFWD_TAG_foo", "bar", "PATH", "ignored:ignored", "FFWD_TAG_bar",
+            ImmutableMap.of("FFWD_TAG_FOO", "bar", "PATH", "ignored:ignored", "FFWD_TAG_bar",
                 "baz"));
 
         assertEquals(ImmutableMap.of("foo", "bar", "bar", "baz"), out);
