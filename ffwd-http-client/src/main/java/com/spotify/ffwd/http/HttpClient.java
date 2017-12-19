@@ -22,8 +22,9 @@ import com.netflix.loadbalancer.AvailabilityFilteringRule;
 import com.netflix.loadbalancer.ILoadBalancer;
 import com.netflix.loadbalancer.LoadBalancerBuilder;
 import com.netflix.loadbalancer.RetryRule;
+import com.netflix.loadbalancer.Server;
 import com.netflix.loadbalancer.reactive.LoadBalancerCommand;
-import java.util.Optional;
+import com.netflix.loadbalancer.reactive.ServerOperation;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
@@ -39,9 +40,12 @@ public class HttpClient {
     private final long maxDelayMillis;
 
     public Observable<Void> sendBatch(final Batch batch) {
-        return buildCommand()
-            .submit(server -> clientFactory.newClient(server).sendBatch(batch))
-            .retryWhen(new RetryWithDelay(retries, baseDelayMillis, maxDelayMillis));
+        return buildCommand().submit(new ServerOperation<Void>() {
+            @Override
+            public Observable<Void> call(final Server server) {
+                return HttpClient.this.clientFactory.newClient(server).sendBatch(batch);
+            }
+        }).retryWhen(new RetryWithDelay(retries, baseDelayMillis, maxDelayMillis));
     }
 
     public static class Builder {
@@ -49,11 +53,11 @@ public class HttpClient {
         public static final long DEFAULT_BASE_DELAY_MILLIS = 50L;
         public static final long DEFAULT_MAX_DELAY_MILLIS = 10000L;
 
-        private Optional<HttpDiscovery> discovery = Optional.empty();
-        private Optional<String> searchDomain = Optional.empty();
-        private Optional<Integer> retries = Optional.empty();
-        private Optional<Long> baseDelayMillis = Optional.empty();
-        private Optional<Long> maxDelayMillis = Optional.empty();
+        private HttpDiscovery discovery;
+        private String searchDomain;
+        private Integer retries;
+        private Long baseDelayMillis;
+        private Long maxDelayMillis;
 
         public static ObjectMapper setupApplicationJson() {
             final ObjectMapper mapper = new ObjectMapper();
@@ -64,7 +68,9 @@ public class HttpClient {
         }
 
         public HttpClient build() {
-            final HttpDiscovery discovery = this.discovery.orElseGet(HttpDiscovery::supplyDefault);
+            final HttpDiscovery discovery =
+                this.discovery == null ? HttpDiscovery.Static.supplyDefault() : this.discovery;
+
             final OkHttpClient.Builder builder = new OkHttpClient.Builder();
 
             builder.addInterceptor(new GzipRequestInterceptor());
@@ -80,9 +86,14 @@ public class HttpClient {
                 .withRule(new RetryRule(new AvailabilityFilteringRule()))
                 .buildDynamicServerListLoadBalancer();
 
-            final int retries = this.retries.orElse(DEFAULT_RETRIES);
-            final long baseDelayMillis = this.baseDelayMillis.orElse(DEFAULT_BASE_DELAY_MILLIS);
-            final long maxDelayMillis = this.maxDelayMillis.orElse(DEFAULT_MAX_DELAY_MILLIS);
+            final int retries = this.retries == null ? DEFAULT_RETRIES : this.retries;
+            ;
+            final long baseDelayMillis =
+                this.baseDelayMillis == null ? DEFAULT_BASE_DELAY_MILLIS : this.baseDelayMillis;
+            ;
+            final long maxDelayMillis =
+                this.maxDelayMillis == null ? DEFAULT_MAX_DELAY_MILLIS : this.maxDelayMillis;
+            ;
 
             return new HttpClient(httpClientFactory, loadBalancer, retries, baseDelayMillis,
                 maxDelayMillis);
@@ -109,7 +120,7 @@ public class HttpClient {
          * @return
          */
         public Builder discovery(HttpDiscovery discovery) {
-            this.discovery = Optional.of(discovery);
+            this.discovery = discovery;
             return this;
         }
 
@@ -124,7 +135,7 @@ public class HttpClient {
          * @return
          */
         public Builder searchDomain(String searchDomain) {
-            this.searchDomain = Optional.of(searchDomain);
+            this.searchDomain = searchDomain;
             return this;
         }
 
@@ -134,7 +145,7 @@ public class HttpClient {
          * @return this builder
          */
         public Builder retries(int retries) {
-            this.retries = Optional.of(retries);
+            this.retries = retries;
             return this;
         }
 
@@ -147,7 +158,7 @@ public class HttpClient {
          * @return this builder
          */
         public Builder baseDelayMillis(long baseDelayMillis) {
-            this.baseDelayMillis = Optional.of(baseDelayMillis);
+            this.baseDelayMillis = baseDelayMillis;
             return this;
         }
 
@@ -159,7 +170,7 @@ public class HttpClient {
          * @return this builder
          */
         public Builder maxDelayMillis(long maxDelayMillis) {
-            this.maxDelayMillis = Optional.of(maxDelayMillis);
+            this.maxDelayMillis = maxDelayMillis;
             return this;
         }
     }
