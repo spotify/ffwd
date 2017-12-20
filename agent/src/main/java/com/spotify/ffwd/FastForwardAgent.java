@@ -34,6 +34,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FastForwardAgent {
     public static void main(String[] argv) {
+        // needed for HTTP content decompression in:
+        // com.spotify.ffwd.http.HttpModule
+        System.setProperty("io.netty.noJdkZlibDecoder", "false");
+
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             log.error("Uncaught exception in thread {}, exiting (status = 2)", thread.getName(),
                 throwable);
