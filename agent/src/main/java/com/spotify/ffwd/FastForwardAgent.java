@@ -95,6 +95,8 @@ public class FastForwardAgent {
     }
 
     private static Statistics setupStatistics() throws IOException {
+        final String key = System.getProperty("ffwd.key", "ffwd-java");
+
         final SemanticMetricRegistry registry = new SemanticMetricRegistry();
         final SemanticCoreStatistics statistics = new SemanticCoreStatistics(registry);
 
@@ -104,7 +106,7 @@ public class FastForwardAgent {
         registry.register(gauges, new GarbageCollectorMetricSet());
         registry.register(gauges, new MemoryUsageGaugeSet());
 
-        final MetricId metric = MetricId.build("ffwd-java");
+        final MetricId metric = MetricId.build(key);
 
         final FastForwardReporter ffwd = FastForwardReporter
             .forRegistry(registry)
