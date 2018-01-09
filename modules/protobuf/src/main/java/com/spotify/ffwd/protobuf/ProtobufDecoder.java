@@ -15,6 +15,7 @@
  */
 package com.spotify.ffwd.protobuf;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.protobuf250.InvalidProtocolBufferException;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
@@ -119,9 +120,11 @@ public class ProtobufDecoder extends MessageToMessageDecoder<ByteBuf> {
         final String host = metric.hasHost() ? metric.getHost() : null;
         final Set<String> riemannTags = new HashSet<>(metric.getTagsList());
         final Map<String, String> tags = convertAttributes0(metric.getAttributesList());
+        // TODO: support resource identifiers.
+        final Map<String, String> resource = ImmutableMap.of();
         final String proc = metric.hasProc() ? metric.getProc() : null;
 
-        return new Metric(key, value, time, host, riemannTags, tags, proc);
+        return new Metric(key, value, time, host, riemannTags, tags, resource, proc);
     }
 
     private Map<String, String> convertAttributes0(List<Protocol0.Attribute> attributesList) {

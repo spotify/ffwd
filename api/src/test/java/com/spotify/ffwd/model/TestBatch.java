@@ -9,7 +9,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class TestBatch {
-
     private ObjectMapper mapper;
 
     @Before
@@ -26,6 +25,12 @@ public class TestBatch {
     @Test
     public void testBatch1() throws Exception {
         final String value = readResources("TestBatch.1.json");
+        mapper.readValue(value, Batch.class);
+    }
+
+    @Test
+    public void testBatchWithResource() throws Exception {
+        final String value = readResources("TestBatch.WithResource.json");
         mapper.readValue(value, Batch.class);
     }
 

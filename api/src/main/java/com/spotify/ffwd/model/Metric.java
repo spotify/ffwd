@@ -33,6 +33,7 @@ public class Metric {
     private final String host;
     private final Set<String> riemannTags;
     private final Map<String, String> tags;
+    private final Map<String, String> resource;
     private final String proc;
 
     /**
@@ -41,6 +42,6 @@ public class Metric {
      * @return a batch point
      */
     public Batch.Point toBatchPoint() {
-        return new Batch.Point(key, tags, value, time.getTime());
+        return new Batch.Point(key, tags, resource, value, time.getTime());
     }
 }

@@ -196,7 +196,7 @@ public class CoreOutputManager implements OutputManager {
         mergedRiemannTags.addAll(metric.getRiemannTags());
 
         return new Metric(metric.getKey(), metric.getValue(), time, host, mergedRiemannTags,
-            mergedTags, metric.getProc());
+            mergedTags, metric.getResource(), metric.getProc());
     }
 
     /**
@@ -204,13 +204,13 @@ public class CoreOutputManager implements OutputManager {
      */
     private Batch filter(final Batch batch) {
         if (batch.getCommonTags().isEmpty()) {
-            return new Batch(tags, batch.getPoints());
+            return new Batch(tags, batch.getCommonResource(), batch.getPoints());
         }
 
         final Map<String, String> commonTags;
         commonTags = new HashMap<>(this.tags);
         commonTags.putAll(tags);
-        return new Batch(commonTags, batch.getPoints());
+        return new Batch(commonTags, batch.getCommonResource(), batch.getPoints());
     }
 
     private Map<String, String> selectTags(Metric metric) {

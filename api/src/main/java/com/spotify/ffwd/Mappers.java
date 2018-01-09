@@ -21,10 +21,10 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 public class Mappers {
     public static ObjectMapper setupApplicationJson() {
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new Jdk8Module());
-        mapper.enable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES);
-        mapper.enable(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES);
-        return mapper;
+        final ObjectMapper m = new ObjectMapper();
+        m.enable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES);
+        m.enable(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES);
+        m.registerModule(new Jdk8Module());
+        return m;
     }
 }
