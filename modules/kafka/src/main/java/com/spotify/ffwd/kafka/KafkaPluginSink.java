@@ -109,15 +109,18 @@ public class KafkaPluginSink implements BatchedPluginSink {
     private KeyedMessage<Integer, byte[]> convertBatchMetric(
         final Batch batch, final Batch.Point point
     ) throws Exception {
-        final Map<String, String> allTags = new HashMap<>();
-        allTags.putAll(batch.getCommonTags());
+        final Map<String, String> allTags = new HashMap<>(batch.getCommonTags());
         allTags.putAll(point.getTags());
+
+        final Map<String, String> allResource = new HashMap<>(batch.getCommonResource());
+        allResource.putAll(point.getResource());
 
         final String host = allTags.remove("host");
 
+        // TODO: support serialization of batches more... immediately.
         return metricConverter.toMessage(
             new Metric(point.getKey(), point.getValue(), new Date(point.getTimestamp()), host,
-                ImmutableSet.of(), allTags, null));
+                ImmutableSet.of(), allTags, allResource, null));
     }
 
     @Override

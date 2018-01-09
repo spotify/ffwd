@@ -21,7 +21,6 @@ input:
     - type: http
       protocol:
         type: tcp
-        port: 12345
 
 output:
   plugins:

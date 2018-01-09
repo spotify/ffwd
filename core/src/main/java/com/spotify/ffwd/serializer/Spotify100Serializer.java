@@ -22,13 +22,12 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
-import java.io.ByteArrayOutputStream;
 import java.util.Map;
 import lombok.Data;
 
 @JsonTypeName("spotify100")
 public class Spotify100Serializer implements Serializer {
-    public static final String SCHEMA_VERSION = "1.0.0";
+    public static final String SCHEMA_VERSION = "1.1.0";
 
     @Inject
     @Named("application/json")
@@ -41,6 +40,7 @@ public class Spotify100Serializer implements Serializer {
         private final String host;
         private final Long time;
         private final Map<String, String> attributes;
+        private final Map<String, String> resource;
         private final Double value;
     }
 
@@ -63,19 +63,15 @@ public class Spotify100Serializer implements Serializer {
         final Spotify100Event e =
             new Spotify100Event(source.getKey(), source.getHost(), source.getTime().getTime(),
                 source.getTags(), source.getValue());
-        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        mapper.writeValue(outputStream, e);
-        return outputStream.toByteArray();
+        return mapper.writeValueAsBytes(e);
     }
 
     @Override
     public byte[] serialize(Metric source) throws Exception {
         final Spotify100Metric m =
             new Spotify100Metric(source.getKey(), source.getHost(), source.getTime().getTime(),
-                source.getTags(), source.getValue());
-        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        mapper.writeValue(outputStream, m);
-        return outputStream.toByteArray();
+                source.getTags(), source.getResource(), source.getValue());
+        return mapper.writeValueAsBytes(m);
     }
 }
 

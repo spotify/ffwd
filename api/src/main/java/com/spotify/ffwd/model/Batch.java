@@ -18,42 +18,56 @@ package com.spotify.ffwd.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
+@RequiredArgsConstructor(suppressConstructorProperties = true)
 public class Batch {
     private final Map<String, String> commonTags;
+    private final Map<String, String> commonResource;
     private final List<Point> points;
 
+    /**
+     * JSON creator.
+     */
     @JsonCreator
-    public Batch(
-        @JsonProperty("commonTags") final Map<String, String> commonTags,
+    public static Batch create(
+        @JsonProperty("commonTags") final Optional<Map<String, String>> commonTags,
+        @JsonProperty("commonResource") final Optional<Map<String, String>> commonResource,
         @JsonProperty("points") final List<Point> points
     ) {
-        this.commonTags = commonTags;
-        this.points = points;
+        return new Batch(commonTags.orElseGet(ImmutableMap::of),
+            commonResource.orElseGet(ImmutableMap::of), points);
     }
 
     @Data
+    @RequiredArgsConstructor(suppressConstructorProperties = true)
     public static class Point {
         private final String key;
         private final Map<String, String> tags;
+        private final Map<String, String> resource;
         private final double value;
         private final long timestamp;
 
-        public Point(
+        /**
+         * JSON creator.
+         */
+        @JsonCreator
+        public static Point create(
             @JsonProperty("key") final String key,
-            @JsonProperty("tags") final Map<String, String> tags,
+            @JsonProperty("tags") final Optional<Map<String, String>> tags,
+            @JsonProperty("resource") final Optional<Map<String, String>> resource,
             @JsonProperty("value") final double value,
             @JsonProperty("timestamp") final long timestamp
         ) {
-            this.key = key;
-            this.tags = tags;
-            this.value = value;
-            this.timestamp = timestamp;
+            return new Point(key, tags.orElseGet(ImmutableMap::of),
+                resource.orElseGet(ImmutableMap::of), value, timestamp);
         }
     }
 }

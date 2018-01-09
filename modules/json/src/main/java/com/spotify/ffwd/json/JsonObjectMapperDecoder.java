@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -106,9 +107,11 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
         final String host = decodeString(tree, "host");
         final Set<String> riemannTags = decodeTags(tree, "tags");
         final Map<String, String> tags = decodeAttributes(tree, "attributes");
+        // TODO: support resource?
+        final Map<String, String> resource = ImmutableMap.of();
         final String proc = decodeString(tree, "proc");
 
-        return new Metric(key, value, time, host, riemannTags, tags, proc);
+        return new Metric(key, value, time, host, riemannTags, tags, resource, proc);
     }
 
     private Object decodeEvent(JsonNode tree, List<Object> out) {

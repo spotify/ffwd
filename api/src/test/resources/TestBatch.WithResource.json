@@ -1,0 +1,35 @@
+{
+  "commonTags": {
+    "host": "database.example.com"
+  },
+  "commonResource": {
+    "node": "foobar"
+  },
+  "points": [
+    {
+      "key": "system",
+      "tags": {
+        "what": "cpu-used-percentage",
+        "unit": "%"
+      },
+      "resource": {
+        "instance": "hello1"
+      },
+      "value": 0.42,
+      "timestamp": 1508508795000
+    },
+    {
+      "key": "system",
+      "tags": {
+        "what": "disk-used-bytes",
+        "unit": "B",
+        "disk_name": "/dev/sda"
+      },
+      "resource": {
+        "instance": "hello2"
+      },
+      "value": 42000000000,
+      "timestamp": 1508508795000
+    }
+  ]
+}

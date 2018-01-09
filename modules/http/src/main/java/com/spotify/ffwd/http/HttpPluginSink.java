@@ -107,7 +107,7 @@ public class HttpPluginSink implements BatchedPluginSink {
         }
 
         // creates a new batch _without_ common tags, prefer using sendBatches instead.
-        final Batch b = new Batch(ImmutableMap.of(), out);
+        final Batch b = new Batch(ImmutableMap.of(), ImmutableMap.of(), out);
 
         return sendBatches(ImmutableList.of(b));
     }

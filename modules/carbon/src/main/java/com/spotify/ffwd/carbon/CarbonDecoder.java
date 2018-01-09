@@ -15,6 +15,7 @@
  */
 package com.spotify.ffwd.carbon;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.spotify.ffwd.model.Metric;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -32,6 +33,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 @Sharable
 public class CarbonDecoder extends MessageToMessageDecoder<String> {
     private static final Set<String> EMPTY_TAGS = Sets.newHashSet();
+    private static final Map<String, String> EMPTY_RESOURCE = ImmutableMap.of();
     private static final Pattern WHITE_SPACE_PATTERN = Pattern.compile("\\s+");
 
     private final String key;
@@ -72,6 +74,7 @@ public class CarbonDecoder extends MessageToMessageDecoder<String> {
         final Map<String, String> tags = new HashMap<>();
         tags.put("what", tokens[0]);
 
-        out.add(new Metric(key, value, new Date(timestamp), null, EMPTY_TAGS, tags, null));
+        out.add(new Metric(key, value, new Date(timestamp), null, EMPTY_TAGS, tags, EMPTY_RESOURCE,
+            null));
     }
 }
