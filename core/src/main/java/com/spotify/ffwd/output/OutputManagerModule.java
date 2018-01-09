@@ -45,6 +45,7 @@ public class OutputManagerModule {
      * Prefix of environment variable that adds additional tags.
      */
     public static final String FFWD_TAG_PREFIX = "FFWD_TAG_";
+    public static final String FFWD_RESOURCE_PREFIX = "FFWD_RESOURCE_";
 
     private final List<OutputPlugin> plugins;
     private final Filter filter;
@@ -84,6 +85,13 @@ public class OutputManagerModule {
                 final Map<String, String> merged = new HashMap<>(config.getTags());
                 merged.putAll(systemEnvTags);
                 return merged;
+            }
+
+            @Provides
+            @Singleton
+            @Named("resource")
+            public Map<String, String> resource() {
+                return systemEnvResourceTags();
             }
 
             @Provides
@@ -162,6 +170,31 @@ public class OutputManagerModule {
         for (final Map.Entry<String, String> e : env.entrySet()) {
             if (e.getKey().startsWith(FFWD_TAG_PREFIX)) {
                 final String tag = e.getKey().substring(FFWD_TAG_PREFIX.length());
+                tags.put(tag.toLowerCase(), e.getValue());
+            }
+        }
+
+        return tags;
+    }
+
+    /**
+     * Extract tags from the system environment.
+     */
+    static Map<String, String> systemEnvResourceTags() {
+        return filterEnvironmentResourceTags(System.getenv());
+    }
+
+    /**
+     * Extract tags from a map that can correspond to a system environment.
+     *
+     * @return extracted tags.
+     */
+    static Map<String, String> filterEnvironmentResourceTags(final Map<String, String> env) {
+        final Map<String, String> tags = new HashMap<>();
+
+        for (final Map.Entry<String, String> e : env.entrySet()) {
+            if (e.getKey().startsWith(FFWD_RESOURCE_PREFIX)) {
+                final String tag = e.getKey().substring(FFWD_RESOURCE_PREFIX.length());
                 tags.put(tag.toLowerCase(), e.getValue());
             }
         }

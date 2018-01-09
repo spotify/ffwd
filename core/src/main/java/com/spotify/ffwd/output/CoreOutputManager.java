@@ -30,7 +30,6 @@ import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,6 +48,10 @@ public class CoreOutputManager implements OutputManager {
     @Inject
     @Named("tags")
     private Map<String, String> tags;
+
+    @Inject
+    @Named("resource")
+    private Map<String, String> resource;
 
     @Inject
     @Named("riemannTags")
@@ -192,25 +195,37 @@ public class CoreOutputManager implements OutputManager {
         final Map<String, String> mergedTags = selectTags(metric);
         final String host = selectHost(metric);
 
+        final Map<String, String> mergedResource = Maps.newHashMap(resource);
+        mergedResource.putAll(metric.getResource());
+
         final Set<String> mergedRiemannTags = Sets.newHashSet(riemannTags);
         mergedRiemannTags.addAll(metric.getRiemannTags());
 
         return new Metric(metric.getKey(), metric.getValue(), time, host, mergedRiemannTags,
-            mergedTags, metric.getResource(), metric.getProc());
+            mergedTags, mergedResource, metric.getProc());
     }
 
     /**
      * Filter the provided Batch and complete fields.
      */
     private Batch filter(final Batch batch) {
-        if (batch.getCommonTags().isEmpty()) {
-            return new Batch(tags, batch.getCommonResource(), batch.getPoints());
+        final Map<String, String> mergedCommonResource;
+        if (batch.getCommonResource().isEmpty()) {
+            mergedCommonResource = resource;
+        } else {
+            mergedCommonResource = Maps.newHashMap(resource);
+            mergedCommonResource.putAll(batch.getCommonResource());
         }
 
-        final Map<String, String> commonTags;
-        commonTags = new HashMap<>(this.tags);
-        commonTags.putAll(tags);
-        return new Batch(commonTags, batch.getCommonResource(), batch.getPoints());
+        final Map<String, String> mergedCommonTags;
+        if (batch.getCommonTags().isEmpty()) {
+            mergedCommonTags = tags;
+        } else {
+            mergedCommonTags = Maps.newHashMap(tags);
+            mergedCommonTags.putAll(batch.getCommonTags());
+        }
+
+        return new Batch(mergedCommonTags, mergedCommonResource, batch.getPoints());
     }
 
     private Map<String, String> selectTags(Metric metric) {
