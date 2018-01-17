@@ -61,6 +61,7 @@ public class HttpClientTest {
     @After
     public void tearDown() {
         mockServerClient.verify(pingRequest, VerificationTimes.atLeast(1));
+        httpClient.shutdown();
     }
 
     @Test

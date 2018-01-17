@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import okhttp3.OkHttpClient;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,8 +51,16 @@ public class RawHttpClientTest {
 
         rawHttpClient =
             new RawHttpClient(mapper, okHttpClient, "http://localhost:" + mockServer.getPort());
+    }
 
+    @After
+    public void tearDown() throws Exception {
+        okHttpClient.connectionPool().evictAll();
+        okHttpClient.dispatcher().executorService().shutdown();
 
+        if (okHttpClient.cache() != null) {
+            okHttpClient.cache().close();
+        }
     }
 
     @Test
