@@ -29,4 +29,40 @@ public class RawHttpClientFactory {
         final String baseUrl = "http://" + server.getHost() + ":" + server.getPort();
         return new RawHttpClient(mapper, httpClient, baseUrl);
     }
+
+    public void shutdown() {
+        Exception e = null;
+
+        try {
+            httpClient.dispatcher().executorService().shutdown();
+        } catch (final Exception inner) {
+            e = inner;
+        }
+
+        try {
+            httpClient.connectionPool().evictAll();
+        } catch (final Exception inner) {
+            if (e != null) {
+                inner.addSuppressed(e);
+            }
+
+            e = inner;
+        }
+
+        if (httpClient.cache() != null) {
+            try {
+                httpClient.cache().close();
+            } catch (final Exception inner) {
+                if (e != null) {
+                    inner.addSuppressed(e);
+                }
+
+                e = inner;
+            }
+        }
+
+        if (e != null) {
+            throw new RuntimeException(e);
+        }
+    }
 }
