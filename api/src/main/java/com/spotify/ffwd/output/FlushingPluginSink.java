@@ -57,6 +57,7 @@ public class FlushingPluginSink implements PluginSink {
     AsyncFramework async;
 
     @Inject
+    @FlushingDelegate
     BatchedPluginSink sink;
 
     @Inject

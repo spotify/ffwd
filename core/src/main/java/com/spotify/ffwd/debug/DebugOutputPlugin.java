@@ -21,7 +21,6 @@ import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.name.Names;
 import com.spotify.ffwd.filter.Filter;
-import com.spotify.ffwd.output.BatchedPluginSink;
 import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.output.OutputPluginModule;
 import com.spotify.ffwd.output.PluginSink;
@@ -47,13 +46,12 @@ public class DebugOutputPlugin extends OutputPlugin {
         return new OutputPluginModule(id) {
             @Override
             protected void configure() {
-                bind(BatchedPluginSink.class).to(DebugPluginSink.class);
-                Key<PluginSink> sinkKey = Key.get(PluginSink.class, Names.named("debugSinkSink"));
+                final Key<DebugPluginSink> sinkKey =
+                    Key.get(DebugPluginSink.class, Names.named("debugSink"));
                 bind(sinkKey).to(DebugPluginSink.class);
                 install(wrapPluginSink(sinkKey, key));
                 expose(key);
             }
         };
     }
-
 }

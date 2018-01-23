@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 Spotify AB. All rights reserved.
+ * Copyright 2018 Spotify AB. All rights reserved.
  *
  * The contents of this file are licensed under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -15,20 +15,14 @@
  */
 package com.spotify.ffwd.output;
 
-import com.google.inject.Key;
-import com.google.inject.PrivateModule;
-import lombok.Data;
+import com.google.inject.BindingAnnotation;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-@Data
-public class OutputDelegatingModule<T extends PluginSink> extends PrivateModule {
-    private final Key<PluginSink> input;
-    private final Key<PluginSink> output;
-    private final T impl;
-
-    @Override
-    protected void configure() {
-        bind(input.getTypeLiteral()).to(input);
-        bind(output).toInstance(impl);
-        expose(output);
-    }
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
+@BindingAnnotation
+public @interface FlushingDelegate {
 }

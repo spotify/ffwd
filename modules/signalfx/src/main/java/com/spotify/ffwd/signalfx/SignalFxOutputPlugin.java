@@ -31,7 +31,6 @@ import com.signalfx.metrics.connection.HttpEventProtobufReceiverFactory;
 import com.signalfx.metrics.errorhandler.OnSendErrorHandler;
 import com.signalfx.metrics.flush.AggregateMetricSender;
 import com.spotify.ffwd.filter.Filter;
-import com.spotify.ffwd.output.BatchedPluginSink;
 import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.output.OutputPluginModule;
 import com.spotify.ffwd.output.PluginSink;
@@ -54,8 +53,7 @@ public class SignalFxOutputPlugin extends OutputPlugin {
 
     @JsonCreator
     public SignalFxOutputPlugin(
-        @JsonProperty("sourceName") String sourceName,
-        @JsonProperty("authToken") String authToken,
+        @JsonProperty("sourceName") String sourceName, @JsonProperty("authToken") String authToken,
         @JsonProperty("flushInterval") Optional<Long> flushInterval,
         @JsonProperty("soTimeout") Integer soTimeout,
         @JsonProperty("filter") Optional<Filter> filter
@@ -103,8 +101,8 @@ public class SignalFxOutputPlugin extends OutputPlugin {
 
             @Override
             protected void configure() {
-                bind(BatchedPluginSink.class).to(SignalFxPluginSink.class);
-                Key<PluginSink> sinkKey = Key.get(PluginSink.class, Names.named("signalfxSink"));
+                final Key<SignalFxPluginSink> sinkKey =
+                    Key.get(SignalFxPluginSink.class, Names.named("signalfxSink"));
                 bind(sinkKey).to(SignalFxPluginSink.class);
                 install(wrapPluginSink(sinkKey, key));
                 expose(key);

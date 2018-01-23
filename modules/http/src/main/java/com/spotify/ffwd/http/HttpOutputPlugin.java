@@ -27,7 +27,6 @@ import com.google.inject.name.Names;
 import com.netflix.loadbalancer.ILoadBalancer;
 import com.netflix.loadbalancer.LoadBalancerBuilder;
 import com.spotify.ffwd.filter.Filter;
-import com.spotify.ffwd.output.BatchedPluginSink;
 import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.output.OutputPluginModule;
 import com.spotify.ffwd.output.PluginSink;
@@ -78,8 +77,8 @@ public class HttpOutputPlugin extends OutputPlugin {
 
             @Override
             protected void configure() {
-                bind(BatchedPluginSink.class).to(HttpPluginSink.class);
-                Key<PluginSink> sinkKey = Key.get(PluginSink.class, Names.named("httpSink"));
+                final Key<HttpPluginSink> sinkKey =
+                    Key.get(HttpPluginSink.class, Names.named("httpSink"));
                 bind(sinkKey).to(HttpPluginSink.class);
                 install(wrapPluginSink(sinkKey, key));
                 expose(key);

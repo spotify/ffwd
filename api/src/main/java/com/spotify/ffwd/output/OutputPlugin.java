@@ -44,26 +44,25 @@ public abstract class OutputPlugin {
     }
 
     /**
-     * This method allows to wrap plugin sink implementation type depending on configuration.
-     * If no additional configuration is specified then subtype of
-     * com.spotify.ffwd.output.BatchedPluginSink will be bound per plugin.
-     *
+     * This method allows to wrap plugin sink implementation type depending on configuration. If no
+     * additional configuration is specified then subtype of com.spotify.ffwd.output
+     * .BatchedPluginSink will be bound per plugin.
+     * <p>
      * <code>output := new SubtypeOfBatchedPluginSink()</code>
-     *
+     * <p>
      * If 'flushInterval' key is specified, then corresponding subtype of
-     * com.spotify.ffwd.output.BatchedPluginSink will be wrapped into
-     * com.spotify.ffwd.output.FlushingPluginSink:
-     *
+     * com.spotify.ffwd.output.BatchedPluginSink will be wrapped into com.spotify.ffwd.output
+     * .FlushingPluginSink:
+     * <p>
      * <code>output := new FlushingPluginSink(flushInterval, delegator:=output)</code>
-     *
-     * The resulting plugin sink type may be further wrapped into
-     * com.spotify.ffwd.output.FilteringPluginSink type if 'filter' key is specified
-     * in plugin configuration:
-     *
+     * <p>
+     * The resulting plugin sink type may be further wrapped into com.spotify.ffwd.output
+     * .FilteringPluginSink type if 'filter' key is specified in plugin configuration:
+     * <p>
      * <code>output := new FilteringPluginSink(filter, delegator:=output)</code>
      *
-     * @param  input   binding key with injection type of plugin sink
-     * @param  output  binding key, containing injection type of wrapping plugin sink
+     * @param input binding key with injection type of plugin sink
+     * @param output binding key, containing injection type of wrapping plugin sink
      * @return module that exposes output binding key
      */
     protected Module wrapPluginSink(
@@ -79,16 +78,26 @@ public abstract class OutputPlugin {
                         sinkKey.getTypeLiteral().getRawType())) {
                     final Key<PluginSink> flushingKey =
                         Key.get(PluginSink.class, Names.named("flushing"));
-                    install(new OutputDelegatingModule<>(sinkKey, flushingKey,
-                        new FlushingPluginSink(flushInterval.get())));
+                    final Key<? extends BatchedPluginSink> batchedPluginSink =
+                        (Key<? extends BatchedPluginSink>) (Key<? extends PluginSink>) sinkKey;
+
+                    // Use annotation so that we can avoid name space clash
+                    bind(BatchedPluginSink.class)
+                        .annotatedWith(FlushingDelegate.class)
+                        .to(batchedPluginSink);
+                    bind(flushingKey).toInstance(new FlushingPluginSink(flushInterval.get()));
+
                     sinkKey = flushingKey;
                 }
 
                 if (filter != null && filter.isPresent()) {
                     final Key<PluginSink> filteringKey =
                         Key.get(PluginSink.class, Names.named("filtered"));
-                    install(new OutputDelegatingModule<>(sinkKey, filteringKey,
-                        new FilteringPluginSink(filter.get())));
+
+                    // Use annotation so that we can avoid name space clash
+                    bind(PluginSink.class).annotatedWith(FilteringDelegate.class).to(sinkKey);
+                    bind(filteringKey).toInstance(new FilteringPluginSink(filter.get()));
+
                     sinkKey = filteringKey;
                 }
 
