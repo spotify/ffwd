@@ -23,8 +23,7 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Names;
 import com.spotify.ffwd.filter.Filter;
-import com.spotify.ffwd.output.BatchedPluginSink;
-import com.spotify.ffwd.output.FlushingPluginSink;
+import com.spotify.ffwd.module.Batching;
 import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.output.OutputPluginModule;
 import com.spotify.ffwd.output.PluginSink;
@@ -51,6 +50,7 @@ public class KafkaOutputPlugin extends OutputPlugin {
     public KafkaOutputPlugin(
         @JsonProperty("producer") Map<String, String> properties,
         @JsonProperty("flushInterval") Optional<Long> flushInterval,
+        @JsonProperty("batching") Optional<Batching> batching,
         @JsonProperty("router") KafkaRouter router,
         @JsonProperty("partitioner") KafkaPartitioner partitioner,
         @JsonProperty("serializer") Serializer serializer,
@@ -58,7 +58,7 @@ public class KafkaOutputPlugin extends OutputPlugin {
         @JsonProperty("compression") Boolean compression,
         @JsonProperty("filter") Optional<Filter> filter
     ) {
-        super(filter, flushInterval);
+        super(filter, Batching.from(flushInterval, batching));
         this.router = Optional.ofNullable(router).orElseGet(KafkaRouter.Tag.supplier());
         this.partitioner = Optional.ofNullable(partitioner).orElseGet(KafkaPartitioner.Host::new);
         this.properties = Optional.ofNullable(properties).orElseGet(HashMap::new);
@@ -99,16 +99,12 @@ public class KafkaOutputPlugin extends OutputPlugin {
                     bind(Serializer.class).to(Key.get(Serializer.class, Names.named("default")));
                 }
 
-                if (flushInterval.isPresent()) {
-                    bind(BatchedPluginSink.class).toInstance(new KafkaPluginSink(batchSize));
-                    bind(key).toInstance(new FlushingPluginSink(flushInterval.get()));
-                } else {
-                    bind(key).toInstance(new KafkaPluginSink(batchSize));
-                }
-
+                final Key<KafkaPluginSink> sinkKey =
+                    Key.get(KafkaPluginSink.class, Names.named("kafkaSink"));
+                bind(sinkKey).toInstance(new KafkaPluginSink(batchSize));
+                install(wrapPluginSink(sinkKey, key));
                 expose(key);
             }
         };
     }
-
 }

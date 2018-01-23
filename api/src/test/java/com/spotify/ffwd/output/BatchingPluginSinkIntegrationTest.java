@@ -45,11 +45,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
 
 @RunWith(MockitoJUnitRunner.class)
-public class FlushingPluginSinkIntegrationTest {
+public class BatchingPluginSinkIntegrationTest {
     private static final int BATCH_SIZE = 1000;
 
     @Mock
-    private BatchedPluginSink childSink;
+    private BatchablePluginSink childSink;
 
     @Mock
     private Metric metric;
@@ -60,7 +60,7 @@ public class FlushingPluginSinkIntegrationTest {
     @Captor
     private ArgumentCaptor<Collection<Metric>> metricsCaptor;
 
-    private FlushingPluginSink sink;
+    private BatchingPluginSink sink;
     private AsyncFramework async;
 
     private final ExecutorService executor =
@@ -69,7 +69,7 @@ public class FlushingPluginSinkIntegrationTest {
     @Before
     public void setup() {
         // flush every second, limiting the batch sizes to 1000, with 5 max pending flushes.
-        sink = new FlushingPluginSink(0, BATCH_SIZE, 0);
+        sink = new BatchingPluginSink(0, BATCH_SIZE, 0);
         async = TinyAsync.builder().executor(executor).build();
 
         doReturn(async.resolved()).when(childSink).start();

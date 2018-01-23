@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledExecutorService;
@@ -49,7 +50,7 @@ import org.slf4j.Logger;
  */
 @RequiredArgsConstructor
 @Data
-public class FlushingPluginSink implements PluginSink {
+public class BatchingPluginSink implements PluginSink {
     public static final long DEFAULT_BATCH_SIZE_LIMIT = 10000;
     public static final long DEFAULT_MAX_PENDING_FLUSHES = 10;
 
@@ -57,8 +58,8 @@ public class FlushingPluginSink implements PluginSink {
     AsyncFramework async;
 
     @Inject
-    @FlushingDelegate
-    BatchedPluginSink sink;
+    @BatchingDelegate
+    BatchablePluginSink sink;
 
     @Inject
     ScheduledExecutorService scheduler;
@@ -122,8 +123,12 @@ public class FlushingPluginSink implements PluginSink {
 
     volatile boolean stopped = false;
 
-    public FlushingPluginSink(long flushInterval) {
-        this(flushInterval, DEFAULT_BATCH_SIZE_LIMIT, DEFAULT_MAX_PENDING_FLUSHES);
+    public BatchingPluginSink(
+        final long flushInterval, final Optional<Long> batchSizeLimit,
+        final Optional<Long> maxPendingFlushes
+    ) {
+        this(flushInterval, batchSizeLimit.orElse(DEFAULT_BATCH_SIZE_LIMIT),
+            maxPendingFlushes.orElse(DEFAULT_MAX_PENDING_FLUSHES));
     }
 
     @Override
@@ -220,8 +225,8 @@ public class FlushingPluginSink implements PluginSink {
                 pending.add(doLastFlush());
 
                 synchronized (pendingLock) {
-                    pending.addAll(FlushingPluginSink.this.pending);
-                    FlushingPluginSink.this.pending.clear();
+                    pending.addAll(BatchingPluginSink.this.pending);
+                    BatchingPluginSink.this.pending.clear();
                 }
 
                 return async.collectAndDiscard(pending);

@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.Provides;
+import com.google.inject.Scopes;
 import com.google.inject.name.Names;
 import com.signalfx.endpoint.SignalFxEndpoint;
 import com.signalfx.metrics.auth.AuthToken;
@@ -31,6 +32,7 @@ import com.signalfx.metrics.connection.HttpEventProtobufReceiverFactory;
 import com.signalfx.metrics.errorhandler.OnSendErrorHandler;
 import com.signalfx.metrics.flush.AggregateMetricSender;
 import com.spotify.ffwd.filter.Filter;
+import com.spotify.ffwd.module.Batching;
 import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.output.OutputPluginModule;
 import com.spotify.ffwd.output.PluginSink;
@@ -55,11 +57,11 @@ public class SignalFxOutputPlugin extends OutputPlugin {
     public SignalFxOutputPlugin(
         @JsonProperty("sourceName") String sourceName, @JsonProperty("authToken") String authToken,
         @JsonProperty("flushInterval") Optional<Long> flushInterval,
+        @JsonProperty("batching") Optional<Batching> batching,
         @JsonProperty("soTimeout") Integer soTimeout,
         @JsonProperty("filter") Optional<Filter> filter
     ) {
-        super(filter,
-            flushInterval.isPresent() ? flushInterval : Optional.of(DEFAULT_FLUSH_INTERVAL));
+        super(filter, Batching.from(flushInterval, batching, Optional.of(DEFAULT_FLUSH_INTERVAL)));
         this.sourceName = Optional.ofNullable(sourceName).orElse(DEFAULT_SOURCE_NAME);
         this.authToken = Optional
             .ofNullable(authToken)
@@ -103,7 +105,7 @@ public class SignalFxOutputPlugin extends OutputPlugin {
             protected void configure() {
                 final Key<SignalFxPluginSink> sinkKey =
                     Key.get(SignalFxPluginSink.class, Names.named("signalfxSink"));
-                bind(sinkKey).to(SignalFxPluginSink.class);
+                bind(sinkKey).to(SignalFxPluginSink.class).in(Scopes.SINGLETON);
                 install(wrapPluginSink(sinkKey, key));
                 expose(key);
             }

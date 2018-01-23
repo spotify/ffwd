@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import eu.toolchain.async.AsyncFramework;
+import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +35,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
 
 @RunWith(MockitoJUnitRunner.class)
-public class FlushingPluginSinkTest {
+public class BatchingPluginSinkTest {
     private final long flushInterval = 1000;
     private final long batchSizeLimit = 2000;
     private final long maxPendingFlushes = 3000;
@@ -43,7 +44,7 @@ public class FlushingPluginSinkTest {
     private AsyncFramework async;
 
     @Mock
-    private BatchedPluginSink childSink;
+    private BatchablePluginSink childSink;
 
     @Mock
     private Metric metric;
@@ -52,7 +53,7 @@ public class FlushingPluginSinkTest {
     private Event event;
 
     @Mock
-    private FlushingPluginSink.Batch batch;
+    private BatchingPluginSink.Batch batch;
 
     @Mock
     private Logger log;
@@ -60,11 +61,11 @@ public class FlushingPluginSinkTest {
     @Mock
     private ScheduledExecutorService scheduler;
 
-    private FlushingPluginSink sink;
+    private BatchingPluginSink sink;
 
     @Before
     public void setup() {
-        sink = spy(new FlushingPluginSink(flushInterval, batchSizeLimit, maxPendingFlushes));
+        sink = spy(new BatchingPluginSink(flushInterval, batchSizeLimit, maxPendingFlushes));
         sink.sink = childSink;
         sink.async = async;
         sink.log = log;
@@ -73,11 +74,11 @@ public class FlushingPluginSinkTest {
 
     @Test
     public void testDefaultConstructor() {
-        final FlushingPluginSink s = new FlushingPluginSink(1);
+        final BatchingPluginSink s = new BatchingPluginSink(1, Optional.empty(), Optional.empty());
 
         assertEquals(1, s.flushInterval);
-        assertEquals(FlushingPluginSink.DEFAULT_BATCH_SIZE_LIMIT, s.batchSizeLimit);
-        assertEquals(FlushingPluginSink.DEFAULT_MAX_PENDING_FLUSHES, s.maxPendingFlushes);
+        assertEquals(BatchingPluginSink.DEFAULT_BATCH_SIZE_LIMIT, s.batchSizeLimit);
+        assertEquals(BatchingPluginSink.DEFAULT_MAX_PENDING_FLUSHES, s.maxPendingFlushes);
     }
 
     @Test

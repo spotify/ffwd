@@ -28,7 +28,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 public class FilteringPluginSinkTest {
 
     @Mock
-    private FlushingPluginSink childSink;
+    private BatchingPluginSink childSink;
     private FilteringPluginSink sink;
 
     private Metric metric;

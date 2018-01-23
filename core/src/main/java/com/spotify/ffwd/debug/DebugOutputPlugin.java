@@ -19,8 +19,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.Key;
 import com.google.inject.Module;
+import com.google.inject.Scopes;
 import com.google.inject.name.Names;
 import com.spotify.ffwd.filter.Filter;
+import com.spotify.ffwd.module.Batching;
 import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.output.OutputPluginModule;
 import com.spotify.ffwd.output.PluginSink;
@@ -35,10 +37,10 @@ public class DebugOutputPlugin extends OutputPlugin {
     @JsonCreator
     public DebugOutputPlugin(
         @JsonProperty("flushInterval") Optional<Long> flushInterval,
+        @JsonProperty("batching") Optional<Batching> batching,
         @JsonProperty("filter") Optional<Filter> filter
     ) {
-        super(filter,
-            flushInterval.isPresent() ? flushInterval : Optional.of(DEFAULT_FLUSH_INTERVAL));
+        super(filter, Batching.from(flushInterval, batching, Optional.of(DEFAULT_FLUSH_INTERVAL)));
     }
 
     @Override
@@ -48,7 +50,7 @@ public class DebugOutputPlugin extends OutputPlugin {
             protected void configure() {
                 final Key<DebugPluginSink> sinkKey =
                     Key.get(DebugPluginSink.class, Names.named("debugSink"));
-                bind(sinkKey).to(DebugPluginSink.class);
+                bind(sinkKey).to(DebugPluginSink.class).in(Scopes.SINGLETON);
                 install(wrapPluginSink(sinkKey, key));
                 expose(key);
             }

@@ -22,7 +22,7 @@ import com.spotify.ffwd.filter.TrueFilter;
 import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
-import com.spotify.ffwd.output.BatchedPluginSink;
+import com.spotify.ffwd.output.BatchablePluginSink;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.LazyTransform;
@@ -32,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 
 @RequiredArgsConstructor
-public class ProtocolPluginSink implements BatchedPluginSink {
+public class ProtocolPluginSink implements BatchablePluginSink {
     @Inject
     private AsyncFramework async;
 

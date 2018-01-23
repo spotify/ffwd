@@ -22,7 +22,7 @@ import com.netflix.loadbalancer.reactive.LoadBalancerCommand;
 import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
-import com.spotify.ffwd.output.BatchedPluginSink;
+import com.spotify.ffwd.output.BatchablePluginSink;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.FutureDone;
@@ -39,7 +39,7 @@ import rx.Observable;
 import rx.Observer;
 
 @Slf4j
-public class HttpPluginSink implements BatchedPluginSink {
+public class HttpPluginSink implements BatchablePluginSink {
     public static final StreamCollector<Void, Void> VOID_COLLECTOR =
         new StreamCollector<Void, Void>() {
             @Override

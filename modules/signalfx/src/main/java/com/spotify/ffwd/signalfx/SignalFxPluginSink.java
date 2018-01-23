@@ -23,7 +23,7 @@ import com.signalfx.metrics.protobuf.SignalFxProtocolBuffers;
 import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
-import com.spotify.ffwd.output.BatchedPluginSink;
+import com.spotify.ffwd.output.BatchablePluginSink;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.FutureFailed;
@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class SignalFxPluginSink implements BatchedPluginSink {
+public class SignalFxPluginSink implements BatchablePluginSink {
     @Inject
     AsyncFramework async;
 

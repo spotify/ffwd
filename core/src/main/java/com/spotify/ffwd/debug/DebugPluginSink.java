@@ -19,14 +19,14 @@ import com.google.inject.Inject;
 import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
-import com.spotify.ffwd.output.BatchedPluginSink;
+import com.spotify.ffwd.output.BatchablePluginSink;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class DebugPluginSink implements BatchedPluginSink {
+public class DebugPluginSink implements BatchablePluginSink {
     @Inject
     private AsyncFramework async;
 

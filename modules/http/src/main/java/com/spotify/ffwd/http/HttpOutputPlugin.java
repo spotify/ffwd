@@ -21,12 +21,14 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.Provides;
+import com.google.inject.Scopes;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.netflix.loadbalancer.ILoadBalancer;
 import com.netflix.loadbalancer.LoadBalancerBuilder;
 import com.spotify.ffwd.filter.Filter;
+import com.spotify.ffwd.module.Batching;
 import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.output.OutputPluginModule;
 import com.spotify.ffwd.output.PluginSink;
@@ -44,12 +46,12 @@ public class HttpOutputPlugin extends OutputPlugin {
     @JsonCreator
     public HttpOutputPlugin(
         @JsonProperty("id") String id, @JsonProperty("flushInterval") Optional<Long> flushInterval,
+        @JsonProperty("batching") Optional<Batching> batching,
         @JsonProperty("discovery") HttpDiscovery discovery,
         @JsonProperty("filter") Optional<Filter> filter
 
     ) {
-        super(filter,
-            flushInterval.isPresent() ? flushInterval : Optional.of(DEFAULT_FLUSH_INTERVAL));
+        super(filter, Batching.from(flushInterval, batching, Optional.of(DEFAULT_FLUSH_INTERVAL)));
         this.discovery = Optional.ofNullable(discovery).orElseGet(HttpDiscovery::supplyDefault);
     }
 
@@ -79,7 +81,7 @@ public class HttpOutputPlugin extends OutputPlugin {
             protected void configure() {
                 final Key<HttpPluginSink> sinkKey =
                     Key.get(HttpPluginSink.class, Names.named("httpSink"));
-                bind(sinkKey).to(HttpPluginSink.class);
+                bind(sinkKey).to(HttpPluginSink.class).in(Scopes.SINGLETON);
                 install(wrapPluginSink(sinkKey, key));
                 expose(key);
             }

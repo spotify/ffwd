@@ -21,7 +21,7 @@ import com.spotify.ffwd.model.Metric;
 import eu.toolchain.async.AsyncFuture;
 import java.util.Collection;
 
-public interface BatchedPluginSink extends PluginSink {
+public interface BatchablePluginSink extends PluginSink {
     /**
      * Send the given collection of events.
      *
