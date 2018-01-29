@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -40,6 +41,7 @@ public class CoreOutputManager implements OutputManager {
     private static final String DEBUG_ID = "core.output";
 
     @Inject
+    @Getter
     private List<PluginSink> sinks;
 
     @Inject

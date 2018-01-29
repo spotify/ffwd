@@ -21,12 +21,15 @@ import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import eu.toolchain.async.AsyncFuture;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class FilteringPluginSink implements PluginSink {
+
     @Inject
     @FilteringDelegate
+    @Getter
     protected PluginSink sink;
 
     protected Filter filter;

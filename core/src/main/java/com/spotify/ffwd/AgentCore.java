@@ -85,33 +85,44 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class AgentCore {
+    private static final Path DEFAULT_CONFIG_PATH = Paths.get("ffwd.yaml");
     private final List<Class<? extends FastForwardModule>> modules;
-    private final Path config;
+    private final Optional<InputStream> configStream;
+    private final Optional<Path> configPath;
     private final CoreStatistics statistics;
 
+    @Getter
+    private final Injector primaryInjector;
+
     private AgentCore(
-        final List<Class<? extends FastForwardModule>> modules, Path config,
-        CoreStatistics statistics
+        final List<Class<? extends FastForwardModule>> modules, Optional<InputStream> configStream,
+        Optional<Path> configPath, CoreStatistics statistics
     ) {
         this.modules = modules;
-        this.config = config;
+        this.configStream = configStream;
+        this.configPath = configPath;
         this.statistics = statistics;
+
+        try {
+            final Injector early = setupEarlyInjector();
+            final AgentConfig config = readConfig(early);
+
+            primaryInjector = setupPrimaryInjector(early, config);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed during initialization", e);
+        }
     }
 
     public void run() throws Exception {
-        final Injector early = setupEarlyInjector();
-        final AgentConfig config = readConfig(early);
-
-        final Injector primary = setupPrimaryInjector(early, config);
-
-        start(primary);
+        start(primaryInjector);
         log.info("Started!");
 
-        waitUntilStopped(primary);
+        waitUntilStopped(primaryInjector);
         log.info("Stopped, Bye Bye!");
     }
 
@@ -151,8 +162,7 @@ public class AgentCore {
         return thread;
     }
 
-    private void start(final Injector primary)
-        throws Exception {
+    private void start(final Injector primary) throws Exception {
         final InputManager input = primary.getInstance(InputManager.class);
         final OutputManager output = primary.getInstance(OutputManager.class);
         final DebugServer debug = primary.getInstance(DebugServer.class);
@@ -255,9 +265,9 @@ public class AgentCore {
     }
 
     /**
-     * Setup primary Injector.
+     * Setup primaryInjector Injector.
      *
-     * @return The primary injector.
+     * @return The primaryInjector injector.
      */
     private Injector setupPrimaryInjector(
         final Injector early, final AgentConfig config
@@ -378,10 +388,22 @@ public class AgentCore {
         mapper.registerModule(new Jdk8Module());
         mapper.registerModule(module);
 
-        try (final InputStream input = Files.newInputStream(this.config)) {
-            return mapper.readValue(input, AgentConfig.class);
+        final InputStream stream = configStream.orElseGet(() -> configPath
+            .map(this::getConfigStream)
+            .orElseGet(() -> getConfigStream(DEFAULT_CONFIG_PATH)));
+
+        try {
+            return mapper.readValue(stream, AgentConfig.class);
         } catch (JsonParseException | JsonMappingException e) {
             throw new IOException("Failed to parse configuration", e);
+        }
+    }
+
+    private InputStream getConfigStream(final Path path) {
+        try {
+            return Files.newInputStream(path);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read configuration file '" + path + "'", e);
         }
     }
 
@@ -418,15 +440,25 @@ public class AgentCore {
 
     public static final class Builder {
         private List<Class<? extends FastForwardModule>> modules = Lists.newArrayList();
-        private Path config = Paths.get("ffwd.yaml");
+        private Optional<InputStream> configStream = Optional.empty();
+        private Optional<Path> configPath = Optional.empty();
         private CoreStatistics statistics = NoopCoreStatistics.get();
 
-        public Builder config(Path config) {
-            if (config == null) {
-                throw new NullPointerException("'config' must not be null");
+        public Builder configStream(final InputStream configStream) {
+            if (configStream == null) {
+                throw new NullPointerException("'configStream' must not be null");
             }
 
-            this.config = config;
+            this.configStream = Optional.of(configStream);
+            return this;
+        }
+
+        public Builder configPath(final Path configPath) {
+            if (configPath == null) {
+                throw new NullPointerException("'configPath' must not be null");
+            }
+
+            this.configPath = Optional.of(configPath);
             return this;
         }
 
@@ -449,7 +481,7 @@ public class AgentCore {
         }
 
         public AgentCore build() {
-            return new AgentCore(modules, config, statistics);
+            return new AgentCore(modules, configStream, configPath, statistics);
         }
     }
 }
