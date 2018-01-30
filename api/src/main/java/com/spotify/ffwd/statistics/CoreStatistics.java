@@ -21,4 +21,6 @@ public interface CoreStatistics {
     public OutputManagerStatistics newOutputManager();
 
     public OutputPluginStatistics newOutputPlugin(String id);
+
+    public BatchingStatistics newBatching(String id);
 }

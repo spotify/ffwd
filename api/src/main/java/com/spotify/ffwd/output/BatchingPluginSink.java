@@ -20,6 +20,7 @@ import com.google.inject.name.Named;
 import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.statistics.BatchingStatistics;
 import com.spotify.ffwd.statistics.OutputPluginStatistics;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
@@ -69,6 +70,9 @@ public class BatchingPluginSink implements PluginSink {
 
     @Inject
     OutputPluginStatistics statistics;
+
+    @Inject
+    BatchingStatistics batchingStatistics;
 
     @Named("flushing")
     @Inject(optional = true)
@@ -138,23 +142,28 @@ public class BatchingPluginSink implements PluginSink {
     @Override
     public void sendMetric(final Metric metric) {
         if (filter != null && !filter.matchesMetric(metric)) {
+            batchingStatistics.reportMetricsDroppedByFilter(1);
             return;
         }
 
+        batchingStatistics.reportQueueSizeInc(1);
         queueToBatch(batch -> batch.metrics.add(metric));
     }
 
     @Override
     public void sendBatch(final com.spotify.ffwd.model.Batch b) {
+        batchingStatistics.reportQueueSizeInc(b.getPoints().size());
         queueToBatch(batch -> batch.batches.add(b));
     }
 
     @Override
     public void sendEvent(Event event) {
         if (filter != null && !filter.matchesEvent(event)) {
+            batchingStatistics.reportEventsDroppedByFilter(1);
             return;
         }
 
+        batchingStatistics.reportQueueSizeInc(1);
         queueToBatch(batch -> batch.events.add(event));
     }
 
@@ -316,10 +325,10 @@ public class BatchingPluginSink implements PluginSink {
         final ScheduledFuture<?> next =
             scheduler.schedule(flusher, flushInterval, TimeUnit.MILLISECONDS);
 
-        final ScheduledFuture<?> future = nextFlush.getAndSet(next);
+        final ScheduledFuture<?> prevFlush = nextFlush.getAndSet(next);
 
-        if (future != null && !future.isDone()) {
-            future.cancel(false);
+        if (prevFlush != null && !prevFlush.isDone()) {
+            prevFlush.cancel(false);
         }
     }
 
@@ -369,21 +378,32 @@ public class BatchingPluginSink implements PluginSink {
         }
 
         final List<AsyncFuture<Void>> futures = new ArrayList<>();
+        final FutureFinished writeMonitor = batchingStatistics.monitorWrite();
 
         if (!batch.events.isEmpty()) {
-            futures.add(sink.sendEvents(batch.events));
+            futures.add(sink
+                .sendEvents(batch.events)
+                .onFinished(() -> batchingStatistics.reportSentEvents(batch.events.size())));
         }
 
         if (!batch.metrics.isEmpty()) {
-            futures.add(sink.sendMetrics(batch.metrics));
+            futures.add(sink
+                .sendMetrics(batch.metrics)
+                .onFinished(() -> batchingStatistics.reportSentMetrics(batch.metrics.size())));
         }
 
         if (!batch.batches.isEmpty()) {
-            futures.add(sink.sendBatches(batch.batches));
+            futures.add(sink
+                .sendBatches(batch.batches)
+                .onFinished(() -> batchingStatistics.reportSentBatches(batch.batches.size(),
+                    batch.size())));
         }
 
         // chain into batch future.
-        return async.collectAndDiscard(futures);
+        return async
+            .collectAndDiscard(futures)
+            .onFinished(writeMonitor)
+            .onFinished(() -> batchingStatistics.reportQueueSizeDec(batch.size()));
     }
 
     /**
@@ -394,6 +414,7 @@ public class BatchingPluginSink implements PluginSink {
      * @return A new batch.
      */
     Batch newBatch() {
+        batchingStatistics.reportInternalBatch(1);
         return new Batch();
     }
 
