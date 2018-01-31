@@ -21,9 +21,11 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.statistics.BatchingStatistics;
 import eu.toolchain.async.AsyncFramework;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
@@ -63,6 +65,9 @@ public class BatchingPluginSinkTest {
 
     private BatchingPluginSink sink;
 
+    @Mock
+    private BatchingStatistics batchingStatistics;
+
     @Before
     public void setup() {
         sink = spy(new BatchingPluginSink(flushInterval, batchSizeLimit, maxPendingFlushes));
@@ -70,11 +75,14 @@ public class BatchingPluginSinkTest {
         sink.async = async;
         sink.log = log;
         sink.scheduler = scheduler;
+        sink.batchingStatistics = batchingStatistics;
+        when(batchingStatistics.monitorWrite()).thenReturn(() -> {});
     }
 
     @Test
     public void testDefaultConstructor() {
-        final BatchingPluginSink s = new BatchingPluginSink(1, Optional.empty(), Optional.empty());
+        final BatchingPluginSink s =
+            new BatchingPluginSink(1, Optional.empty(), Optional.empty());
 
         assertEquals(1, s.flushInterval);
         assertEquals(BatchingPluginSink.DEFAULT_BATCH_SIZE_LIMIT, s.batchSizeLimit);

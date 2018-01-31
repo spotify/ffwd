@@ -23,6 +23,8 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
 import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.statistics.BatchingStatistics;
+import com.spotify.ffwd.statistics.NoopCoreStatistics;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.ResolvableFuture;
 import eu.toolchain.async.TinyAsync;
@@ -57,6 +59,8 @@ public class BatchingPluginSinkIntegrationTest {
     @Mock
     private Logger log;
 
+    private BatchingStatistics batchingStatistics = new NoopCoreStatistics().newBatching("");
+
     @Captor
     private ArgumentCaptor<Collection<Metric>> metricsCaptor;
 
@@ -78,6 +82,7 @@ public class BatchingPluginSinkIntegrationTest {
         sink.sink = childSink;
         sink.async = async;
         sink.log = log;
+        sink.batchingStatistics = batchingStatistics;
     }
 
     @After

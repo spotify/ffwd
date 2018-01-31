@@ -18,6 +18,7 @@ package com.spotify.ffwd.output;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.spotify.ffwd.statistics.CoreStatistics;
 import com.spotify.ffwd.statistics.OutputPluginStatistics;
 import lombok.RequiredArgsConstructor;
@@ -40,5 +41,12 @@ public abstract class OutputPluginModule extends PrivateModule {
     @Singleton
     public OutputPluginStatistics statistics(CoreStatistics statistics) {
         return statistics.newOutputPlugin(id);
+    }
+
+    @Provides
+    @Singleton
+    @Named("pluginId")
+    public String pluginId() {
+        return id;
     }
 }

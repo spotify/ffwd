@@ -15,6 +15,8 @@
  */
 package com.spotify.ffwd.statistics;
 
+import eu.toolchain.async.FutureFinished;
+
 public class NoopCoreStatistics implements CoreStatistics {
     private static final InputManagerStatistics noopInputManagerStatistics =
         new InputManagerStatistics() {
@@ -74,6 +76,51 @@ public class NoopCoreStatistics implements CoreStatistics {
     @Override
     public OutputPluginStatistics newOutputPlugin(String id) {
         return noopOutputPluginStatistics;
+    }
+
+    public static final BatchingStatistics noopBatchingStatistics = new BatchingStatistics() {
+        @Override
+        public void reportSentEvents(final int sent) {
+        }
+
+        @Override
+        public void reportSentMetrics(final int sent) {
+        }
+
+        @Override
+        public void reportSentBatches(final int sent, final int contentSize) {
+        }
+
+        @Override
+        public void reportInternalBatch(final int num) {
+        }
+
+        @Override
+        public void reportQueueSizeInc(final int num) {
+        }
+
+        @Override
+        public void reportQueueSizeDec(final int num) {
+        }
+
+        @Override
+        public FutureFinished monitorWrite() {
+            return () -> {
+            };
+        }
+
+        @Override
+        public void reportEventsDroppedByFilter(final int dropped) {
+        }
+
+        @Override
+        public void reportMetricsDroppedByFilter(final int dropped) {
+        }
+    };
+
+    @Override
+    public BatchingStatistics newBatching(String id) {
+        return noopBatchingStatistics;
     }
 
     private static final NoopCoreStatistics instance = new NoopCoreStatistics();

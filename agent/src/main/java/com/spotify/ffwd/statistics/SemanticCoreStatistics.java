@@ -15,9 +15,13 @@
  */
 package com.spotify.ffwd.statistics;
 
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.spotify.metrics.core.MetricId;
 import com.spotify.metrics.core.SemanticMetricRegistry;
+import eu.toolchain.async.FutureFinished;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -108,6 +112,100 @@ public class SemanticCoreStatistics implements CoreStatistics {
             @Override
             public void reportDropped(int dropped) {
                 this.dropped.mark(dropped);
+            }
+        };
+    }
+
+    @Override
+    public BatchingStatistics newBatching(final String id) {
+        final MetricId m = metric.tagged("component", "batching-plugin", "plugin_id", id);
+
+        return new BatchingStatistics() {
+            private final Meter sentMetrics =
+                registry.meter(m.tagged("what", "sent-metrics", "unit", "metric"));
+            private final Meter sentEvents =
+                registry.meter(m.tagged("what", "sent-events", "unit", "event"));
+            private final Meter sentBatches =
+                registry.meter(m.tagged("what", "sent-batches", "unit", "batches"));
+
+            // Total number of metrics & events that has been sent, including batch content
+            private final Meter sentTotal =
+                registry.meter(m.tagged("what", "sent-total", "unit", "count"));
+
+            // Number of internal batches within the batching plugin
+            private final Meter batchedCount =
+                registry.meter(m.tagged("what", "batched-into-batches", "unit", "count"));
+
+            // Total number of metrics & events that is currently enqueued, including batch content
+            private final Counter totalEnqueued =
+                registry.counter(m.tagged("what", "total-enqueued", "unit", "count"));
+
+            // Total number of pending writes/flushes
+            private final Counter pendingWrites =
+                registry.counter(m.tagged("what", "pending-writes", "unit", "count"));
+
+            // Write latency histogram, in ms
+            private final Histogram writeLatency =
+                registry.histogram(m.tagged("what", "write-latency"));
+
+            private final Meter metricsDroppedByFilter =
+                registry.meter(m.tagged("what", "metrics-dropped-by-filter", "unit", "metric"));
+            private final Meter eventsDroppedByFilter =
+                registry.meter(m.tagged("what", "events-dropped-by-filter", "unit", "event"));
+
+            @Override
+            public void reportSentEvents(final int sent) {
+                sentEvents.mark(sent);
+                sentTotal.mark(sent);
+            }
+
+            @Override
+            public void reportSentMetrics(final int sent) {
+                sentMetrics.mark(sent);
+                sentTotal.mark(sent);
+            }
+
+            @Override
+            public void reportSentBatches(final int sent, int contentSize) {
+                sentBatches.mark(sent);
+                sentTotal.mark(contentSize);
+            }
+
+            @Override
+            public void reportInternalBatch(final int num) {
+                batchedCount.mark(num);
+            }
+
+            @Override
+            public void reportQueueSizeInc(final int num) {
+                totalEnqueued.inc(num);
+            }
+
+            @Override
+            public void reportQueueSizeDec(final int num) {
+                totalEnqueued.dec(num);
+            }
+
+            @Override
+            public FutureFinished monitorWrite() {
+                pendingWrites.inc();
+                final long startTime = System.nanoTime();
+
+                return () -> {
+                    writeLatency.update(
+                        TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
+                    pendingWrites.dec();
+                };
+            }
+
+            @Override
+            public void reportEventsDroppedByFilter(final int dropped) {
+                eventsDroppedByFilter.mark(dropped);
+            }
+
+            @Override
+            public void reportMetricsDroppedByFilter(final int dropped) {
+                metricsDroppedByFilter.mark(dropped);
             }
         };
     }

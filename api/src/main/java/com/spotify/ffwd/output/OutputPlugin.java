@@ -21,10 +21,17 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.PrivateModule;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.module.Batching;
+import com.spotify.ffwd.statistics.BatchingStatistics;
+import com.spotify.ffwd.statistics.CoreStatistics;
+import com.spotify.ffwd.statistics.NoopCoreStatistics;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type")
 public abstract class OutputPlugin {
@@ -102,6 +109,20 @@ public abstract class OutputPlugin {
 
                 bind(wrapKey).to(sinkKey);
                 expose(wrapKey);
+            }
+
+            @Provides
+            @Singleton
+            public BatchingStatistics batchingStatisticsProvider(
+                CoreStatistics statistics, @Named("pluginId") String pluginId, Logger log
+            ) {
+                if (batching.isReportStatistics()) {
+                    log.info("Enabling reporting of batching-specific metrics for output " +
+                        input.getTypeLiteral().getRawType().getName());
+                    return statistics.newBatching(pluginId);
+                } else {
+                    return NoopCoreStatistics.noopBatchingStatistics;
+                }
             }
         };
     }

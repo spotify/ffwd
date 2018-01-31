@@ -22,29 +22,38 @@ import lombok.Data;
 
 @Data
 public class Batching {
+    public static final boolean DEFAULT_REPORT_STATISTICS = false;
+
     protected final Optional<Long> flushInterval;
     protected final Optional<Long> batchSizeLimit;
     protected final Optional<Long> maxPendingFlushes;
+
+    /**
+     * Should batching-specific statistics (metrics) be reported? This adds a number of metrics.
+     */
+    protected final boolean reportStatistics;
 
     @JsonCreator
     public Batching(
         @JsonProperty("flushInterval") Optional<Long> flushInterval,
         @JsonProperty("batchSizeLimit") Optional<Long> batchSizeLimit,
-        @JsonProperty("maxPendingFlushes") Optional<Long> maxPendingFlushes
+        @JsonProperty("maxPendingFlushes") Optional<Long> maxPendingFlushes,
+        @JsonProperty("reportStatistics") Optional<Boolean> reportStatistics
     ) {
         this.flushInterval = flushInterval;
         this.batchSizeLimit = batchSizeLimit;
         this.maxPendingFlushes = maxPendingFlushes;
+        this.reportStatistics = reportStatistics.orElse(DEFAULT_REPORT_STATISTICS);
     }
 
     public static Batching empty() {
-        return from(Optional.empty(), Optional.empty(), Optional.empty());
+        return from(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
     }
 
     public static Batching from(
         final Optional<Long> flushInterval, final Optional<Batching> batching
     ) {
-        return from(flushInterval, batching, Optional.empty());
+        return from(flushInterval, batching, Optional.empty(), Optional.empty());
     }
 
     /**
@@ -68,6 +77,13 @@ public class Batching {
         final Optional<Long> flushInterval, final Optional<Batching> batching,
         final Optional<Long> defaultFlushInterval
     ) {
+        return from(flushInterval, batching, defaultFlushInterval, Optional.empty());
+    }
+
+    public static Batching from(
+        final Optional<Long> flushInterval, final Optional<Batching> batching,
+        final Optional<Long> defaultFlushInterval, final Optional<Boolean> reportStatistics
+    ) {
         if (flushInterval.isPresent() && batching.isPresent()) {
             throw new RuntimeException(
                 "Can't have both 'batching' and 'flushInterval' on the same level in the " +
@@ -77,8 +93,10 @@ public class Batching {
             return batching.get();
         }
         if (flushInterval.isPresent()) {
-            return new Batching(flushInterval, Optional.empty(), Optional.empty());
+            return new Batching(flushInterval, Optional.empty(), Optional.empty(),
+                Optional.empty());
         }
-        return new Batching(defaultFlushInterval, Optional.empty(), Optional.empty());
+        return new Batching(defaultFlushInterval, Optional.empty(), Optional.empty(),
+            Optional.empty());
     }
 }
