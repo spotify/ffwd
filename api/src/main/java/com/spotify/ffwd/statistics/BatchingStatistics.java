@@ -44,7 +44,14 @@ public interface BatchingStatistics {
      *
      * @param num The number of internal batches
      */
-    void reportInternalBatch(int num);
+    void reportInternalBatchCreate(int num);
+
+    /**
+     * Report that an internally batched up batch was written
+     *
+     * @param size The size of the internal batch that was written
+     */
+    void reportInternalBatchWrite(int size);
 
     /**
      * Report metrics/events that is queued up while batching. This is a combined count for all

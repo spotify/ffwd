@@ -92,7 +92,11 @@ public class NoopCoreStatistics implements CoreStatistics {
         }
 
         @Override
-        public void reportInternalBatch(final int num) {
+        public void reportInternalBatchCreate(final int num) {
+        }
+
+        @Override
+        public void reportInternalBatchWrite(final int size) {
         }
 
         @Override

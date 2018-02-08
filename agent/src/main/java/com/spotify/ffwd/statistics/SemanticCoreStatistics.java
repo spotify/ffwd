@@ -136,6 +136,10 @@ public class SemanticCoreStatistics implements CoreStatistics {
             private final Meter batchedCount =
                 registry.meter(m.tagged("what", "batched-into-batches", "unit", "count"));
 
+            // The size of internal batches that were written, from the batching plugin to an output
+            private final Histogram writeBatchSize =
+                registry.histogram(m.tagged("what", "write-batch-size"));
+
             // Total number of metrics & events that is currently enqueued, including batch content
             private final Counter totalEnqueued =
                 registry.counter(m.tagged("what", "total-enqueued", "unit", "count"));
@@ -172,8 +176,13 @@ public class SemanticCoreStatistics implements CoreStatistics {
             }
 
             @Override
-            public void reportInternalBatch(final int num) {
+            public void reportInternalBatchCreate(final int num) {
                 batchedCount.mark(num);
+            }
+
+            @Override
+            public void reportInternalBatchWrite(final int size) {
+                writeBatchSize.update(size);
             }
 
             @Override

@@ -410,7 +410,7 @@ public class BatchingPluginSink implements PluginSink {
      * @return A new batch.
      */
     Batch newBatch() {
-        batchingStatistics.reportInternalBatch(1);
+        batchingStatistics.reportInternalBatchCreate(1);
         return new Batch();
     }
 
