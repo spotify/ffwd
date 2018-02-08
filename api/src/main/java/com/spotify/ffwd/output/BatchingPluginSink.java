@@ -367,6 +367,7 @@ public class BatchingPluginSink implements PluginSink {
                         "Max number of pending flushes ({}) reached, dropping {} metric(s) and " +
                             "event(s)", pending.size(), batch.size());
                     statistics.reportDropped(batch.size());
+                    batchingStatistics.reportQueueSizeDec(batch.size());
                     return async.resolved();
                 }
             }
