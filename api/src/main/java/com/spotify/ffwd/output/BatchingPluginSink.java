@@ -168,17 +168,12 @@ public class BatchingPluginSink implements PluginSink {
     }
 
     private void queueToBatch(final Consumer<Batch> consumer) {
-        // shortcut: check before synchronized block.
-        if (nextBatch == null) {
-            // TODO: instrument dropped metric.
-            return;
-        }
-
         synchronized (nextBatchLock) {
             final Batch batch = nextBatch;
 
             if (batch == null) {
                 // TODO: instrument dropped metric.
+                log.warn("Dropping metrics since we're about to shut down");
                 return;
             }
 
