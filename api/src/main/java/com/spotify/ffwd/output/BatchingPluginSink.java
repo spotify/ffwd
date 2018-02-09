@@ -396,10 +396,10 @@ public class BatchingPluginSink implements PluginSink {
         }
 
         // chain into batch future.
-        return async
-            .collectAndDiscard(futures)
-            .onFinished(writeMonitor)
-            .onFinished(() -> batchingStatistics.reportQueueSizeDec(batch.size()));
+        return async.collectAndDiscard(futures).onFinished(writeMonitor).onFinished(() -> {
+            batchingStatistics.reportQueueSizeDec(batch.size());
+            batchingStatistics.reportInternalBatchWrite(batch.size());
+        });
     }
 
     /**
