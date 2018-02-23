@@ -18,7 +18,10 @@ package com.spotify.ffwd.statistics;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
+import com.codahale.metrics.Metric;
+import com.codahale.metrics.SlidingTimeWindowReservoir;
 import com.spotify.metrics.core.MetricId;
+import com.spotify.metrics.core.SemanticMetricBuilder;
 import com.spotify.metrics.core.SemanticMetricRegistry;
 import eu.toolchain.async.FutureFinished;
 import java.util.concurrent.TimeUnit;
@@ -26,8 +29,26 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class SemanticCoreStatistics implements CoreStatistics {
+    private static final int HISTOGRAM_TTL_MINUTES = 2;
     private final SemanticMetricRegistry registry;
     private final MetricId metric = MetricId.build();
+
+    /* Builds a Histogram with a Reservoir that remembers values for a maximum of x minutes, so that
+     * slow rate doesn't cause long-lingering values in the Histogram. */
+    private static final SemanticMetricBuilder<Histogram> HISTOGRAM_BUILDER =
+        new SemanticMetricBuilder<Histogram>() {
+
+            @Override
+            public Histogram newMetric() {
+                return new Histogram(new SlidingTimeWindowReservoir(
+                    TimeUnit.MINUTES.toMinutes(HISTOGRAM_TTL_MINUTES), TimeUnit.MINUTES));
+            }
+
+            @Override
+            public boolean isInstance(final Metric metric) {
+                return Histogram.class.isInstance(metric);
+            }
+        };
 
     @Override
     public InputManagerStatistics newInputManager() {
@@ -138,7 +159,7 @@ public class SemanticCoreStatistics implements CoreStatistics {
 
             // The size of internal batches that were written, from the batching plugin to an output
             private final Histogram writeBatchSize =
-                registry.histogram(m.tagged("what", "write-batch-size"));
+                registry.getOrAdd(m.tagged("what", "write-batch-size"), HISTOGRAM_BUILDER);
 
             // Total number of metrics & events that is currently enqueued, including batch content
             private final Counter totalEnqueued =
@@ -150,7 +171,7 @@ public class SemanticCoreStatistics implements CoreStatistics {
 
             // Write latency histogram, in ms
             private final Histogram writeLatency =
-                registry.histogram(m.tagged("what", "write-latency"));
+                registry.getOrAdd(m.tagged("what", "write-latency"), HISTOGRAM_BUILDER);
 
             private final Meter metricsDroppedByFilter =
                 registry.meter(m.tagged("what", "metrics-dropped-by-filter", "unit", "metric"));
