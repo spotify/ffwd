@@ -115,11 +115,9 @@ public class KafkaPluginSink implements BatchablePluginSink {
         final Map<String, String> allResource = new HashMap<>(batch.getCommonResource());
         allResource.putAll(point.getResource());
 
-        final String host = allTags.remove("host");
-
         // TODO: support serialization of batches more... immediately.
         return metricConverter.toMessage(
-            new Metric(point.getKey(), point.getValue(), new Date(point.getTimestamp()), host,
+            new Metric(point.getKey(), point.getValue(), new Date(point.getTimestamp()),
                 ImmutableSet.of(), allTags, allResource, null));
     }
 

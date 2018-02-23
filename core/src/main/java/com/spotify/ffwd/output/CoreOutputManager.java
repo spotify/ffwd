@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CoreOutputManager implements OutputManager {
     private static final String DEBUG_ID = "core.output";
+    private static final String HOST = "host";
 
     @Inject
     @Getter
@@ -195,7 +196,6 @@ public class CoreOutputManager implements OutputManager {
         final Date time = metric.getTime() != null ? metric.getTime() : new Date();
 
         final Map<String, String> mergedTags = selectTags(metric);
-        final String host = selectHost(metric);
 
         final Map<String, String> mergedResource = Maps.newHashMap(resource);
         mergedResource.putAll(metric.getResource());
@@ -203,7 +203,7 @@ public class CoreOutputManager implements OutputManager {
         final Set<String> mergedRiemannTags = Sets.newHashSet(riemannTags);
         mergedRiemannTags.addAll(metric.getRiemannTags());
 
-        return new Metric(metric.getKey(), metric.getValue(), time, host, mergedRiemannTags,
+        return new Metric(metric.getKey(), metric.getValue(), time, mergedRiemannTags,
             mergedTags, mergedResource, metric.getProc());
     }
 
@@ -231,21 +231,18 @@ public class CoreOutputManager implements OutputManager {
     }
 
     private Map<String, String> selectTags(Metric metric) {
-        if (skipTagsForKeys.contains(metric.getKey()) || tags.isEmpty()) {
+        if (skipTagsForKeys.contains(metric.getKey())) {
             return metric.getTags();
         }
 
         final Map<String, String> mergedTags;
         mergedTags = Maps.newHashMap(tags);
         mergedTags.putAll(metric.getTags());
-        return mergedTags;
-    }
 
-    private String selectHost(Metric metric) {
-        if (skipTagsForKeys.contains(metric.getKey())) {
-            return metric.getHost();
+        if (!mergedTags.containsKey(HOST)) {
+            mergedTags.put(HOST, this.host);
         }
 
-        return metric.getHost() != null ? metric.getHost() : this.host;
+        return mergedTags;
     }
 }

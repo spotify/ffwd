@@ -39,7 +39,7 @@ public class FilteringPluginSinkTest {
     public void setup() {
         sink = spy(new FilteringPluginSink(new TrueFilter()));
         sink.sink = childSink;
-        metric = new Metric("test_metric", 1278, new Date(), "", ImmutableSet.of(),
+        metric = new Metric("test_metric", 1278, new Date(), ImmutableSet.of(),
             ImmutableMap.of("what", "stats", "pod", "gew1"), ImmutableMap.of(), "test_proc");
         event =
             new Event("test_event", 1278, new Date(), 12L, "critical", "test_event", "test_host",

@@ -74,7 +74,7 @@ public class CarbonDecoder extends MessageToMessageDecoder<String> {
         final Map<String, String> tags = new HashMap<>();
         tags.put("what", tokens[0]);
 
-        out.add(new Metric(key, value, new Date(timestamp), null, EMPTY_TAGS, tags, EMPTY_RESOURCE,
+        out.add(new Metric(key, value, new Date(timestamp), EMPTY_TAGS, tags, EMPTY_RESOURCE,
             null));
     }
 }

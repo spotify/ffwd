@@ -50,10 +50,11 @@ public interface KafkaPartitioner {
 
         @Override
         public int partition(final Metric metric, final String defaultHost) {
-            if (metric.getHost() == null) {
+            final String host = metric.getTags().get("host");
+            if (host == null) {
                 return defaultHost.hashCode();
             }
-            return metric.getHost().hashCode();
+            return host.hashCode();
         }
     }
 

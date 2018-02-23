@@ -37,7 +37,6 @@ public class Spotify100Serializer implements Serializer {
     public static class Spotify100Metric {
         private final String version = SCHEMA_VERSION;
         private final String key;
-        private final String host;
         private final Long time;
         private final Map<String, String> attributes;
         private final Map<String, String> resource;
@@ -69,7 +68,7 @@ public class Spotify100Serializer implements Serializer {
     @Override
     public byte[] serialize(Metric source) throws Exception {
         final Spotify100Metric m =
-            new Spotify100Metric(source.getKey(), source.getHost(), source.getTime().getTime(),
+            new Spotify100Metric(source.getKey(), source.getTime().getTime(),
                 source.getTags(), source.getResource(), source.getValue());
         return mapper.writeValueAsBytes(m);
     }
