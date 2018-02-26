@@ -65,6 +65,10 @@ public class CoreOutputManager implements OutputManager {
     private Set<String> skipTagsForKeys;
 
     @Inject
+    @Named("automaticHostTag")
+    private Boolean automaticHostTag;
+
+    @Inject
     @Named("host")
     private String host;
 
@@ -239,8 +243,8 @@ public class CoreOutputManager implements OutputManager {
         mergedTags = Maps.newHashMap(tags);
         mergedTags.putAll(metric.getTags());
 
-        if (!mergedTags.containsKey(HOST)) {
-            mergedTags.put(HOST, this.host);
+        if (automaticHostTag) {
+            mergedTags.putIfAbsent(HOST, this.host);
         }
 
         return mergedTags;
