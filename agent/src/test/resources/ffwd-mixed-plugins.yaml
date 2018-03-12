@@ -1,0 +1,44 @@
+input:
+  plugins:
+    - type: json
+      protocol:
+        type: tcp
+    - type: json
+      protocol:
+        type: udp
+    - type: protobuf
+      protocol:
+        type: udp
+    - type: protobuf
+      protocol:
+        type: tcp
+    - type: riemann
+      protocol:
+        type: tcp
+    - type: riemann
+      protocol:
+        type: udp
+    - type: http
+      protocol:
+        type: tcp
+
+output:
+  plugins:
+    - type: debug
+      batching:
+        flushInterval: 20000
+      filter: ["key","foobar"]
+    - type: http
+      batching:
+        flushInterval: 20000
+    - type: kafka
+      producer:
+        metadata.broker.list: "server1:9092,server2:9092"
+    - type: riemann
+      filter: ["key","foobar"]
+    - type: signalfx
+      batching:
+        flushInterval: 20000
+      filter: ["key","foobar"]
+      authToken: "foobar"
+      soTimeout: 1000
