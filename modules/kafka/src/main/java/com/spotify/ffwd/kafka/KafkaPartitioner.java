@@ -29,7 +29,8 @@ import java.util.zip.CRC32;
 @JsonSubTypes({
     @JsonSubTypes.Type(value = KafkaPartitioner.Tag.class, name = "tag"),
     @JsonSubTypes.Type(value = KafkaPartitioner.Hashed.class, name = "static"),
-    @JsonSubTypes.Type(value = KafkaPartitioner.Host.class, name = "host")
+    @JsonSubTypes.Type(value = KafkaPartitioner.Host.class, name = "host"),
+    @JsonSubTypes.Type(value = KafkaPartitioner.Random.class, name = "random")
 })
 public interface KafkaPartitioner {
     int partition(final Event event);
@@ -113,6 +114,30 @@ public interface KafkaPartitioner {
 
         public static Supplier<KafkaPartitioner> supplier() {
             return Hashed::new;
+        }
+    }
+
+    class Random implements KafkaPartitioner {
+
+        private final java.util.Random rand;
+
+        @JsonCreator
+        public Random() {
+            this.rand = new java.util.Random();
+        }
+
+        @Override
+        public int partition(final Event event) {
+            return rand.nextInt();
+        }
+
+        @Override
+        public int partition(final Metric metric, final String defaultHost) {
+            return rand.nextInt();
+        }
+
+        public static Supplier<KafkaPartitioner> supplier() {
+            return Random::new;
         }
     }
 }
