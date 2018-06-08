@@ -30,7 +30,6 @@ public class Metric {
     private final String key;
     private final double value;
     private final Date time;
-    private final String host;
     private final Set<String> riemannTags;
     private final Map<String, String> tags;
     private final Map<String, String> resource;

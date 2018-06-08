@@ -112,11 +112,14 @@ public class SignalFxPluginSink implements BatchablePluginSink {
                                 .build())
                             .forEach(datapointBuilder::addDimensions);
 
-                        datapointBuilder.addDimensions(SignalFxProtocolBuffers.Dimension
-                            .newBuilder()
-                            .setKey("host")
-                            .setValue(metric.getHost())
-                            .build());
+                        final String host = metric.getTags().get("host");
+                        if (host != null) {
+                            datapointBuilder.addDimensions(SignalFxProtocolBuffers.Dimension
+                                .newBuilder()
+                                .setKey("host")
+                                .setValue(host)
+                                .build());
+                        }
 
                         final SignalFxProtocolBuffers.DataPoint dataPoint =
                             datapointBuilder.build();

@@ -124,7 +124,11 @@ public class ProtobufDecoder extends MessageToMessageDecoder<ByteBuf> {
         final Map<String, String> resource = ImmutableMap.of();
         final String proc = metric.hasProc() ? metric.getProc() : null;
 
-        return new Metric(key, value, time, host, riemannTags, tags, resource, proc);
+        if (host != null) {
+            tags.put("host", host);
+        }
+
+        return new Metric(key, value, time, riemannTags, tags, resource, proc);
     }
 
     private Map<String, String> convertAttributes0(List<Protocol0.Attribute> attributesList) {

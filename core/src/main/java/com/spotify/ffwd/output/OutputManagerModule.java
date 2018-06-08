@@ -110,6 +110,13 @@ public class OutputManagerModule {
 
             @Provides
             @Singleton
+            @Named("automaticHostTag")
+            public Boolean automaticHostTag(AgentConfig config) {
+                return config.getAutomaticHostTag();
+            }
+
+            @Provides
+            @Singleton
             @Named("host")
             public String host(AgentConfig config) {
                 return config.getHost();

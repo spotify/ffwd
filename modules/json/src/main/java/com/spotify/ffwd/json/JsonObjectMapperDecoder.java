@@ -47,6 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Sharable
 public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
+    private static final String HOST = "host";
     public static final Set<String> EMPTY_TAGS = Sets.newHashSet();
     public static final Map<String, String> EMPTY_ATTRIBUTES = new HashMap<>();
 
@@ -104,14 +105,18 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
         final String key = decodeString(tree, "key");
         final double value = decodeDouble(tree, "value");
         final Date time = decodeTime(tree, "time");
-        final String host = decodeString(tree, "host");
+        final String host = decodeString(tree, HOST);
         final Set<String> riemannTags = decodeTags(tree, "tags");
         final Map<String, String> tags = decodeAttributes(tree, "attributes");
         // TODO: support resource?
         final Map<String, String> resource = ImmutableMap.of();
         final String proc = decodeString(tree, "proc");
 
-        return new Metric(key, value, time, host, riemannTags, tags, resource, proc);
+        if (host != null) {
+            tags.put(HOST, host);
+        }
+
+        return new Metric(key, value, time, riemannTags, tags, resource, proc);
     }
 
     private Object decodeEvent(JsonNode tree, List<Object> out) {
@@ -121,7 +126,7 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
         final long ttl = decodeTtl(tree, "ttl");
         final String state = decodeString(tree, "state");
         final String description = decodeString(tree, "description");
-        final String host = decodeString(tree, "host");
+        final String host = decodeString(tree, HOST);
         final Set<String> riemannTags = decodeTags(tree, "tags");
         final Map<String, String> tags = decodeAttributes(tree, "attributes");
 

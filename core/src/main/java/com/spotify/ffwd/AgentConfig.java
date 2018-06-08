@@ -41,6 +41,7 @@ public class AgentConfig {
 
     public static final Map<String, String> DEFAULT_TAGS = Maps.newHashMap();
     public static final Set<String> DEFAULT_RIEMANNTAGS = Sets.newHashSet();
+    public static final boolean DEFAULT_AUTO_HOST_TAG = true;
 
     public static final String DEFAULT_QLOG = "./qlog/";
 
@@ -49,6 +50,7 @@ public class AgentConfig {
     private final Map<String, String> tags;
     private final Set<String> riemannTags;
     private final Set<String> skipTagsForKeys;
+    private final Boolean automaticHostTag;
     private final InputManagerModule input;
     private final OutputManagerModule output;
     private final SearchDomainDiscovery searchDomain;
@@ -65,6 +67,7 @@ public class AgentConfig {
         @JsonProperty("tags") Map<String, String> tags,
         @JsonProperty("riemannTags") Set<String> riemannTags,
         @JsonProperty("skipTagsForKeys") Set<String> skipTagsForKeys,
+        @JsonProperty("automaticHostTag") Boolean automaticHostTag,
         @JsonProperty("input") InputManagerModule input,
         @JsonProperty("output") OutputManagerModule output,
         @JsonProperty("searchDomain") SearchDomainDiscovery searchDomain,
@@ -79,6 +82,7 @@ public class AgentConfig {
         this.tags = Optional.ofNullable(tags).orElse(DEFAULT_TAGS);
         this.riemannTags = Optional.ofNullable(riemannTags).orElse(DEFAULT_RIEMANNTAGS);
         this.skipTagsForKeys = Optional.ofNullable(skipTagsForKeys).orElse(Sets.newHashSet());
+        this.automaticHostTag = Optional.ofNullable(automaticHostTag).orElse(DEFAULT_AUTO_HOST_TAG);
         this.input = Optional.ofNullable(input).orElseGet(InputManagerModule.supplyDefault());
         this.output = Optional.ofNullable(output).orElseGet(OutputManagerModule.supplyDefault());
         this.searchDomain =

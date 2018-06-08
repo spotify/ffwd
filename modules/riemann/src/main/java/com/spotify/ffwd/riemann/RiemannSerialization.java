@@ -102,8 +102,9 @@ public class RiemannSerialization {
             b.setService(d.getKey());
         }
 
-        if (d.getHost() != null) {
-            b.setHost(d.getHost());
+        final String host = d.getTags().get("host");
+        if (host != null) {
+            b.setHost(host);
         }
 
         b.setMetricD(d.getValue());
