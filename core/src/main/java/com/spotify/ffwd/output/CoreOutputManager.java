@@ -53,6 +53,10 @@ public class CoreOutputManager implements OutputManager {
     private Map<String, String> tags;
 
     @Inject
+    @Named("tagsToResource")
+    private Map<String, String> tagsToResource;
+
+    @Inject
     @Named("resource")
     private Map<String, String> resource;
 
@@ -204,6 +208,8 @@ public class CoreOutputManager implements OutputManager {
         final Map<String, String> mergedResource = Maps.newHashMap(resource);
         mergedResource.putAll(metric.getResource());
 
+        processTagsToResource(mergedTags, mergedResource);
+
         final Set<String> mergedRiemannTags = Sets.newHashSet(riemannTags);
         mergedRiemannTags.addAll(metric.getRiemannTags());
 
@@ -249,4 +255,30 @@ public class CoreOutputManager implements OutputManager {
 
         return mergedTags;
     }
+
+    /**
+     * Potentially convert some tags to resource identifiers - i.e. tags in tagsToResource conf.
+     *
+     * If there are conflicts, the existing resource identifiers takes precedence over tags.
+     *
+     * @param tags Map of tags that will be used when constructing a metric
+     * @param resource Map of resource identifiers that will be used when constructing a metric
+     */
+    private void processTagsToResource(
+        final Map<String, String> tags, final Map<String, String> resource
+    ) {
+        if (tagsToResource.isEmpty()) {
+            return;
+        }
+
+        tagsToResource.forEach((fromTag, toResource) -> {
+            final String tag = tags.remove(fromTag);
+            // Set as resource if the tag exists and there were not already a resource with the
+            // wanted name
+            if (tag != null) {
+                resource.putIfAbsent(toResource, tag);
+            }
+        });
+    }
+
 }

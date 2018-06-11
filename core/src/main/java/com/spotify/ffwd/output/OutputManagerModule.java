@@ -89,6 +89,13 @@ public class OutputManagerModule {
 
             @Provides
             @Singleton
+            @Named("tagsToResource")
+            public Map<String, String> tagsToResource(final AgentConfig config) {
+                return new HashMap<>(config.getTagsToResource());
+            }
+
+            @Provides
+            @Singleton
             @Named("resource")
             public Map<String, String> resource() {
                 return systemEnvResourceTags();

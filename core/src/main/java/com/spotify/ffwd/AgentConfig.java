@@ -40,6 +40,7 @@ public class AgentConfig {
     public static final int DEFAULT_WORKER_THREADS = 4;
 
     public static final Map<String, String> DEFAULT_TAGS = Maps.newHashMap();
+    public static final Map<String, String> DEFAULT_TAGS_TO_RESOURCE = Maps.newHashMap();
     public static final Set<String> DEFAULT_RIEMANNTAGS = Sets.newHashSet();
     public static final boolean DEFAULT_AUTO_HOST_TAG = true;
 
@@ -48,6 +49,7 @@ public class AgentConfig {
     private final Optional<Debug> debug;
     private final String host;
     private final Map<String, String> tags;
+    private final Map<String, String> tagsToResource;
     private final Set<String> riemannTags;
     private final Set<String> skipTagsForKeys;
     private final Boolean automaticHostTag;
@@ -65,6 +67,7 @@ public class AgentConfig {
     public AgentConfig(
         @JsonProperty("debug") Debug debug, @JsonProperty("host") String host,
         @JsonProperty("tags") Map<String, String> tags,
+        @JsonProperty("tagsToResource") Map<String, String> tagsToResource,
         @JsonProperty("riemannTags") Set<String> riemannTags,
         @JsonProperty("skipTagsForKeys") Set<String> skipTagsForKeys,
         @JsonProperty("automaticHostTag") Boolean automaticHostTag,
@@ -80,6 +83,7 @@ public class AgentConfig {
         this.debug = Optional.ofNullable(debug);
         this.host = Optional.ofNullable(host).orElseGet(this::buildDefaultHost);
         this.tags = Optional.ofNullable(tags).orElse(DEFAULT_TAGS);
+        this.tagsToResource = Optional.ofNullable(tagsToResource).orElse(DEFAULT_TAGS_TO_RESOURCE);
         this.riemannTags = Optional.ofNullable(riemannTags).orElse(DEFAULT_RIEMANNTAGS);
         this.skipTagsForKeys = Optional.ofNullable(skipTagsForKeys).orElse(Sets.newHashSet());
         this.automaticHostTag = Optional.ofNullable(automaticHostTag).orElse(DEFAULT_AUTO_HOST_TAG);

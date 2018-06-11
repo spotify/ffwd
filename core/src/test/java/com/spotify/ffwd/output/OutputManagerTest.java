@@ -19,13 +19,9 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 import com.spotify.ffwd.debug.DebugServer;
 import com.spotify.ffwd.filter.Filter;
-import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.statistics.OutputManagerStatistics;
 import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -50,8 +46,9 @@ public class OutputManagerTest {
     @Mock
     private AsyncFramework async;
 
-    private Map<String, String> tags = ImmutableMap.of("role", "abc");
-    private Map<String, String> resource = ImmutableMap.of("gke_pod", "123");
+    private Map<String, String> tags = new HashMap<>();
+    private Map<String, String> tagsToResource = new HashMap<>();
+    private Map<String, String> resource = new HashMap<>();
     private Set<String> riemannTags = ImmutableSet.of();
     private Set<String> skipTagsForKeys = ImmutableSet.of();
     private Boolean automaticHostTag = true;
@@ -69,15 +66,20 @@ public class OutputManagerTest {
     @Mock
     private Filter filter;
 
-    private final Metric m1 =
-        new Metric(KEY, 42.0, new Date(), ImmutableSet.of(), ImmutableMap.of("tag1", "value1"),
-            ImmutableMap.of(), null);
+    private Metric m1;
 
     @Before
     public void setup() {
+        tags.put("role", "abc");
+        tagsToResource.put("foo", "bar");
+        resource.put("gke_pod", "123");
         Mockito.doReturn(true).when(filter).matchesMetric(any());
         doNothing().when(sink).sendMetric(any(Metric.class));
         when(sink.isReady()).thenReturn(true);
+        Map<String, String> testTags = new HashMap<>();
+        testTags.put("tag1", "value1");
+        m1 =
+            new Metric(KEY, 42.0, new Date(), ImmutableSet.of(), testTags, ImmutableMap.of(), null);
     }
 
     public OutputManager createOutputManager() {
@@ -91,6 +93,8 @@ public class OutputManagerTest {
                 bind(AsyncFramework.class).toInstance(async);
                 bind(new TypeLiteral<Map<String, String>>() {
                 }).annotatedWith(Names.named("tags")).toInstance(tags);
+                bind(new TypeLiteral<Map<String, String>>() {
+                }).annotatedWith(Names.named("tagsToResource")).toInstance(tagsToResource);
                 bind(new TypeLiteral<Map<String, String>>() {
                 }).annotatedWith(Names.named("resource")).toInstance(resource);
                 bind(new TypeLiteral<Set<String>>() {
@@ -124,7 +128,7 @@ public class OutputManagerTest {
 
         assertEquals(
             new Metric(m1.getKey(), m1.getValue(), m1.getTime(), m1.getRiemannTags(), expectedTags,
-                m1.getResource(), m1.getProc()), sendAndCaptureMetric());
+                m1.getResource(), m1.getProc()), sendAndCaptureMetric(m1));
     }
 
     @Test
@@ -136,7 +140,7 @@ public class OutputManagerTest {
 
         assertEquals(
             new Metric(m1.getKey(), m1.getValue(), m1.getTime(), m1.getRiemannTags(), expectedTags,
-                m1.getResource(), m1.getProc()), sendAndCaptureMetric());
+                m1.getResource(), m1.getProc()), sendAndCaptureMetric(m1));
     }
 
     @Test
@@ -145,13 +149,26 @@ public class OutputManagerTest {
 
         assertEquals(
             new Metric(m1.getKey(), m1.getValue(), m1.getTime(), m1.getRiemannTags(), m1.getTags(),
-                m1.getResource(), m1.getProc()), sendAndCaptureMetric());
+                m1.getResource(), m1.getProc()), sendAndCaptureMetric(m1));
     }
 
-    private Metric sendAndCaptureMetric(){
+    @Test
+    public void testTagsToResource() {
+        Map<String, String> m2Tags = new HashMap<>();
+        m2Tags.put("role", "abc");
+        m2Tags.put("foo", "fooval");
+        Metric m2 = new Metric(m1.getKey(), m1.getValue(), m1.getTime(), m1.getRiemannTags(), m2Tags,
+        m1.getResource(), m1.getProc());
+
+        assertEquals(
+            new Metric(m1.getKey(), m1.getValue(), m1.getTime(), m1.getRiemannTags(), ImmutableMap.of("host","thehost","role","abc"),
+                ImmutableMap.of("bar","fooval","gke_pod","123"), m1.getProc()), sendAndCaptureMetric(m2));
+    }
+
+    private Metric sendAndCaptureMetric(Metric metric) {
         final OutputManager outputManager = createOutputManager();
         ArgumentCaptor<Metric> captor = ArgumentCaptor.forClass(Metric.class);
-        outputManager.sendMetric(m1);
+        outputManager.sendMetric(metric);
         verify(sink, times(1)).sendMetric(captor.capture());
         return captor.getValue();
     }
