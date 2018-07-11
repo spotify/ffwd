@@ -229,7 +229,7 @@
     <dependency>
       <groupId>org.mock-server</groupId>
       <artifactId>mockserver-netty</artifactId>
-      <version>RELEASE</version>
+      <version>5.3.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
