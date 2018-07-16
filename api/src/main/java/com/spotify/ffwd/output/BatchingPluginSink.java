@@ -137,6 +137,7 @@ public class BatchingPluginSink implements PluginSink {
 
     @Override
     public void init() {
+        sink.init();
     }
 
     @Override

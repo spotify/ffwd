@@ -178,8 +178,9 @@ public class AgentCore {
 
         async.collectAndDiscard(startup).get(10, TimeUnit.SECONDS);
 
-        input.init();
+        // Initialize outputs first so that they're ready for getting data
         output.init();
+        input.init();
     }
 
     private void stop(final Injector primary) throws Exception {
