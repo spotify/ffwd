@@ -158,8 +158,10 @@ public class KafkaPluginSink implements BatchablePluginSink {
                             if (Objects.isNull(exception)) {
                                 future.resolve(null);
                             } else {
-                                // Wrap to avoid self-suppression when multiple metrics get same exception
-                                future.fail(new Exception(id + ": Failed while sending: ", exception));
+                                // Wrap to avoid self-suppression when multiple metrics
+                                // get same exception
+                                future.fail(
+                                  new Exception(id + ": Failed while sending: ", exception));
                             }
                         });
 
@@ -177,7 +179,8 @@ public class KafkaPluginSink implements BatchablePluginSink {
                 return async
                     .collectAndDiscard(batchFutures)
                     .onFailed((e) -> log.info("{}: Failed sending batches", id))
-                    .onResolved((v) -> log.info("{}: Done sending batches (timings in ms: {})", id, times));
+                    .onResolved((v) -> log.info(
+                      "{}: Done sending batches (timings in ms: {})", id, times));
             }
         }, executorService);
 
