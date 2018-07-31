@@ -15,16 +15,36 @@
  */
 package com.spotify.ffwd.kafka;
 
-import kafka.producer.Partitioner;
-import kafka.utils.VerifiableProperties;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import org.apache.kafka.clients.producer.Partitioner;
+import org.apache.kafka.common.Cluster;
+import org.apache.kafka.common.PartitionInfo;
 
 public class IntegerPartitioner implements Partitioner {
-    public IntegerPartitioner(VerifiableProperties properties) {
+    public IntegerPartitioner() {
+    }
+
+    public IntegerPartitioner(Properties properties) {
     }
 
     @Override
-    public int partition(Object o, int partitions) {
+    public int partition(
+        final String topic, final Object o, final byte[] bytes, final Object o1,
+        final byte[] bytes1, final Cluster cluster
+    ) {
+        List<PartitionInfo> partitions = cluster.partitionsForTopic(topic);
+        int numPartitions = partitions.size();
         int i = Math.abs((int) o);
-        return i % partitions;
+        return i % numPartitions;
+    }
+
+    @Override
+    public void close() {
+    }
+
+    @Override
+    public void configure(final Map<String, ?> map) {
     }
 }

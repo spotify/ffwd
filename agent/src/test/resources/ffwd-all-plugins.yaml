@@ -37,7 +37,7 @@ output:
         flushInterval: 20000
       filter: ["key","foobar"]
       producer:
-        metadata.broker.list: "server1:9092,server2:9092"
+        bootstrap.servers: "server1:9092,server2:9092"
     - type: riemann
       batching:
         flushInterval: 20000
