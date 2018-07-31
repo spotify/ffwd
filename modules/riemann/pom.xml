@@ -11,7 +11,7 @@
 
   <artifactId>ffwd-module-riemann</artifactId>
   <packaging>jar</packaging>
-  <name>FastForward Kafka Module</name>
+  <name>FastForward Riemann Module</name>
 
   <dependencies>
     <dependency>

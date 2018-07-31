@@ -68,6 +68,11 @@
       <artifactId>ffwd-module-http</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>com.spotify.ffwd</groupId>
+      <artifactId>ffwd-module-pubsub</artifactId>
+    </dependency>
+
     <!-- logging -->
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>

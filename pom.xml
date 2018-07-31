@@ -25,6 +25,7 @@
     <module>modules/json</module>
     <module>modules/signalfx</module>
     <module>modules/http</module>
+    <module>modules/pubsub</module>
     <module>ffwd-http-client</module>
   </modules>
 
@@ -175,6 +176,11 @@
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
           <artifactId>ffwd-module-http</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.spotify.ffwd</groupId>
+        <artifactId>ffwd-module-pubsub</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
