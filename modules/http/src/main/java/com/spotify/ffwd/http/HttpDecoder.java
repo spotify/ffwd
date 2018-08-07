@@ -60,10 +60,10 @@ public class HttpDecoder extends MessageToMessageDecoder<FullHttpRequest> {
                         postBatch(ctx, in, out);
                         return;
                     }
-
+                    log.error("Unsupported Media Type");
                     throw new HttpException(HttpResponseStatus.UNSUPPORTED_MEDIA_TYPE);
                 }
-
+                log.error("HTTP Method Not Allowed");
                 throw new HttpException(HttpResponseStatus.METHOD_NOT_ALLOWED);
             default:
                 /* do nothing */
@@ -85,6 +85,7 @@ public class HttpDecoder extends MessageToMessageDecoder<FullHttpRequest> {
         try (final InputStream inputStream = new ByteBufInputStream(in.content())) {
             batch = mapper.readValue(inputStream, Batch.class);
         } catch (final IOException e) {
+            log.error("HTTP Bad Request", e);
             throw new HttpException(HttpResponseStatus.BAD_REQUEST);
         }
 
