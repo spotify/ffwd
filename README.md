@@ -95,6 +95,7 @@ This will setup a ffwd with a lot of input plugins that are printed to stdout.
 # Clients
 
 * [Java](https://github.com/udoprog/ffwd-java-client)
+* [Java-HTTP](https://github.com/spotify/ffwd-http-client)
 * [Python](https://pypi.python.org/pypi/ffwd)
 * [c++](https://github.com/udoprog/libffwd-client)
 

@@ -26,7 +26,6 @@
     <module>modules/signalfx</module>
     <module>modules/http</module>
     <module>modules/pubsub</module>
-    <module>ffwd-http-client</module>
   </modules>
 
   <licenses>
