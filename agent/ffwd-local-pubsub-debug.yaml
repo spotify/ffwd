@@ -27,5 +27,6 @@ output:
     - type: debug
     - type: pubsub
       flushInterval: 10000
-      project: TEST
-      topic: ffwd-local-test
+      project: google-test-project
+      topic: test-topic
+      #serviceAccount: /path/to/creds.json
