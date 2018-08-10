@@ -12,6 +12,12 @@
 
   <url>https://github.com/spotify/ffwd</url>
 
+  <parent>
+    <groupId>com.spotify</groupId>
+    <artifactId>foss-root</artifactId>
+    <version>6</version>
+  </parent>
+
   <modules>
     <module>api</module>
     <module>core</module>
@@ -332,24 +338,6 @@
   <build>
     <plugins>
       <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.1</version>
-        <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.1</version>
-        <configuration>
-          <excludePackageNames>com.spotify.*:com.google.*</excludePackageNames>
-        </configuration>
-      </plugin>
-
-      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>findbugs-maven-plugin</artifactId>
         <version>2.5.4</version>
@@ -370,6 +358,19 @@
           </execution>
         </executions>
       </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>1.9</version>
+        <configuration combine.self="append">
+          <excludes>
+            <exclude>**/protobuf250/**</exclude>
+          </excludes>
+        </configuration>
+
+      </plugin>
+
     </plugins>
   </build>
 </project>
