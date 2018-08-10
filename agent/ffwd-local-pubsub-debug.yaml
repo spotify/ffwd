@@ -1,0 +1,32 @@
+input:
+  plugins:
+    - type: json
+      protocol:
+        type: tcp
+    - type: json
+      protocol:
+        type: udp
+    - type: protobuf
+      protocol:
+        type: udp
+    - type: protobuf
+      protocol:
+        type: tcp
+    - type: riemann
+      protocol:
+        type: tcp
+    - type: riemann
+      protocol:
+        type: udp
+    - type: http
+      protocol:
+        type: tcp
+
+output:
+  plugins:
+    - type: debug
+    - type: pubsub
+      flushInterval: 10000
+      project: google-test-project
+      topic: test-topic
+      #serviceAccount: /path/to/creds.json
