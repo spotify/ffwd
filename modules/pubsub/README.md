@@ -5,11 +5,8 @@ This modules provides a [Google Pubsub](https://cloud.google.com/pubsub/docs/ove
 
 ## Configuration
 
-* `serviceAccount` - an optional path to a json service account to authenticate to Google.
-See [authentication](#authentication) for more info.
 * `project` - the google project where the topic exists.
 * `topic` - the google pubsub topic to publish to.
-
 
 
 The default settings the publisher uses for batching requests can be overriden. The API allows publishing
@@ -28,15 +25,14 @@ output:
       flushInterval: 10000
       project: google-test-project
       topic: test-topic
-      #serviceAccount: "path to service account json"
 ```
 
 
 ## Authentication
 
-If no `serviceAccount` is provided the Google Pubsub library will try to use the default credentials that are exported as part of the
-`GOOGLE_APPLICATION_CREDENTIALS` environment variable.
+If running ffwd from within GCE the default application credentials can be used for authentication.
 
+If you have multiple google projects and would rather distribute a service account to each instance, ensure the environment variable `GOOGLE_APPLICATION_CREDENTIALS` is set to the path of the JSON file.
 
 To learn how to setup these credentials or generate a service account read https://cloud.google.com/docs/authentication/production.
 

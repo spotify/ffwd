@@ -23,15 +23,12 @@ package com.spotify.ffwd.pubsub;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.api.gax.batching.BatchingSettings;
-import com.google.api.gax.core.CredentialsProvider;
 import com.google.api.gax.core.ExecutorProvider;
-import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.gax.core.InstantiatingExecutorProvider;
 import com.google.api.gax.core.NoCredentialsProvider;
 import com.google.api.gax.grpc.GrpcTransportChannel;
 import com.google.api.gax.rpc.FixedTransportChannelProvider;
 import com.google.api.gax.rpc.TransportChannelProvider;
-import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.common.base.Preconditions;
 import com.google.inject.Key;
@@ -49,7 +46,6 @@ import com.spotify.ffwd.output.PluginSink;
 import com.spotify.ffwd.serializer.Serializer;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Optional;
 import org.threeten.bp.Duration;
@@ -125,17 +121,9 @@ public class PubsubOutputPlugin extends OutputPlugin {
         ExecutorProvider executorProvider = InstantiatingExecutorProvider.newBuilder()
           .setExecutorThreadCount(1).build();
 
-
         final Publisher.Builder publisher = Publisher.newBuilder(topicName())
           .setBatchingSettings(batchingSettings)
           .setExecutorProvider(executorProvider);
-
-        if (serviceAccount.isPresent()) {
-          CredentialsProvider credentials =
-            FixedCredentialsProvider.create(
-              ServiceAccountCredentials.fromStream(new FileInputStream(serviceAccount.get())));
-          publisher.setCredentialsProvider(credentials);
-        }
 
         final String emulatorHost = System.getenv("PUBSUB_EMULATOR_HOST");
         if (emulatorHost != null) {

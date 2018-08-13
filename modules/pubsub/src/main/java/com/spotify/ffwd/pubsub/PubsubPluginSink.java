@@ -20,9 +20,13 @@
 
 package com.spotify.ffwd.pubsub;
 
+import com.google.api.core.ApiFuture;
+import com.google.api.core.ApiFutureCallback;
+import com.google.api.core.ApiFutures;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.ProjectTopicName;
@@ -42,6 +46,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -69,6 +76,10 @@ public class PubsubPluginSink implements BatchablePluginSink {
   @Inject
   ProjectTopicName topicName;
 
+
+  private final ExecutorService executorService = Executors.newCachedThreadPool(
+    new ThreadFactoryBuilder().setNameFormat("ffwd-pubsub-callback-%d").build());
+
   @Override
   public boolean isReady() {
     return true;
@@ -94,17 +105,30 @@ public class PubsubPluginSink implements BatchablePluginSink {
 
   @Override
   public AsyncFuture<Void> sendMetrics(Collection<Metric> metrics) {
+    final UUID traceId = UUID.randomUUID();
+    log.info("{}: Start sending metrics", traceId);
+
     for (Metric metric : metrics) {
       try {
-        publisher.publish(PubsubMessage.newBuilder()
+        final ApiFuture<String> publish = publisher.publish(PubsubMessage.newBuilder()
           .setData(ByteString.copyFrom(serializer.serialize(metric)))
           .build()
         );
+        ApiFutures.addCallback(publish, new ApiFutureCallback<String>() {
+          @Override
+          public void onFailure(Throwable t) {
+            log.error("Failed sending metrics {}", t.getMessage());
+          }
+
+          @Override
+          public void onSuccess(String messageId) { }
+
+        }, executorService);
       } catch (Exception e) {
         log.error("Failed to publish metric {}", e);
       }
     }
-
+    log.info("{}: Finished sending metrics", traceId);
     return async.resolved();
   }
 
