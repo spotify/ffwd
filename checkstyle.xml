@@ -12,7 +12,7 @@
     </module>
 
     <module name="RegexpSingleline">
-        <property name="format" value="\s+$" />
+        <property name="format" value="[^*]\s+$" />
         <property name="message" value="Line has trailing spaces." />
     </module>
 
@@ -66,11 +66,5 @@
         <module name="SimplifyBooleanExpression" />
         <module name="ArrayTypeStyle" />
         <module name="UpperEll" />
-    </module>
-
-    <module name="Header">
-        <property name="headerFile" value="${basedir}/tools/java.header" />
-        <property name="ignoreLines" value="2" />
-        <property name="fileExtensions" value="java" />
     </module>
 </module>
