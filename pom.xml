@@ -43,7 +43,7 @@
   <scm>
     <connection>scm:git:git@github.com:spotify/ffwd</connection>
     <developerConnection>scm:git:git@github.com:spotify/ffwd</developerConnection>
-    <url>https://github.com/udoprog/ffwd-client-java</url>
+    <url>https://github.com/spotify/ffwd</url>
     <tag>HEAD</tag>
   </scm>
 
