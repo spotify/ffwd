@@ -32,7 +32,6 @@ import com.spotify.ffwd.output.BatchablePluginSink;
 import com.spotify.ffwd.serializer.Serializer;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
-import eu.toolchain.async.ResolvableFuture;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -40,17 +39,15 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 import javax.inject.Named;
+import kafka.javaapi.producer.Producer;
+import kafka.producer.KeyedMessage;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
 
 @Slf4j
 public class KafkaPluginSink implements BatchablePluginSink {
@@ -58,8 +55,6 @@ public class KafkaPluginSink implements BatchablePluginSink {
     private AsyncFramework async;
 
     @Inject
-    private Supplier<Producer<Integer, byte[]>> producerSupplier;
-
     private Producer<Integer, byte[]> producer;
 
     @Inject
@@ -86,8 +81,6 @@ public class KafkaPluginSink implements BatchablePluginSink {
 
     @Override
     public void init() {
-        // Initialize Producer here, delayed, instead of in Constructor, to facilitate unit testing
-        producer = producerSupplier.get();
     }
 
     @Override
@@ -118,7 +111,7 @@ public class KafkaPluginSink implements BatchablePluginSink {
             toBatches(iteratorFor(batch.getPoints(), metric -> convertBatchMetric(batch, metric))));
     }
 
-    private ProducerRecord<Integer, byte[]> convertBatchMetric(
+    private KeyedMessage<Integer, byte[]> convertBatchMetric(
         final Batch batch, final Batch.Point point
     ) throws Exception {
         final Map<String, String> allTags = new HashMap<>(batch.getCommonTags());
@@ -138,55 +131,26 @@ public class KafkaPluginSink implements BatchablePluginSink {
         return send(toBatches(iteratorFor(events, eventConverter)));
     }
 
-    /**
-     * Send 1 or more batches of metrics/events
-     */
-    private AsyncFuture<Void> send(final Iterator<List<ProducerRecord<Integer, byte[]>>> batches) {
+    private AsyncFuture<Void> send(final Iterator<List<KeyedMessage<Integer, byte[]>>> batches) {
         final UUID id = UUID.randomUUID();
-        return async.lazyCall(new Callable<AsyncFuture<Void>>() {
+
+        return async.call(new Callable<Void>() {
             @Override
-            public AsyncFuture<Void> call() throws Exception {
-                final List<AsyncFuture<Void>> batchFutures = new ArrayList<>();
+            public Void call() throws Exception {
                 final List<Long> times = new ArrayList<>();
 
-                log.info("{}: Start sending of batches", id);
+                log.info("{}: Start sending of batch", id);
 
                 while (batches.hasNext()) {
-                    final List<AsyncFuture<Void>> futures = new ArrayList<>();
                     final Stopwatch watch = Stopwatch.createStarted();
-
-                    final List<ProducerRecord<Integer, byte[]>> batch = batches.next();
-                    for (final ProducerRecord<Integer, byte[]> m : batch) {
-                        final ResolvableFuture<Void> future = async.future();
-
-                        producer.send(m, (recordMetadata, exception) -> {
-                            if (Objects.isNull(exception)) {
-                                future.resolve(null);
-                            } else {
-                                // Wrap to avoid self-suppression when multiple metrics get same exception
-                                future.fail(new Exception(id + ": Failed while sending: ", exception));
-                            }
-                        });
-
-                        futures.add(future);
-                    }
-
-                    final AsyncFuture<Void> batchFuture =
-                        async.collectAndDiscard(futures).directTransform((v) -> {
-                            times.add(watch.elapsed(TimeUnit.MILLISECONDS));
-                            return v;
-                        });
-
-                    batchFutures.add(batchFuture);
+                    producer.send(batches.next());
+                    times.add(watch.elapsed(TimeUnit.MILLISECONDS));
                 }
-                return async
-                    .collectAndDiscard(batchFutures)
-                    .onFailed((e) -> log.info("{}: Failed sending batches", id))
-                    .onResolved((v) -> log.info("{}: Done sending batches (timings in ms: {})", id, times));
+
+                log.info("{}: Done sending batch (timings in ms: {})", id, times);
+                return null;
             }
         }, executorService);
-
-
     }
 
     @Override
@@ -196,7 +160,7 @@ public class KafkaPluginSink implements BatchablePluginSink {
 
     @Override
     public AsyncFuture<Void> sendBatches(final Collection<Batch> batches) {
-        final List<Iterator<ProducerRecord<Integer, byte[]>>> iterators = new ArrayList<>();
+        final List<Iterator<KeyedMessage<Integer, byte[]>>> iterators = new ArrayList<>();
         batches.forEach(batch -> iterators.add(
             iteratorFor(batch.getPoints(), metric -> convertBatchMetric(batch, metric))));
 
@@ -233,45 +197,45 @@ public class KafkaPluginSink implements BatchablePluginSink {
      *
      * @param iterator Iterator to convert into batches.
      */
-    private Iterator<List<ProducerRecord<Integer, byte[]>>> toBatches(
-        final Iterator<ProducerRecord<Integer, byte[]>> iterator
+    private Iterator<List<KeyedMessage<Integer, byte[]>>> toBatches(
+        final Iterator<KeyedMessage<Integer, byte[]>> iterator
     ) {
         return Iterators.partition(iterator, batchSize);
     }
 
     final Converter<Metric> metricConverter = new Converter<Metric>() {
         @Override
-        public ProducerRecord<Integer, byte[]> toMessage(final Metric metric) throws Exception {
+        public KeyedMessage<Integer, byte[]> toMessage(final Metric metric) throws Exception {
             final String topic = router.route(metric);
-            int partition = partitioner.partition(metric, host);
+            final int partition = partitioner.partition(metric, host);
             final byte[] payload = serializer.serialize(metric);
-            return new ProducerRecord<>(topic, partition, payload);
+            return new KeyedMessage<>(topic, partition, payload);
         }
     };
 
     final Converter<Event> eventConverter = new Converter<Event>() {
         @Override
-        public ProducerRecord<Integer, byte[]> toMessage(final Event event) throws Exception {
+        public KeyedMessage<Integer, byte[]> toMessage(final Event event) throws Exception {
             final String topic = router.route(event);
             final int partition = partitioner.partition(event);
             final byte[] payload = serializer.serialize(event);
-            return new ProducerRecord<>(topic, partition, payload);
+            return new KeyedMessage<>(topic, partition, payload);
         }
     };
 
-    final <T> Iterator<ProducerRecord<Integer, byte[]>> iteratorFor(
+    final <T> Iterator<KeyedMessage<Integer, byte[]>> iteratorFor(
         Iterable<? extends T> iterable, final Converter<T> converter
     ) {
         final Iterator<? extends T> iterator = iterable.iterator();
 
-        return new Iterator<ProducerRecord<Integer, byte[]>>() {
+        return new Iterator<KeyedMessage<Integer, byte[]>>() {
             @Override
             public boolean hasNext() {
                 return iterator.hasNext();
             }
 
             @Override
-            public ProducerRecord<Integer, byte[]> next() {
+            public KeyedMessage<Integer, byte[]> next() {
                 try {
                     return converter.toMessage(iterator.next());
                 } catch (final Exception e) {
@@ -286,6 +250,6 @@ public class KafkaPluginSink implements BatchablePluginSink {
     }
 
     static interface Converter<T> {
-        ProducerRecord<Integer, byte[]> toMessage(T object) throws Exception;
+        KeyedMessage<Integer, byte[]> toMessage(T object) throws Exception;
     }
 }
