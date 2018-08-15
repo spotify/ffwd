@@ -36,5 +36,5 @@ override_dh_auto_clean:
 override_dh_auto_build:
 	$(MVN) package
 	mkdir -p $(BUILD)
-	cp agent/target/ffwd-agent-0.0.1-SNAPSHOT.jar $(FFWD_JAR)
+	cp agent/target/ffwd-agent-RELEASE.jar $(FFWD_JAR)
 	cp debian/bin/ffwd-java $(FFWD)
