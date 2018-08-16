@@ -3,7 +3,7 @@
 
   <groupId>com.spotify.ffwd</groupId>
   <artifactId>ffwd-parent</artifactId>
-  <version>1.1.1-SNAPSHOT</version>
+  <version>0.3.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>FastForward Parent</name>
@@ -368,7 +368,14 @@
             <exclude>**/protobuf250/**</exclude>
           </excludes>
         </configuration>
+      </plugin>
 
+      <plugin>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5.3</version>
+        <configuration combine.self="append">
+          <tagNameFormat>@{project.version}</tagNameFormat>
+        </configuration>
       </plugin>
 
     </plugins>
