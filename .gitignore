@@ -1,6 +1,5 @@
 .*.swp~
 .*.un~
-target
 *.class
 *.iml
 .classpath
@@ -11,3 +10,11 @@ target
 dependency-reduced-pom.xml
 /.cache/*
 .DS_Store
+
+# Build products and artifacts
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
