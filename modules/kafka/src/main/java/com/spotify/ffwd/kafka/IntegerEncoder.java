@@ -20,16 +20,19 @@
 
 package com.spotify.ffwd.kafka;
 
-import kafka.producer.Partitioner;
+import kafka.serializer.Encoder;
 import kafka.utils.VerifiableProperties;
 
-public class IntegerPartitioner implements Partitioner {
-    public IntegerPartitioner(VerifiableProperties properties) {
+public class IntegerEncoder implements Encoder<Integer> {
+    public IntegerEncoder(VerifiableProperties properties) {
     }
 
     @Override
-    public int partition(Object o, int partitions) {
-        int i = Math.abs((int) o);
-        return i % partitions;
+    public byte[] toBytes(Integer o) {
+        final int i = o;
+        return new byte[]{
+            (byte) (i & 0xff), (byte) ((i << 8) & 0xff), (byte) ((i << 16) & 0xff),
+            (byte) ((i << 24) & 0xff)
+        };
     }
 }

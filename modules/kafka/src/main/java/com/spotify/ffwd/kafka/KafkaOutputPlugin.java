@@ -37,11 +37,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.function.Supplier;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.common.serialization.ByteArraySerializer;
-import org.apache.kafka.common.serialization.IntegerSerializer;
+import kafka.javaapi.producer.Producer;
+import kafka.producer.ProducerConfig;
 
 public class KafkaOutputPlugin extends OutputPlugin {
     public static final int DEFAULT_BATCH_SIZE = 1000;
@@ -80,21 +77,19 @@ public class KafkaOutputPlugin extends OutputPlugin {
         return new OutputPluginModule(id) {
             @Provides
             @Singleton
-            public Supplier<Producer<Integer, byte[]>> producer() {
-                return () -> {
-                    final Properties props = new Properties();
-                    props.putAll(properties);
-                    props.put("partitioner.class", IntegerPartitioner.class.getCanonicalName());
-                    props.put("key.serializer", IntegerSerializer.class.getCanonicalName());
-                    props.put("value.serializer", ByteArraySerializer.class.getCanonicalName());
+            public Producer<Integer, byte[]> producer() {
+                final Properties props = new Properties();
+                props.putAll(properties);
+                props.put("partitioner.class", IntegerPartitioner.class.getCanonicalName());
+                props.put("key.serializer.class", IntegerEncoder.class.getCanonicalName());
 
-                    // enable gzip.
-                    if (compression) {
-                        props.put("compression.type", "gzip");
-                    }
+                // enable gzip.
+                if (compression) {
+                    props.put("compression.codec", "1");
+                }
 
-                    return new KafkaProducer<>(props);
-                };
+                final ProducerConfig config = new ProducerConfig(props);
+                return new Producer<>(config);
             }
 
             @Override
