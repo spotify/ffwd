@@ -26,6 +26,8 @@ output:
   plugins:
     - type: debug
     - type: pubsub
+      serializer:
+        type: spotify100
       flushInterval: 10000
       project: google-test-project
       topic: test-topic
