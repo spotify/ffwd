@@ -8,7 +8,8 @@ JVM_OPTS=${JVM_OPTS:-""}
 MVN=${MVN:-mvn}
 MVN_OPTS=${MVN_OPTS:-"-B -V"}
 
-dist_jar="$dist/target/ffwd-agent-0.0.1-SNAPSHOT.jar"
+current_version=`mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec 2>/dev/null`
+dist_jar="$dist/target/ffwd-agent-${current_version}.jar"
 
 CLASSPATH="$dist_jar"
 
