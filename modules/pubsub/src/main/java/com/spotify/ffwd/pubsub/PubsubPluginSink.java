@@ -90,16 +90,7 @@ public class PubsubPluginSink implements BatchablePluginSink {
 
   @Override
   public AsyncFuture<Void> sendEvents(Collection<Event> events) {
-    for (Event event : events) {
-      try {
-        publisher.publish(PubsubMessage.newBuilder()
-          .setData(ByteString.copyFrom(serializer.serialize(event))).build()
-        );
-      } catch (Exception e) {
-        log.error("Failed to publish event {}", e);
-      }
-    }
-
+    log.debug("Sending events is not supported!");
     return async.resolved();
   }
 
