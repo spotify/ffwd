@@ -172,7 +172,7 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
     String decodeString(JsonNode tree, String name) {
         final JsonNode n = tree.get(name);
 
-        if (n == null) {
+        if (n.isNull()) {
             return null;
         }
 
