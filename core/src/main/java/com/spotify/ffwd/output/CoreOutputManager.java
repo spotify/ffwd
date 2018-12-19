@@ -242,6 +242,11 @@ public class CoreOutputManager implements OutputManager {
             mergedCommonTags.putAll(batch.getCommonTags());
         }
 
+        processTagsToResource(mergedCommonTags, mergedCommonResource);
+        batch.getPoints().forEach(point -> {
+            processTagsToResource(point.getTags(), point.getResource());
+        });
+
         return new Batch(mergedCommonTags, mergedCommonResource, batch.getPoints());
     }
 
