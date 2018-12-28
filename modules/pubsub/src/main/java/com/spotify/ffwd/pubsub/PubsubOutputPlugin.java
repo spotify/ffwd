@@ -20,6 +20,9 @@
 
 package com.spotify.ffwd.pubsub;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Optional.ofNullable;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.api.gax.batching.BatchingSettings;
@@ -30,7 +33,6 @@ import com.google.api.gax.grpc.GrpcTransportChannel;
 import com.google.api.gax.rpc.FixedTransportChannelProvider;
 import com.google.api.gax.rpc.TransportChannelProvider;
 import com.google.cloud.pubsub.v1.Publisher;
-import com.google.common.base.Preconditions;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.Provides;
@@ -82,18 +84,16 @@ public class PubsubOutputPlugin extends OutputPlugin {
     @JsonProperty("publishDelayThresholdMs") Long publishDelayThresholdMs
   ) {
     super(filter, Batching.from(flushInterval, batching));
-    this.serializer = Optional.ofNullable(serializer);
+    this.serializer = ofNullable(serializer);
 
-    this.serviceAccount = Optional.ofNullable(serviceAccount);
-    this.project = Optional.ofNullable(project);
-    this.topic = Optional.ofNullable(topic);
+    this.serviceAccount = ofNullable(serviceAccount);
+    this.project = ofNullable(project);
+    this.topic = ofNullable(topic);
 
-    this.requestBytesThreshold = Optional.ofNullable(
-      requestBytesThreshold).orElse(DEFAULT_BYTES_THRESHOLD);
-    this.messageCountBatchSize = Optional.ofNullable(
-      messageCountBatchSize).orElse(DEFAULT_COUNT_THRESHOLD);
+    this.requestBytesThreshold = ofNullable(requestBytesThreshold).orElse(DEFAULT_BYTES_THRESHOLD);
+    this.messageCountBatchSize = ofNullable(messageCountBatchSize).orElse(DEFAULT_COUNT_THRESHOLD);
     this.publishDelayThreshold = Duration.ofMillis(
-      Optional.ofNullable(publishDelayThresholdMs).orElse(DEFAULT_DELAY_THRESHOLD));
+      ofNullable(publishDelayThresholdMs).orElse(DEFAULT_DELAY_THRESHOLD));
   }
 
   @Override
@@ -103,8 +103,8 @@ public class PubsubOutputPlugin extends OutputPlugin {
       @Provides
       @Singleton
       public ProjectTopicName topicName() {
-        Preconditions.checkArgument(project.isPresent(), "Google project must be set in config");
-        Preconditions.checkArgument(topic.isPresent(), "Pubsub topic must be set in config");
+        checkArgument(project.isPresent(), "Google project must be set in config");
+        checkArgument(topic.isPresent(), "Pubsub topic must be set in config");
         return ProjectTopicName.of(project.get(), topic.get());
       }
 

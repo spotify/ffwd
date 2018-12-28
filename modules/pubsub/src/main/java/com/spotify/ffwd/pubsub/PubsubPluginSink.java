@@ -46,7 +46,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.Executor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,7 +58,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class PubsubPluginSink implements BatchablePluginSink {
-
   @Inject
   AsyncFramework async;
 
@@ -74,7 +72,6 @@ public class PubsubPluginSink implements BatchablePluginSink {
 
   @Inject
   ProjectTopicName topicName;
-
 
   private final Executor executorService = MoreExecutors.directExecutor();
 
@@ -92,38 +89,41 @@ public class PubsubPluginSink implements BatchablePluginSink {
     return async.resolved();
   }
 
+  private void publishPubSub(ByteString bytes) {
+    final ApiFuture<String> publish = publisher.publish(
+      PubsubMessage.newBuilder().setData(bytes).build());
+
+    ApiFutures.addCallback(publish, new ApiFutureCallback<String>() {
+      @Override
+      public void onFailure(Throwable t) {
+        log.error("Failed sending metrics {}", t.getMessage());
+      }
+
+      @Override
+      public void onSuccess(String messageId) { }
+
+    }, executorService);
+  }
+
+  // The pubsub plugin only supports sending batches of metrics.
   @Override
   public AsyncFuture<Void> sendMetrics(Collection<Metric> metrics) {
-    final UUID traceId = UUID.randomUUID();
-    log.info("{}: Start sending metrics", traceId);
+    log.info("Sending {} metrics", metrics.size());
 
-    for (Metric metric : metrics) {
-      try {
-        final ApiFuture<String> publish = publisher.publish(PubsubMessage.newBuilder()
-          .setData(ByteString.copyFrom(serializer.serialize(metric)))
-          .build()
-        );
-        ApiFutures.addCallback(publish, new ApiFutureCallback<String>() {
-          @Override
-          public void onFailure(Throwable t) {
-            log.error("Failed sending metrics {}", t.getMessage());
-          }
-
-          @Override
-          public void onSuccess(String messageId) { }
-
-        }, executorService);
-      } catch (Exception e) {
-        log.error("Failed to publish metric {}", e);
-      }
+    int size = 0;
+    try {
+      final ByteString m = ByteString.copyFrom(serializer.serialize(metrics));
+      publishPubSub(m);
+      size += m.size();
+    } catch (Exception e) {
+      log.error("Failed to serialize batch of metrics {}", e);
     }
-    log.info("{}: Finished sending metrics", traceId);
+    log.debug("Total size of sent metrics {} bytes", size);
     return async.resolved();
   }
 
   @Override
   public AsyncFuture<Void> sendBatches(Collection<Batch> batches) {
-    // TODO(dmichel): should this support events?
     final ArrayList<Metric> metrics = new ArrayList<>();
 
     batches.forEach(batch -> {
@@ -161,7 +161,6 @@ public class PubsubPluginSink implements BatchablePluginSink {
     sendBatches(Collections.singletonList(batch));
   }
 
-
   /**
    * If the service account permissions allow it, check to see if the topic exists. Topic
    * creation is handled outside of this plugin as to limit the privileges given to the producer.
@@ -187,5 +186,4 @@ public class PubsubPluginSink implements BatchablePluginSink {
       return null;
     });
   }
-
 }

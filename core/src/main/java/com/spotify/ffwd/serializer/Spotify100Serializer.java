@@ -27,6 +27,7 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
+import java.util.Collection;
 import java.util.Map;
 import lombok.Data;
 
@@ -76,6 +77,11 @@ public class Spotify100Serializer implements Serializer {
             new Spotify100Metric(source.getKey(), source.getTime().getTime(),
                 source.getTags(), source.getResource(), source.getValue());
         return mapper.writeValueAsBytes(m);
+    }
+
+    @Override
+    public byte[] serialize(Collection<Metric> metrics) throws Exception {
+        throw new UnsupportedOperationException("Not supported");
     }
 }
 

@@ -23,8 +23,17 @@ package com.spotify.ffwd.serializer;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.proto.Spotify100;
+import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
+import org.xerial.snappy.Snappy;
 
+/**
+ * Spotify100ProtoSerializer is intended to reduce the amount of data transferred between
+ * the publisher and the consumer. It useful when being used with Google Pubsub, because the
+ * client does not have native compression like Kafka.
+ *
+ * Compression is done with the snappy library via JNI.
+ */
 @Slf4j
 public class Spotify100ProtoSerializer implements Serializer {
 
@@ -36,13 +45,27 @@ public class Spotify100ProtoSerializer implements Serializer {
 
   @Override
   public byte[] serialize(final Metric metric) throws Exception {
+    throw new UnsupportedOperationException("Not supported");
+  }
+
+  @Override
+  public byte[] serialize(final Collection<Metric> metrics) throws Exception {
+    final Spotify100.Batch.Builder batch = Spotify100.Batch.newBuilder();
+
+    for (Metric metric : metrics) {
+      batch.addMetric(serializeMetric(metric));
+    }
+
+    return Snappy.compress(batch.build().toByteArray());
+  }
+
+  private Spotify100.Metric serializeMetric(final Metric metric) {
     return Spotify100.Metric.newBuilder()
       .setKey(metric.getKey())
       .setTime(metric.getTime().getTime())
       .setValue(metric.getValue())
       .putAllTags(metric.getTags())
       .putAllResource(metric.getResource())
-      .build()
-      .toByteArray();
+      .build();
   }
 }
