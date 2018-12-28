@@ -14,9 +14,8 @@
   </parent>
 
   <properties>
-    <spotify-metrics.version>1.0.1</spotify-metrics.version>
+    <spotify-metrics.version>1.0.2</spotify-metrics.version>
   </properties>
-
 
   <dependencies>
     <dependency>
