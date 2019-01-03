@@ -109,3 +109,18 @@ This project adheres to the [Open Code of Conduct][code-of-conduct]. By
 participating, you are expected to honor this code.
 
 [code-of-conduct]: https://github.com/spotify/code-of-conduct/blob/master/code-of-conduct.md
+
+# Releasing
+
+Releasing is done via the `maven-release-plugin` and `nexus-staging-plugin` which are configured via the
+`release` profile from the [parent pom](https://github.com/spotify/foss-root). Deploys are staged in oss.sonatype.org before being deployed to Maven Central. Check out the [maven-release-plugin docs](http://maven.apache.org/maven-release/maven-release-plugin/) and the [nexus-staging-plugin docs](https://help.sonatype.com/repomanager2) for more information.
+
+To release, first run:
+
+`mvn -P release release:prepare`
+
+You will be prompted for the release version and the next development version. On success, follow with:
+
+`mvn -P release release:perform`
+
+When that is successful, create [a new release](https://github.com/spotify/ffwd/releases/new) in GitHub pointing to the tag that was created and any relevant release notes.
