@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -110,16 +111,14 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
         final String key = decodeString(tree, "key");
         final double value = decodeDouble(tree, "value");
         final Date time = decodeTime(tree, "time");
-        final String host = decodeString(tree, HOST);
+        final Optional<String> host = Optional.ofNullable(decodeString(tree, HOST));
         final Set<String> riemannTags = decodeTags(tree, "tags");
         final Map<String, String> tags = decodeAttributes(tree, "attributes");
         // TODO: support resource?
         final Map<String, String> resource = ImmutableMap.of();
         final String proc = decodeString(tree, "proc");
 
-        if (host != null) {
-            tags.put(HOST, host);
-        }
+        host.ifPresent(h -> tags.put(HOST, h));
 
         return new Metric(key, value, time, riemannTags, tags, resource, proc);
     }
@@ -172,7 +171,7 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
     String decodeString(JsonNode tree, String name) {
         final JsonNode n = tree.get(name);
 
-        if (n.isNull()) {
+        if (n == null || n.isNull()) {
             return null;
         }
 

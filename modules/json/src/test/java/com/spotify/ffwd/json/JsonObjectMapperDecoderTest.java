@@ -46,4 +46,12 @@ public class JsonObjectMapperDecoderTest {
     assertNull(key);
   }
 
+  @Test
+  public void noHostInJson() throws IOException {
+    final JsonNode json = mapper.readTree("{\"key\": null}");
+    final String host = j.decodeString(json, "host");
+
+    assertNull(host);
+  }
+
 }

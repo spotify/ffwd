@@ -26,7 +26,7 @@ import com.google.api.core.ApiFutures;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.ProjectTopicName;
@@ -47,8 +47,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Executor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -77,8 +76,7 @@ public class PubsubPluginSink implements BatchablePluginSink {
   ProjectTopicName topicName;
 
 
-  private final ExecutorService executorService = Executors.newCachedThreadPool(
-    new ThreadFactoryBuilder().setNameFormat("ffwd-pubsub-callback-%d").build());
+  private final Executor executorService = MoreExecutors.directExecutor();
 
   @Override
   public boolean isReady() {
