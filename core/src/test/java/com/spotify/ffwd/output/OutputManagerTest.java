@@ -31,6 +31,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -39,9 +40,11 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 import com.spotify.ffwd.debug.DebugServer;
 import com.spotify.ffwd.filter.Filter;
+import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.statistics.OutputManagerStatistics;
 import eu.toolchain.async.AsyncFramework;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -185,11 +188,34 @@ public class OutputManagerTest {
                 ImmutableMap.of("bar","fooval","gke_pod","123"), m1.getProc()), sendAndCaptureMetric(m2));
     }
 
+    @Test
+    public void testTagsToResourceForBatches() {
+        Map<String, String> m2Tags = new HashMap<>();
+        m2Tags.put("role", "abc");
+        m2Tags.put("foo", "fooval");
+
+        final Batch.Point point = new Batch.Point(m1.getKey(), m2Tags, m1.getResource(), m1.getValue(), m1.getTime().getTime());
+        final Batch batch = new Batch(Maps.newHashMap(), Maps.newHashMap(), Collections.singletonList(point));
+
+        final Batch.Point expected = new Batch.Point(m1.getKey(), ImmutableMap.of("role","abc"),
+            ImmutableMap.of("bar","fooval"), m1.getValue(), m1.getTime().getTime());
+
+        assertEquals(expected, sendAndCaptureBatch(batch).getPoints().get(0));
+    }
+
     private Metric sendAndCaptureMetric(Metric metric) {
         final OutputManager outputManager = createOutputManager();
         ArgumentCaptor<Metric> captor = ArgumentCaptor.forClass(Metric.class);
         outputManager.sendMetric(metric);
         verify(sink, times(1)).sendMetric(captor.capture());
+        return captor.getValue();
+    }
+
+    private Batch sendAndCaptureBatch(Batch batch) {
+        final OutputManager outputManager = createOutputManager();
+        ArgumentCaptor<Batch> captor = ArgumentCaptor.forClass(Batch.class);
+        outputManager.sendBatch(batch);
+        verify(sink, times(1)).sendBatch(captor.capture());
         return captor.getValue();
     }
 }

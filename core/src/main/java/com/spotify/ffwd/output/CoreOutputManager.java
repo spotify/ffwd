@@ -33,11 +33,14 @@ import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.statistics.OutputManagerStatistics;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -208,12 +211,14 @@ public class CoreOutputManager implements OutputManager {
     private Metric filter(final Metric metric) {
         final Date time = metric.getTime() != null ? metric.getTime() : new Date();
 
-        final Map<String, String> mergedTags = selectTags(metric);
+        final Map<String, String> tags = selectTags(metric);
+        final Map<String, String> commonResource = Maps.newHashMap(resource);
+        commonResource.putAll(metric.getResource());
 
-        final Map<String, String> mergedResource = Maps.newHashMap(resource);
-        mergedResource.putAll(metric.getResource());
-
-        processTagsToResource(mergedTags, mergedResource);
+        final SimpleImmutableEntry<Map<String, String>, Map<String, String>>
+            tagsAndResources = processTagsToResource(tags, commonResource);
+        final Map<String, String> mergedTags = tagsAndResources.getKey();
+        final Map<String, String> mergedResource = tagsAndResources.getValue();
 
         final Set<String> mergedRiemannTags = Sets.newHashSet(riemannTags);
         mergedRiemannTags.addAll(metric.getRiemannTags());
@@ -226,28 +231,36 @@ public class CoreOutputManager implements OutputManager {
      * Filter the provided Batch and complete fields.
      */
     private Batch filter(final Batch batch) {
-        final Map<String, String> mergedCommonResource;
-        if (batch.getCommonResource().isEmpty()) {
-            mergedCommonResource = resource;
-        } else {
-            mergedCommonResource = Maps.newHashMap(resource);
-            mergedCommonResource.putAll(batch.getCommonResource());
-        }
+        final Map<String, String> commonTags = Maps.newHashMap(tags);
+        commonTags.putAll(batch.getCommonTags());
 
-        final Map<String, String> mergedCommonTags;
-        if (batch.getCommonTags().isEmpty()) {
-            mergedCommonTags = tags;
-        } else {
-            mergedCommonTags = Maps.newHashMap(tags);
-            mergedCommonTags.putAll(batch.getCommonTags());
-        }
+        final Map<String, String> commonResource = Maps.newHashMap(resource);
+        commonResource.putAll(batch.getCommonResource());
 
-        processTagsToResource(mergedCommonTags, mergedCommonResource);
-        batch.getPoints().forEach(point -> {
-            processTagsToResource(point.getTags(), point.getResource());
-        });
+        final SimpleImmutableEntry<Map<String, String>, Map<String, String>>
+            tagsAndResources = processTagsToResource(commonTags, commonResource);
+        final Map<String, String> mergedCommonTags = tagsAndResources.getKey();
+        final Map<String, String> mergedCommonResource = tagsAndResources.getValue();
 
-        return new Batch(mergedCommonTags, mergedCommonResource, batch.getPoints());
+        final List<Batch.Point> points = batch.getPoints().stream().map(point -> {
+            final Map<String, String> pointTags = point.getTags();
+            final Map<String, String> pointResource = point.getResource();
+
+            final SimpleImmutableEntry<Map<String, String>, Map<String, String>>
+                pointTagsAndResources = processTagsToResource(pointTags, pointResource);
+            final Map<String, String> mergedTags = pointTagsAndResources.getKey();
+            final Map<String, String> mergedResource = pointTagsAndResources.getValue();
+
+            return new Batch.Point(
+                point.getKey(),
+                mergedTags,
+                mergedResource,
+                point.getValue(),
+                point.getTimestamp());
+
+        }).collect(Collectors.toList());
+
+        return new Batch(mergedCommonTags, mergedCommonResource, points);
     }
 
     private Map<String, String> selectTags(Metric metric) {
@@ -274,21 +287,25 @@ public class CoreOutputManager implements OutputManager {
      * @param tags Map of tags that will be used when constructing a metric
      * @param resource Map of resource identifiers that will be used when constructing a metric
      */
-    private void processTagsToResource(
+    private SimpleImmutableEntry<Map<String, String>, Map<String, String>> processTagsToResource(
         final Map<String, String> tags, final Map<String, String> resource
     ) {
         if (tagsToResource.isEmpty()) {
-            return;
+            return new SimpleImmutableEntry<>(tags, resource);
         }
 
+        final Map<String, String> mergedResources = new HashMap<>(resource);
+        final Map<String, String> strippedTags = new HashMap<>(tags);
+
         tagsToResource.forEach((fromTag, toResource) -> {
-            final String tag = tags.remove(fromTag);
+            final String tag = strippedTags.remove(fromTag);
             // Set as resource if the tag exists and there were not already a resource with the
             // wanted name
             if (tag != null) {
-                resource.putIfAbsent(toResource, tag);
+                mergedResources.putIfAbsent(toResource, tag);
             }
         });
-    }
 
+        return new SimpleImmutableEntry<>(strippedTags, mergedResources);
+    }
 }
