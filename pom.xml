@@ -62,7 +62,7 @@
     <tiny-async.version>1.11.0</tiny-async.version>
     <log4j.version>2.11.1</log4j.version>
     <slf4j.version>1.7.25</slf4j.version>
-    <jackson.version>2.9.5</jackson.version>
+    <jackson.version>2.9.8</jackson.version>
   </properties>
 
   <profiles>
@@ -233,7 +233,7 @@
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
-        <version>2.9.5</version>
+        <version>${jackson.version}</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.dataformat</groupId>
