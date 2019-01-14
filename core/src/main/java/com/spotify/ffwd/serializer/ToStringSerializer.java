@@ -23,6 +23,7 @@ package com.spotify.ffwd.serializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
+import java.util.Collection;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,6 +42,11 @@ public class ToStringSerializer implements Serializer {
     @Override
     public byte[] serialize(Metric metric) throws Exception {
         return metric.toString().getBytes();
+    }
+
+    @Override
+    public byte[] serialize(Collection<Metric> metrics) throws Exception {
+        throw new UnsupportedOperationException("Not supported");
     }
 
     public static Supplier<Serializer> defaultSupplier() {

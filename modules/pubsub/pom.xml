@@ -26,6 +26,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.spotify.ffwd</groupId>
+            <artifactId>ffwd-core</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-pubsub</artifactId>
             <version>1.36.0</version>
@@ -58,13 +63,6 @@
         <artifactId>mockito-core</artifactId>
         <scope>test</scope>
       </dependency>
-      <dependency>
-        <groupId>com.spotify.ffwd</groupId>
-        <artifactId>ffwd-core</artifactId>
-        <scope>test</scope>
-      </dependency>
-
-
     </dependencies>
 
     <build>

@@ -64,6 +64,11 @@
       <artifactId>guice</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.xerial.snappy</groupId>
+      <artifactId>snappy-java</artifactId>
+    </dependency>
+
     <!-- testing -->
     <dependency>
       <groupId>junit</groupId>

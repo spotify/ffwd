@@ -25,3 +25,7 @@ message Metric {
 message Message {
     Metric metric = 1;
 }
+
+message Batch {
+    repeated Metric metric = 1;
+}
