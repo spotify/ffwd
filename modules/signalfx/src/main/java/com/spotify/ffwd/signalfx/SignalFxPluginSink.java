@@ -29,6 +29,7 @@ import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchablePluginSink;
+import com.spotify.ffwd.output.FakeBatchablePluginSinkBase;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.FutureFailed;
@@ -45,7 +46,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class SignalFxPluginSink implements BatchablePluginSink {
+public class SignalFxPluginSink extends FakeBatchablePluginSinkBase implements BatchablePluginSink {
     @Inject
     AsyncFramework async;
 
@@ -75,7 +76,7 @@ public class SignalFxPluginSink implements BatchablePluginSink {
 
     @Override
     public void sendBatch(final Batch batch) {
-        // TODO: implement this
+        sendBatches(Collections.singletonList(batch));
     }
 
     @Override
@@ -88,6 +89,13 @@ public class SignalFxPluginSink implements BatchablePluginSink {
             }
         }, executorService);
     }
+
+    @Override
+    public AsyncFuture<Void> sendBatches(final Collection<Batch> batches) {
+        final List<Metric> metrics = convertBatchesToMetrics(batches);
+        return sendMetrics(metrics);
+    }
+
 
     @Override
     public AsyncFuture<Void> sendMetrics(final Collection<Metric> metrics) {
@@ -143,12 +151,6 @@ public class SignalFxPluginSink implements BatchablePluginSink {
         });
 
         return future;
-    }
-
-    @Override
-    public AsyncFuture<Void> sendBatches(final Collection<Batch> batches) {
-        // TODO: implement this
-        return async.resolved();
     }
 
     private String composeMetricIdentity(final Metric metric) {

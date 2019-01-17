@@ -25,27 +25,23 @@ import com.google.api.core.ApiFutureCallback;
 import com.google.api.core.ApiFutures;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.pubsub.v1.Publisher;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.ProjectTopicName;
 import com.google.pubsub.v1.PubsubMessage;
 import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Batch.Point;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchablePluginSink;
+import com.spotify.ffwd.output.FakeBatchablePluginSinkBase;
 import com.spotify.ffwd.serializer.Serializer;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.concurrent.Executor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,7 +53,7 @@ import lombok.extern.slf4j.Slf4j;
  * `collectAndDiscard` on the futures anyway.
  */
 @Slf4j
-public class PubsubPluginSink implements BatchablePluginSink {
+public class PubsubPluginSink extends FakeBatchablePluginSinkBase implements BatchablePluginSink {
   @Inject
   AsyncFramework async;
 
@@ -124,27 +120,10 @@ public class PubsubPluginSink implements BatchablePluginSink {
 
   @Override
   public AsyncFuture<Void> sendBatches(Collection<Batch> batches) {
-    final ArrayList<Metric> metrics = new ArrayList<>();
-
-    batches.forEach(batch -> {
-      batch.getPoints().forEach(point -> {
-        metrics.add(convertBatchMetric(batch, point));
-      });
-    });
-
+    final List<Metric> metrics = convertBatchesToMetrics(batches);
     return sendMetrics(metrics);
   }
 
-  private Metric convertBatchMetric(final Batch batch, final Point point) {
-    final Map<String, String> allTags = new HashMap<>(batch.getCommonTags());
-    allTags.putAll(point.getTags());
-
-    final Map<String, String> allResource = new HashMap<>(batch.getCommonResource());
-    allResource.putAll(point.getResource());
-
-    return new Metric(point.getKey(), point.getValue(), new Date(point.getTimestamp()),
-      ImmutableSet.of(), allTags, allResource, null);
-  }
 
   @Override
   public void sendEvent(final Event event) {
