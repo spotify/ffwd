@@ -28,11 +28,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-@RequiredArgsConstructor(suppressConstructorProperties = true)
 public class Batch {
     private final Map<String, String> commonTags;
     private final Map<String, String> commonResource;
@@ -52,7 +50,6 @@ public class Batch {
     }
 
     @Data
-    @RequiredArgsConstructor(suppressConstructorProperties = true)
     public static class Point {
         private final String key;
         private final Map<String, String> tags;
