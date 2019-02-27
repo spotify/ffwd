@@ -26,7 +26,7 @@ if [[ ! -f $JVMARGS ]]; then
 fi
 
 if [[ -z $JAVA ]]; then
-    for java in "/usr/lib/jvm/jre-8-oracle-x64-no-alt/bin/java"; do
+    for java in "/usr/lib/jvm/java-11-openjdk-amd64/bin/java"; do
         if [[ -x $java ]]; then
             JAVA=$java
             break
