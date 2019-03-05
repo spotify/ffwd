@@ -4,12 +4,12 @@
   <parent>
     <groupId>com.spotify.ffwd</groupId>
     <artifactId>ffwd-parent</artifactId>
-    <version>0.4.3-SNAPSHOT</version>
+    <version>0.4.3</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
   <artifactId>ffwd-module-protobuf</artifactId>
-  <version>0.4.3-SNAPSHOT</version>
+  <version>0.4.3</version>
   <packaging>jar</packaging>
   <name>FastForward Protobuf Module</name>
 
