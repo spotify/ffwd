@@ -3,7 +3,7 @@
 
   <groupId>com.spotify.ffwd</groupId>
   <artifactId>ffwd-parent</artifactId>
-  <version>0.4.4-SNAPSHOT</version>
+  <version>0.4.4</version>
   <packaging>pom</packaging>
 
   <name>FastForward Parent</name>
@@ -44,7 +44,7 @@
     <connection>scm:git:git@github.com:spotify/ffwd</connection>
     <developerConnection>scm:git:git@github.com:spotify/ffwd</developerConnection>
     <url>https://github.com/spotify/ffwd</url>
-    <tag>0.4.0</tag>
+    <tag>0.4.4</tag>
   </scm>
 
   <developers>
@@ -161,52 +161,52 @@
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-api</artifactId>
-        <version>0.4.4-SNAPSHOT</version>
+        <version>0.4.4</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-core</artifactId>
-        <version>0.4.4-SNAPSHOT</version>
+        <version>0.4.4</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-module-kafka</artifactId>
-        <version>0.4.4-SNAPSHOT</version>
+        <version>0.4.4</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-module-signalfx</artifactId>
-        <version>0.4.4-SNAPSHOT</version>
+        <version>0.4.4</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
           <artifactId>ffwd-module-http</artifactId>
-        <version>0.4.4-SNAPSHOT</version>
+        <version>0.4.4</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-module-pubsub</artifactId>
-        <version>0.4.4-SNAPSHOT</version>
+        <version>0.4.4</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-module-riemann</artifactId>
-        <version>0.4.4-SNAPSHOT</version>
+        <version>0.4.4</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-module-carbon</artifactId>
-        <version>0.4.4-SNAPSHOT</version>
+        <version>0.4.4</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-module-protobuf</artifactId>
-        <version>0.4.4-SNAPSHOT</version>
+        <version>0.4.4</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-module-json</artifactId>
-        <version>0.4.4-SNAPSHOT</version>
+        <version>0.4.4</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
@@ -216,12 +216,12 @@
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-protobuf250</artifactId>
-        <version>0.4.4-SNAPSHOT</version>
+        <version>0.4.4</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-module-template</artifactId>
-        <version>0.4.4-SNAPSHOT</version>
+        <version>0.4.4</version>
       </dependency>
 
       <dependency>
