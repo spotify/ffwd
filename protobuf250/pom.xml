@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>ffwd-protobuf250</artifactId>
-  <version>0.4.4</version>
+  <version>0.4.5-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>FastForward Packaging of Protobuf 2.5</name>
@@ -10,7 +10,7 @@
   <parent>
     <groupId>com.spotify.ffwd</groupId>
     <artifactId>ffwd-parent</artifactId>
-    <version>0.4.4</version>
+    <version>0.4.5-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
 
