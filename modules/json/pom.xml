@@ -4,12 +4,12 @@
   <parent>
     <groupId>com.spotify.ffwd</groupId>
     <artifactId>ffwd-parent</artifactId>
-    <version>0.4.5-SNAPSHOT</version>
+    <version>0.4.5</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
   <artifactId>ffwd-module-json</artifactId>
-  <version>0.4.5-SNAPSHOT</version>
+  <version>0.4.5</version>
   <packaging>jar</packaging>
   <name>FastForward JSON Module</name>
 
