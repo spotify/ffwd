@@ -3,9 +3,15 @@
 [![License](https://img.shields.io/github/license/spotify/ffwd.svg)](LICENSE)
 
 
-This is a Java implementation of [ffwd](https://github.com/spotify/ffwd-ruby)
+ffwd is a flexible metric forwarding agent. It is intended to run locally on the system and receive metrics through a wide set of protocols and then forward them to your TSDB.
+
+By running locally, it is easily available to receive pushed data from any application or service that is running on the same system.
+
+ffwd decorates the received metrics with system-wide tags or attributes. By doing this, the application generating the data becomes simpler to build, maintain, and configure since it doesn't have to know where it is running. Only that ffwd is available on the loopback interface.
+
 
 This project is currently: __experimental__, use at your own risk.
+
 
 * [Protobuf Protocol](/modules/protobuf/)
 * [JSON Protocol](/modules/json/)
