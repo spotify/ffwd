@@ -1,15 +1,15 @@
-Source: ffwd-RELEASE
+Source: ffwd
 Section: net
 Priority: extra
 Maintainer: IO <io@spotify.com>
 Build-Depends:
  debhelper,
  default-jdk (>= 1.8),
- maven3 | maven (>= 3)
+ maven (>= 3)
 Standards-Version: 3.9.1
 
-Package: ffwd-RELEASE
+Package: ffwd
 Architecture: all
-Depends: oracle-jvm-11
-Description: FastForward Java Agent (release: RELEASE)
+Depends: oracle-jvm-11 (>=11.0.2-1spotify1) | openjdk-11-jre-headless
+Description: FastForward Java Agent
  FastForward is an events and metrics forwarding agent.

@@ -42,16 +42,7 @@ stable releases.
 Instead, you are encouraged to build your own using the provided scripts in
 this project.
 
-First run the `prepare-sources` script:
-
-```bash
-$ debian/bin/prepare-sources myrel 1
-```
-
-`myrel` will be the name of your release, it will be part of your package name
-`ffwd-myrel`.
-
-For the next step you'll need a Debian environment:
+You'll need a Debian environment:
 
 ```bash
 $ dpkg-buildpackage -uc -us
