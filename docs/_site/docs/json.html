@@ -1,0 +1,204 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="FFWD Documentation">
+    <meta name="author" content="Spotify">
+    <base href="/ffwd/">
+
+    <title>FFWD Documentation</title>
+
+    <!-- prism -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.16.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.16.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.16.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.16.0/components/prism-css.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.16.0/components/prism-sql.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.16.0/components/prism-yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.16.0/components/prism-json.min.js"></script>
+    <script src="assets/js/prism-hql.js" type="text/javascript"></script>
+    <script src="assets/js/prism-ts.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.1/themes/prism-tomorrow.min.css" />
+
+    <!-- bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-social/5.0.0/bootstrap-social.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css" />
+
+    <link rel="stylesheet" href="assets/css/index.css" />
+    <link rel="stylesheet" href="assets/css/docs.css" />
+  </head>
+  <body>
+    <nav class="navbar navbar-inverse">
+      <div class="container">
+        <div class="navbar-left">
+          <a href="/ffwd/">
+            <img src="images/smalllogo.jpg" style="margin-top: .25em;" />
+          </a>
+        </div>
+
+        <ul class="nav navbar-nav">
+          <li class="active">
+            <a href="docs/overview">Documentation</a>
+          </li>
+        </ul>
+
+        <ul class="nav navbar-nav navbar-right">
+          <li>
+            <a href="https://github.com/spotify/ffwd">
+              <span class="fa fa-github"></span>
+              FFWD on Github
+            </a>
+          </li>
+          <li>
+            <a href="https://github.com/spotify/ffwd/tree/master/docs">
+              <span class="fa fa-pencil"></span>
+              Improve this site
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="row">
+  <div class="col-md-3">
+    <ul class="nav">
+      <li >
+        <a href="docs/overview">Overview</a>
+      </li>
+
+      <li >
+        <a href="docs/components">Components</a>
+      </li>
+
+      <li >
+        <a href="docs/modules">Modules</a>
+
+	<ul class="nav">
+          <li >
+            <a href="docs/http">HTTP</a>
+          </li>
+
+	  <li class="active">
+            <a href="docs/json">JSON</a>
+          </li>
+
+          <li >
+            <a href="docs/protobuf">Protobuf</a>
+          </li>
+        </ul>
+      </li>
+
+      <li >
+        <a href="docs/on-disk-queue">On-disk Persistent Queue</a>
+      </li>
+
+    </ul>
+  </div>
+
+  <div class="col-md-9">
+    <h1 id="fastforward-json">FastForward JSON</h1>
+
+<p>FFWD comes with a built-in reference JSON-based protocol that supports most of
+the features available in the system.
+JSON protocol is exposed on port 19000 UDP.</p>
+
+<h2 id="message-framing">Message Framing</h2>
+
+<p>This protocol either operates in <code class="highlighter-rouge">TCP line-based</code> or <code class="highlighter-rouge">UDP frame-based</code> mode.
+This choice governs the use of <em>frame delimiter</em>.</p>
+
+<p>For <code class="highlighter-rouge">TCP line-based</code> the framing is done with a newline character <code class="highlighter-rouge">\n</code>.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client -&gt; Server
+  *connect*
+  {...} \n
+  ...
+  *close*
+</code></pre></div></div>
+
+<p>For <code class="highlighter-rouge">UDP frame-based</code> the framing is assumed to be on a per datagram basis.
+There is no need for a control character, you can just assume that the entire datagram is the payload.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client -&gt; Server
+  {...}
+  {...}
+  ...
+</code></pre></div></div>
+
+<h2 id="message-structure">Message Structure</h2>
+
+<p>The following sections will describe the expected JSON structure for each type of
+message that can be received.</p>
+
+<p>Each message is expected to be a valid JSON object with a <code class="highlighter-rouge">type</code> field describing the type of the object.</p>
+
+<p>The available objects are documented in the following sections.</p>
+
+<h4 id="metric-object-v1">Metric Object (v1)</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Metric:
+  type: required "metric"
+  key: optional String
+  value: optional Number
+  time: optional Number
+  host: optional String
+  tags: optional [String, ..]
+  attributes: optional {String: String, ..}
+  proc: optional String
+</code></pre></div></div>
+
+<h4 id="metric-object-v2-wip">Metric Object (v2) (WIP)</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Metric:
+  type: required "metric.v2"
+  value: optional Number
+  time: optional Number
+  tags: optional {String: String, ..}
+  proc: optional String
+</code></pre></div></div>
+
+<h4 id="event-object-v1">Event Object (v1)</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Event:
+  type: required "event"
+  key: optional String
+  value: optional Number
+  time: optional Number
+  host: optional String
+  state: optional String
+  description: optional String
+  ttl: optional Number
+  tags: optional [String, ..]
+  attributes: optional {String: String, ..}
+</code></pre></div></div>
+
+<h2 id="example-python-client">Example Python Client</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="n">addr</span><span class="o">=</span><span class="p">(</span><span class="s">'127.0.0.1'</span><span class="p">,</span> <span class="mi">19000</span><span class="p">)):</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_DGRAM</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">sendto</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">addr</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">send</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">close</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">"__main__"</span><span class="p">:</span>
+    <span class="n">send</span><span class="p">,</span> <span class="n">close</span> <span class="o">=</span> <span class="n">setup</span><span class="p">()</span>
+    <span class="n">send</span><span class="p">({</span><span class="s">"type"</span><span class="p">:</span> <span class="s">"metric"</span><span class="p">,</span> <span class="s">"key"</span><span class="p">:</span> <span class="s">"foo"</span><span class="p">,</span> <span class="s">"attributes"</span><span class="p">:{</span><span class="s">"what"</span><span class="p">:</span><span class="s">"my-awesome-metric"</span><span class="p">,</span> <span class="s">"some_other_attribute"</span><span class="p">:</span> <span class="s">"the-attributes-string-value"</span><span class="p">},</span> <span class="s">"value"</span><span class="p">:</span> <span class="mi">10</span><span class="p">})</span>
+    <span class="n">close</span><span class="p">()</span>
+</code></pre></div></div>
+
+  </div>
+</div>
+
+    </div>
+  </body>
+</html>

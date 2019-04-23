@@ -1,0 +1,163 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="FFWD Documentation">
+    <meta name="author" content="Spotify">
+    <base href="/ffwd/">
+
+    <title>FFWD Documentation</title>
+
+    <!-- prism -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.16.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.16.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.16.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.16.0/components/prism-css.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.16.0/components/prism-sql.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.16.0/components/prism-yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.16.0/components/prism-json.min.js"></script>
+    <script src="assets/js/prism-hql.js" type="text/javascript"></script>
+    <script src="assets/js/prism-ts.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.1/themes/prism-tomorrow.min.css" />
+
+    <!-- bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-social/5.0.0/bootstrap-social.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css" />
+
+    <link rel="stylesheet" href="assets/css/index.css" />
+    <link rel="stylesheet" href="assets/css/docs.css" />
+  </head>
+  <body>
+    <nav class="navbar navbar-inverse">
+      <div class="container">
+        <div class="navbar-left">
+          <a href="/ffwd/">
+            <img src="images/smalllogo.jpg" style="margin-top: .25em;" />
+          </a>
+        </div>
+
+        <ul class="nav navbar-nav">
+          <li class="active">
+            <a href="docs/overview">Documentation</a>
+          </li>
+        </ul>
+
+        <ul class="nav navbar-nav navbar-right">
+          <li>
+            <a href="https://github.com/spotify/ffwd">
+              <span class="fa fa-github"></span>
+              FFWD on Github
+            </a>
+          </li>
+          <li>
+            <a href="https://github.com/spotify/ffwd/tree/master/docs">
+              <span class="fa fa-pencil"></span>
+              Improve this site
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="row">
+  <div class="col-md-3">
+    <ul class="nav">
+      <li >
+        <a href="docs/overview">Overview</a>
+      </li>
+
+      <li class="active">
+        <a href="docs/components">Components</a>
+      </li>
+
+      <li >
+        <a href="docs/modules">Modules</a>
+
+	<ul class="nav">
+          <li >
+            <a href="docs/http">HTTP</a>
+          </li>
+
+	  <li >
+            <a href="docs/json">JSON</a>
+          </li>
+
+          <li >
+            <a href="docs/protobuf">Protobuf</a>
+          </li>
+        </ul>
+      </li>
+
+      <li >
+        <a href="docs/on-disk-queue">On-disk Persistent Queue</a>
+      </li>
+
+    </ul>
+  </div>
+
+  <div class="col-md-9">
+    <h1 id="ffwd-components">FFWD Components</h1>
+
+<p>This document covers some of the major components in FastForward.</p>
+
+<h4 id="module">Module</h4>
+
+<p>A module is a loadable component that extends the functionality of FastForward.
+When a module is loaded it typically registers a set of plugins.</p>
+
+<h4 id="plugin">Plugin</h4>
+
+<p>Either an input or an output plugin.</p>
+
+<p>This provides the implementation to read or send data from the agent.
+A plugin can have multiple <em>instances</em> with different configurations (like
+which port to listen to).</p>
+
+<h4 id="early-injector">Early Injector</h4>
+
+<p>The early injector is setup by AgentCore and is intended to provide the basic
+facilities to perform module setup.</p>
+
+<p>The following is a list of components that are given access to and their
+purpose.</p>
+
+<ul>
+  <li><em>com.spotify.ffwd.module.PluginContext</em>
+Register input and output plugins.</li>
+  <li><em>com.fasterxml.jackson.databind.ObjectMapper (config)</em>
+ObjectMapper used to parse provided configuration file.</li>
+</ul>
+
+<h4 id="primary-injector">Primary Injector</h4>
+
+<p>The primary injector contains the dependencies which are available after
+modules have been registered and the initial bootstrap is done.</p>
+
+<p>It contains all the components of the early injector, with the following
+additions.</p>
+
+<ul>
+  <li><em>eu.toolchain.async.AsyncFramework</em> - Framework implementation to use for
+async operations.</li>
+  <li><em>io.netty.channel.EventLoopGroup (boss)</em> Event loop group used for boss
+threads in ServerBootstrap’s.</li>
+  <li><em>io.netty.channel.EventLoopGroup (worker)</em> Event loop group used for
+worker threads in {Server}Bootstrap’s.</li>
+  <li><em>com.spotify.ffwd.protocol.ProtocolServers</em> - Framework for setting up
+servers in a simple manner.</li>
+  <li><em>com.spotify.ffwd.protocol.ProtocolClients</em> - Framework for setting up
+clients in a simple manner.</li>
+  <li><em>io.netty.util.Timer</em> - A timer implementation.</li>
+  <li><em>com.fasterxml.jackson.databind.ObjectMapper (application/json)</em>
+Used to decode/encode JSON.</li>
+</ul>
+
+  </div>
+</div>
+
+    </div>
+  </body>
+</html>

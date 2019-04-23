@@ -1,0 +1,22 @@
+baseurl: /ffwd
+collections_dir: content
+collections:
+  docs:
+    output: true
+  tutorials:
+    output: true
+
+
+defaults:
+  - scope:
+      type: docs
+    values:
+      layout: documentation
+  - scope:
+      type: tutorials
+    values:
+      layout: default
+
+sass:
+  sass_dir: assets/_sass
+  style: compressed

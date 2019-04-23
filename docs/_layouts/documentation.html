@@ -1,0 +1,43 @@
+---
+layout: default
+---
+<div class="row">
+  <div class="col-md-3">
+    <ul class="nav">
+      <li {% if page.title == 'Overview' %}class="active"{% endif %}>
+        <a href="docs/overview">Overview</a>
+      </li>
+
+      <li {% if page.title == 'Components' %}class="active"{% endif %}>
+        <a href="docs/components">Components</a>
+      </li>
+
+      <li {% if page.title == 'Modules' %}class="active"{% endif %}>
+        <a href="docs/modules">Modules</a>
+
+	<ul class="nav">
+          <li {% if page.title == 'HTTP' %}class="active"{% endif %}>
+            <a href="docs/http">HTTP</a>
+          </li>
+
+	  <li {% if page.title == 'JSON' %}class="active"{% endif %}>
+            <a href="docs/json">JSON</a>
+          </li>
+
+          <li {% if page.title == 'Protobuf' %}class="active"{% endif %}>
+            <a href="docs/protobuf">Protobuf</a>
+          </li>
+        </ul>
+      </li>
+
+      <li {% if page.title == 'On-disk Persistent Queue' %}class="active"{% endif %}>
+        <a href="docs/on-disk-queue">On-disk Persistent Queue</a>
+      </li>
+
+    </ul>
+  </div>
+
+  <div class="col-md-9">
+    {{ content }}
+  </div>
+</div>
