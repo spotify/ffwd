@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/github/license/spotify/ffwd.svg)](LICENSE)
 
 
-ffwd is a flexible metric forwarding agent. It is intended to run locally on the system and receive metrics through a wide set of protocols and then forward them to your TSDB. Go to https://spotify.github.io/ffwd/ for documentation.
+ffwd is a flexible metric forwarding agent. It is intended to run locally on the system and receive metrics through a wide set of protocols and then forward them to your TSDB.
 
 By running locally, it is easily available to receive pushed data from any application or service that is running on the same system.
 
@@ -12,12 +12,7 @@ ffwd decorates the received metrics with system-wide tags or attributes. By doin
 
 This project is currently: __experimental__, use at your own risk.
 
-
-* [Protobuf Protocol](/modules/protobuf/)
-* [JSON Protocol](/modules/json/)
-* [HTTP Protocol](/modules/http/)
-* [Hacking](docs/hacking.md)
-* [On-disk Persistent Queue (WIP)](docs/on-disk-queue.md)
+__Head over to https://spotify.github.io/ffwd/ for documentation.__
 
 # Building
 
