@@ -108,7 +108,7 @@ public class SignalFxPluginSink extends FakeBatchablePluginSinkBase implements B
                             SignalFxProtocolBuffers.DataPoint
                                 .newBuilder()
                                 .setMetric(composeMetricIdentity(metric))
-                                .setMetricType(SignalFxProtocolBuffers.MetricType.GAUGE)
+                                .setMetricType(getMetricType(metric))
                                 .setValue(SignalFxProtocolBuffers.Datum
                                     .newBuilder()
                                     .setDoubleValue(metric.getValue()))
@@ -151,6 +151,23 @@ public class SignalFxPluginSink extends FakeBatchablePluginSinkBase implements B
         });
 
         return future;
+    }
+
+    /**
+     * Get the appropriate SignalFx metric type
+     *
+     * https://docs.signalfx.com/en/latest/getting-started/concepts/metric-types.html
+     * @param metric Metric to check its type
+     * @return SignalFx MetricType
+     */
+    private SignalFxProtocolBuffers.MetricType getMetricType(final Metric metric) {
+        final SignalFxProtocolBuffers.MetricType metricType;
+        if (metric.getTags().getOrDefault("metric_type", "").equals("counter")) {
+            metricType = SignalFxProtocolBuffers.MetricType.CUMULATIVE_COUNTER;
+        } else {
+            metricType = SignalFxProtocolBuffers.MetricType.GAUGE;
+        }
+        return metricType;
     }
 
     private String composeMetricIdentity(final Metric metric) {
