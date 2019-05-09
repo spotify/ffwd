@@ -136,7 +136,7 @@
         <configuration>
           <controlDir>${basedir}/src/deb/control</controlDir>
           <verbose>true</verbose>
-          <deb>${project.build.directory}/ffwd.deb</deb>
+          <deb>${project.build.directory}/ffwd_${version}_all.deb</deb>
           <snapshotExpand>true</snapshotExpand>
           <!-- or defaults to a timestamp -->
           <snapshotTemplate>1</snapshotTemplate>
