@@ -49,9 +49,9 @@
 
   <developers>
     <developer>
-      <id>udoprog</id>
-      <name>John-John Tedro</name>
-      <email>udoprog@spotify.com</email>
+      <id>layer8</id>
+      <name>layer8</name>
+      <email>layer8@spotify.com</email>
     </developer>
   </developers>
 
@@ -161,67 +161,62 @@
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-api</artifactId>
-        <version>0.4.7-SNAPSHOT</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-core</artifactId>
-        <version>0.4.7-SNAPSHOT</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-module-kafka</artifactId>
-        <version>0.4.7-SNAPSHOT</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-module-signalfx</artifactId>
-        <version>0.4.7-SNAPSHOT</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
           <artifactId>ffwd-module-http</artifactId>
-        <version>0.4.7-SNAPSHOT</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-module-pubsub</artifactId>
-        <version>0.4.7-SNAPSHOT</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-module-riemann</artifactId>
-        <version>0.4.7-SNAPSHOT</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-module-carbon</artifactId>
-        <version>0.4.7-SNAPSHOT</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-module-protobuf</artifactId>
-        <version>0.4.7-SNAPSHOT</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-module-json</artifactId>
-        <version>0.4.7-SNAPSHOT</version>
-      </dependency>
-      <dependency>
-        <groupId>com.spotify.ffwd</groupId>
-        <artifactId>ffwd-module-ffwd</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-protobuf250</artifactId>
-        <version>0.4.7-SNAPSHOT</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-module-template</artifactId>
-        <version>0.4.7-SNAPSHOT</version>
+        <version>${project.version}</version>
       </dependency>
 
       <dependency>
@@ -431,7 +426,6 @@
           </execution>
         </executions>
       </plugin>
-
     </plugins>
   </build>
 </project>
