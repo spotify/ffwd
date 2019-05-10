@@ -36,6 +36,8 @@ import com.signalfx.metrics.connection.HttpDataPointProtobufReceiverFactory;
 import com.signalfx.metrics.connection.HttpEventProtobufReceiverFactory;
 import com.signalfx.metrics.errorhandler.OnSendErrorHandler;
 import com.signalfx.metrics.flush.AggregateMetricSender;
+import com.signalfx.shaded.apache.http.config.SocketConfig;
+import com.signalfx.shaded.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.module.Batching;
 import com.spotify.ffwd.output.OutputPlugin;
@@ -45,8 +47,6 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.config.SocketConfig;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 
 @Slf4j
 public class SignalFxOutputPlugin extends OutputPlugin {
