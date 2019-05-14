@@ -125,6 +125,18 @@ public class SignalFxPluginSink extends FakeBatchablePluginSinkBase implements B
                                 .build())
                             .forEach(datapointBuilder::addDimensions);
 
+                      metric
+                        .getResource()
+                        .entrySet()
+                        .stream()
+                        .map(attribute -> SignalFxProtocolBuffers.Dimension
+                          .newBuilder()
+                          .setKey(attribute.getKey())
+                          .setValue(composeDimensionValue(attribute.getValue()))
+                          .build())
+                        .forEach(datapointBuilder::addDimensions);
+
+                        // TODO: Why is this here? When we loop above all the tags above.
                         final String host = metric.getTags().get("host");
                         if (host != null) {
                             datapointBuilder.addDimensions(SignalFxProtocolBuffers.Dimension
