@@ -27,7 +27,6 @@ import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.ResolvableFuture;
 import java.io.IOException;
-import lombok.Data;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -36,15 +35,22 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-@Data
 public class HttpClient {
-    public static final String V1_BATCH_ENDPOINT = "v1/batch";
-    public static final String PING_ENDPOINT = "ping";
+    private static final String V1_BATCH_ENDPOINT = "v1/batch";
+    private static final String PING_ENDPOINT = "ping";
 
     private final AsyncFramework async;
     private final ObjectMapper mapper;
     private final OkHttpClient httpClient;
     private final String baseUrl;
+
+    public HttpClient(AsyncFramework async, ObjectMapper mapper, OkHttpClient httpClient,
+                      String baseUrl) {
+        this.async = async;
+        this.mapper = mapper;
+        this.httpClient = httpClient;
+        this.baseUrl = baseUrl;
+    }
 
     public AsyncFuture<Void> sendBatch(final Batch batch) {
         final byte[] body;

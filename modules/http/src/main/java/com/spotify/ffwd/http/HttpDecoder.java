@@ -39,11 +39,13 @@ import java.io.InputStream;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Sharable
 public class HttpDecoder extends MessageToMessageDecoder<FullHttpRequest> {
+    private static final Logger log = LoggerFactory.getLogger(HttpDecoder.class);
+
     @Inject
     @Named("application/json")
     private ObjectMapper mapper;

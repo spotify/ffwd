@@ -40,9 +40,7 @@ import com.spotify.ffwd.output.PluginSink;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class HttpOutputPlugin extends OutputPlugin {
     public static final Long DEFAULT_FLUSH_INTERVAL = 500L;
 
@@ -50,7 +48,8 @@ public class HttpOutputPlugin extends OutputPlugin {
 
     @JsonCreator
     public HttpOutputPlugin(
-        @JsonProperty("id") String id, @JsonProperty("flushInterval") Optional<Long> flushInterval,
+        @JsonProperty("id") String id,
+        @JsonProperty("flushInterval") Optional<Long> flushInterval,
         @JsonProperty("batching") Optional<Batching> batching,
         @JsonProperty("discovery") HttpDiscovery discovery,
         @JsonProperty("filter") Optional<Filter> filter

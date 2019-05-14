@@ -24,12 +24,12 @@
       <artifactId>lombok</artifactId>
       <scope>provided</scope>
     </dependency>
+
+    <!-- ffwd modules -->
     <dependency>
       <groupId>com.spotify.ffwd</groupId>
       <artifactId>ffwd-core</artifactId>
     </dependency>
-
-    <!-- modules -->
     <dependency>
       <groupId>com.spotify.ffwd</groupId>
       <artifactId>ffwd-module-kafka</artifactId>
@@ -42,7 +42,6 @@
       <groupId>com.spotify.ffwd</groupId>
       <artifactId>ffwd-module-carbon</artifactId>
     </dependency>
-
     <dependency>
       <groupId>com.spotify.ffwd</groupId>
       <artifactId>ffwd-module-protobuf</artifactId>
@@ -51,22 +50,18 @@
       <groupId>com.spotify.ffwd</groupId>
       <artifactId>ffwd-module-json</artifactId>
     </dependency>
-
     <dependency>
       <groupId>com.spotify.ffwd</groupId>
       <artifactId>ffwd-module-template</artifactId>
     </dependency>
-
     <dependency>
       <groupId>com.spotify.ffwd</groupId>
       <artifactId>ffwd-module-signalfx</artifactId>
     </dependency>
-
     <dependency>
       <groupId>com.spotify.ffwd</groupId>
       <artifactId>ffwd-module-http</artifactId>
     </dependency>
-
     <dependency>
       <groupId>com.spotify.ffwd</groupId>
       <artifactId>ffwd-module-pubsub</artifactId>
@@ -128,7 +123,6 @@
         </executions>
       </plugin>
 
-
       <plugin>
         <artifactId>jdeb</artifactId>
         <groupId>org.vafer</groupId>
@@ -136,7 +130,7 @@
         <configuration>
           <controlDir>${basedir}/src/deb/control</controlDir>
           <verbose>true</verbose>
-          <deb>${project.build.directory}/ffwd_${version}_all.deb</deb>
+          <deb>${project.build.directory}/ffwd_${project.version}_all.deb</deb>
           <snapshotExpand>true</snapshotExpand>
           <!-- or defaults to a timestamp -->
           <snapshotTemplate>1</snapshotTemplate>

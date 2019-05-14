@@ -2,7 +2,7 @@
  * -\-\-
  * FastForward HTTP Module
  * --
- * Copyright (C) 2016 - 2018 Spotify AB
+ * Copyright (C) 2019 Spotify AB
  * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,19 @@
  * -/-/-
  */
 
-package com.spotify.ffwd.http;
+package com.spotify.ffwd.http
 
-import io.netty.handler.codec.http.HttpResponseStatus;
-import lombok.Data;
+import com.netflix.loadbalancer.Server
+import com.netflix.loadbalancer.ServerList
 
-@Data
-public class HttpException extends RuntimeException {
-    private final HttpResponseStatus status;
+data class StaticServerList(val servers: List<Server>) : ServerList<Server> {
 
-    public HttpException(final HttpResponseStatus status) {
-        super(status.reasonPhrase());
-        this.status = status;
+    override fun getInitialListOfServers(): List<Server> {
+        return servers
     }
+
+    override fun getUpdatedListOfServers(): List<Server> {
+        return servers
+    }
+
 }

@@ -36,15 +36,17 @@ import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Decode individual frames, should only be used with UDP protocols.
  *
  * @author udoprog
  */
-@Slf4j
 public class HttpProtocolServer implements ProtocolServer {
+    private static final Logger log = LoggerFactory.getLogger(HttpDecoder.class);
+
     @Inject
     private ChannelInboundHandler handler;
 

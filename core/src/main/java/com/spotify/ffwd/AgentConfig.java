@@ -70,7 +70,8 @@ public class AgentConfig {
 
     @JsonCreator
     public AgentConfig(
-        @JsonProperty("debug") Debug debug, @JsonProperty("host") String host,
+        @JsonProperty("debug") Debug debug,
+        @JsonProperty("host") String host,
         @JsonProperty("tags") Map<String, String> tags,
         @JsonProperty("tagsToResource") Map<String, String> tagsToResource,
         @JsonProperty("riemannTags") Set<String> riemannTags,
@@ -82,7 +83,8 @@ public class AgentConfig {
         @JsonProperty("asyncThreads") Integer asyncThreads,
         @JsonProperty("schedulerThreads") Integer schedulerThreads,
         @JsonProperty("bossThreads") Integer bossThreads,
-        @JsonProperty("workerThreads") Integer workerThreads, @JsonProperty("ttl") Long ttl,
+        @JsonProperty("workerThreads") Integer workerThreads,
+        @JsonProperty("ttl") Long ttl,
         @JsonProperty("qlog") String qlog
     ) {
         this.debug = Optional.ofNullable(debug);
@@ -94,8 +96,8 @@ public class AgentConfig {
         this.automaticHostTag = Optional.ofNullable(automaticHostTag).orElse(DEFAULT_AUTO_HOST_TAG);
         this.input = Optional.ofNullable(input).orElseGet(InputManagerModule.supplyDefault());
         this.output = Optional.ofNullable(output).orElseGet(OutputManagerModule.supplyDefault());
-        this.searchDomain =
-            Optional.ofNullable(searchDomain).orElseGet(SearchDomainDiscovery::supplyDefault);
+        this.searchDomain = Optional.ofNullable(searchDomain).orElseGet(
+          SearchDomainDiscovery::supplyDefault);
         this.asyncThreads = Optional.ofNullable(asyncThreads).orElse(DEFAULT_ASYNC_THREADS);
         this.schedulerThreads =
             Optional.ofNullable(schedulerThreads).orElse(DEFAULT_SCHEDULER_THREADS);

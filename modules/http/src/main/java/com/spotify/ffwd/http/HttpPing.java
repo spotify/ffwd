@@ -23,10 +23,11 @@ package com.spotify.ffwd.http;
 import com.netflix.loadbalancer.IPing;
 import com.netflix.loadbalancer.Server;
 import javax.inject.Inject;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 
-@Slf4j
 public class HttpPing implements IPing {
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(HttpPing.class);
+
     @Inject
     HttpClientFactory clientFactory;
 

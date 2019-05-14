@@ -25,10 +25,8 @@ import com.netflix.loadbalancer.Server;
 import eu.toolchain.async.AsyncFramework;
 import javax.inject.Inject;
 import javax.inject.Named;
-import lombok.Data;
 import okhttp3.OkHttpClient;
 
-@Data
 public class HttpClientFactory {
     @Inject
     private AsyncFramework async;

@@ -31,10 +31,13 @@ import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.Transform;
 import java.util.concurrent.atomic.AtomicReference;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class HttpPluginSource implements PluginSource {
+    // TODO: Why is this log being passed into bind?
+    private static final Logger log = LoggerFactory.getLogger(HttpPluginSource.class);
+
     @Inject
     private AsyncFramework async;
 

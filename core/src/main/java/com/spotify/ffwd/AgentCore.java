@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.AbstractModule;
@@ -392,6 +393,7 @@ public class AgentCore {
 
         mapper.registerModule(new Jdk8Module());
         mapper.registerModule(module);
+        mapper.registerModule(new KotlinModule());
 
         final InputStream stream = configStream.orElseGet(() -> configPath
             .map(this::getConfigStream)

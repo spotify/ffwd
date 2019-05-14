@@ -39,11 +39,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import javax.inject.Inject;
-import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
 import rx.Observer;
 
-@Slf4j
 public class HttpPluginSink implements BatchablePluginSink {
     public static final StreamCollector<Void, Void> VOID_COLLECTOR =
         new StreamCollector<Void, Void>() {
