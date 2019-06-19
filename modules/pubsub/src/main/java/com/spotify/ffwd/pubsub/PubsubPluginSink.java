@@ -105,7 +105,7 @@ public class PubsubPluginSink extends FakeBatchablePluginSinkBase implements Bat
   @Override
   public AsyncFuture<Void> sendMetrics(Collection<Metric> metrics) {
     final UUID traceId = UUID.randomUUID();
-    log.info("{}: Start sending metrics", traceId);
+    log.debug("{}: Start sending metrics", traceId);
 
     for (Metric metric : metrics) {
       try {
@@ -127,7 +127,7 @@ public class PubsubPluginSink extends FakeBatchablePluginSinkBase implements Bat
         log.error("Failed to publish metric {}", e);
       }
     }
-    log.info("{}: Finished sending metrics", traceId);
+    log.debug("{}: Finished sending metrics", traceId);
     return async.resolved();
   }
 
