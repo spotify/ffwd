@@ -2,7 +2,7 @@
  * -\-\-
  * FastForward Agent
  * --
- * Copyright (C) 2016 - 2018 Spotify AB
+ * Copyright (C) 2016 - 2019 Spotify AB
  * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,6 @@ import com.spotify.ffwd.output.CoreOutputManager;
 import com.spotify.ffwd.output.FilteringPluginSink;
 import com.spotify.ffwd.output.OutputManager;
 import com.spotify.ffwd.output.PluginSink;
-import eu.toolchain.async.AsyncFramework;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,14 +42,12 @@ import org.mockito.runners.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class FfwdConfigurationTest {
 
-    private AsyncFramework async;
-
     @Before
     public void setup() {
     }
 
     @Test
-    public void testConfAllPluginsEnabled() throws IOException {
+    public void testConfAllPluginsEnabled() {
         final List<List<String>> expectedSinks = ImmutableList.of(
             ImmutableList.of("com.spotify.ffwd.output.FilteringPluginSink",
                 "com.spotify.ffwd.output.BatchingPluginSink",
@@ -75,7 +71,7 @@ public class FfwdConfigurationTest {
     }
 
     @Test
-    public void testConfMixedPluginsEnabled() throws IOException {
+    public void testConfMixedPluginsEnabled() {
         final List<List<String>> expectedSinks = ImmutableList.of(
             ImmutableList.of("com.spotify.ffwd.output.FilteringPluginSink",
                 "com.spotify.ffwd.output.BatchingPluginSink",

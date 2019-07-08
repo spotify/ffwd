@@ -2,7 +2,7 @@
  * -\-\-
  * FastForward Agent
  * --
- * Copyright (C) 2016 - 2018 Spotify AB
+ * Copyright (C) 2016 - 2019 Spotify AB
  * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,12 +37,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Data
 public class FastForwardAgent {
+    private static final Logger log = LoggerFactory.getLogger(FastForwardAgent.class);
     private final Statistics statistics;
     private final AgentCore core;
 
@@ -56,7 +56,7 @@ public class FastForwardAgent {
         run(agent);
     }
 
-    public static FastForwardAgent setup(
+    static FastForwardAgent setup(
         final Optional<Path> configPath, final Optional<InputStream> configStream
     ) {
         // needed for HTTP content decompression in:
@@ -99,19 +99,19 @@ public class FastForwardAgent {
         modules.add(com.spotify.ffwd.http.HttpModule.class);
         modules.add(com.spotify.ffwd.pubsub.PubsubOutputModule.class);
 
-        final AgentCore.Builder builder = AgentCore.builder().modules(modules);
+        final AgentCore.Builder builder = AgentCore.builder()
+            .modules(modules)
+            .statistics(statistics.statistics);
 
-        builder.statistics(statistics.statistics);
         configStream.map(builder::configStream);
         configPath.map(builder::configPath);
 
         final AgentCore core = builder.build();
-        final FastForwardAgent agent = new FastForwardAgent(statistics, core);
 
-        return agent;
+        return new FastForwardAgent(statistics, core);
     }
 
-    public static void run(final FastForwardAgent agent) {
+    private static void run(final FastForwardAgent agent) {
         try {
             agent.getCore().run();
         } catch (Exception e) {
@@ -149,10 +149,14 @@ public class FastForwardAgent {
         return new Statistics(ffwd, statistics);
     }
 
-    @RequiredArgsConstructor
     private static class Statistics {
         private final FastForwardReporter ffwd;
         private final SemanticCoreStatistics statistics;
+
+        Statistics(FastForwardReporter ffwd, SemanticCoreStatistics statistics) {
+            this.ffwd = ffwd;
+            this.statistics = statistics;
+        }
 
         void stop() {
             ffwd.stop();

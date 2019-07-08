@@ -2,7 +2,7 @@
  * -\-\-
  * FastForward Core
  * --
- * Copyright (C) 2016 - 2018 Spotify AB
+ * Copyright (C) 2016 - 2019 Spotify AB
  * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,18 +91,18 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class AgentCore {
     private static final Path DEFAULT_CONFIG_PATH = Paths.get("ffwd.yaml");
+    private static final Logger log = LoggerFactory.getLogger(AgentCore.class);
+
     private final List<Class<? extends FastForwardModule>> modules;
     private final Optional<InputStream> configStream;
     private final Optional<Path> configPath;
     private final CoreStatistics statistics;
 
-    @Getter
     private final Injector primaryInjector;
 
     private AgentCore(
@@ -285,8 +285,8 @@ public class AgentCore {
         modules.add(new AbstractModule() {
             @Override
             protected void configure() {
-                if (config.getDebug().isPresent()) {
-                    final AgentConfig.Debug debug = config.getDebug().get();
+                final Debug debug = config.getDebug();
+                if (debug != null) {
                     bind(DebugServer.class).toInstance(
                         new NettyDebugServer(debug.getLocalAddress()));
                 } else {
@@ -443,6 +443,10 @@ public class AgentCore {
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    public Injector getPrimaryInjector() {
+        return this.primaryInjector;
     }
 
     public static final class Builder {
