@@ -42,7 +42,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.Executor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -102,32 +101,20 @@ public class PubsubPluginSink extends FakeBatchablePluginSinkBase implements Bat
     }, executorService);
   }
 
+  // The pubsub plugin only supports sending batches of metrics.
   @Override
   public AsyncFuture<Void> sendMetrics(Collection<Metric> metrics) {
-    final UUID traceId = UUID.randomUUID();
-    log.debug("{}: Start sending metrics", traceId);
+    log.debug("Sending {} metrics", metrics.size());
 
-    for (Metric metric : metrics) {
-      try {
-        final ApiFuture<String> publish = publisher.publish(PubsubMessage.newBuilder()
-          .setData(ByteString.copyFrom(serializer.serialize(metric)))
-          .build()
-        );
-        ApiFutures.addCallback(publish, new ApiFutureCallback<String>() {
-          @Override
-          public void onFailure(Throwable t) {
-            log.error("Failed sending metrics {}", t.getMessage());
-          }
-
-          @Override
-          public void onSuccess(String messageId) { }
-
-        }, executorService);
-      } catch (Exception e) {
-        log.error("Failed to publish metric {}", e);
-      }
+    int size = 0;
+    try {
+      final ByteString m = ByteString.copyFrom(serializer.serialize(metrics));
+      publishPubSub(m);
+      size += m.size();
+    } catch (Exception e) {
+      log.error("Failed to serialize batch of metrics {}", e);
     }
-    log.debug("{}: Finished sending metrics", traceId);
+    log.debug("Total size of sent metrics {} bytes", size);
     return async.resolved();
   }
 
