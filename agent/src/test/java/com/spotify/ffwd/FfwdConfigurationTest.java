@@ -23,28 +23,28 @@ package com.spotify.ffwd;
 import static org.junit.Assert.assertEquals;
 
 import com.google.common.collect.ImmutableList;
-import com.google.inject.Injector;
 import com.spotify.ffwd.output.BatchingPluginSink;
 import com.spotify.ffwd.output.CoreOutputManager;
 import com.spotify.ffwd.output.FilteringPluginSink;
 import com.spotify.ffwd.output.OutputManager;
 import com.spotify.ffwd.output.PluginSink;
-import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Supplier;
-import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FfwdConfigurationTest {
 
-    @Before
-    public void setup() {
-    }
+    @Rule
+    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     @Test
     public void testConfAllPluginsEnabled() {
@@ -90,17 +90,43 @@ public class FfwdConfigurationTest {
             "ffwd-mixed-plugins.yaml", expectedSinks);
     }
 
+    @Test
+    public void testConfigFromEnvVars() {
+        environmentVariables.set("FFWD_TTL", "100");
+        CoreOutputManager outputManager = getOutputManager(null);
+        assertEquals(100, outputManager.getTtl());
+    }
+
+    @Test
+    public void testIgnoreUnknownFields() {
+        Path configPath = resource("invalid.yaml");
+
+        String host = getOutputManager(configPath).getHost();
+        assertEquals("jimjam", host);
+    }
+
+    @Test
+    public void testMergeOrder() {
+        environmentVariables.set("FFWD_TTL", "100");
+        Path configPath = resource("basic-settings.yaml");
+        CoreOutputManager outputManager = getOutputManager(configPath);
+
+        assertEquals(100, outputManager.getTtl());
+        assertEquals("jimjam", outputManager.getHost());
+    }
+
+    private CoreOutputManager getOutputManager(final Path configPath) {
+        final FastForwardAgent agent = FastForwardAgent.setup(Optional.ofNullable(configPath));
+        return (CoreOutputManager) agent.getCore().getPrimaryInjector().getInstance(OutputManager.class);
+    }
+
     private void verifyLoadedSinksForConfig(
-        final String expectationString, final String configName,
+        final String expectationString,
+        final String configName,
         final List<List<String>> expectedSinks
     ) {
-        final InputStream configStream = stream(configName).get();
-
-        final FastForwardAgent agent =
-            FastForwardAgent.setup(Optional.empty(), Optional.of(configStream));
-        final Injector primaryInjector = agent.getCore().getPrimaryInjector();
-        final CoreOutputManager outputManager =
-            (CoreOutputManager) primaryInjector.getInstance(OutputManager.class);
+        final Path configPath = resource(configName);
+        final CoreOutputManager outputManager = getOutputManager(configPath);
         final List<PluginSink> sinks = outputManager.getSinks();
 
         final List<List<String>> sinkChains = new ArrayList<>();
@@ -130,7 +156,8 @@ public class FfwdConfigurationTest {
         return sinkChain;
     }
 
-    private Supplier<InputStream> stream(String name) {
-        return () -> getClass().getClassLoader().getResourceAsStream(name);
+    private Path resource(String name) {
+        final String path = Objects.requireNonNull(getClass().getClassLoader().getResource(name)).getPath();
+        return Paths.get(path);
     }
 }

@@ -20,13 +20,8 @@
 
 package com.spotify.ffwd;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.AbstractModule;
@@ -65,6 +60,7 @@ import com.spotify.ffwd.serializer.Serializer;
 import com.spotify.ffwd.serializer.ToStringSerializer;
 import com.spotify.ffwd.statistics.CoreStatistics;
 import com.spotify.ffwd.statistics.NoopCoreStatistics;
+import com.uchuhimo.konf.Config;
 import eu.toolchain.async.AsyncCaller;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
@@ -75,9 +71,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timer;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Constructor;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -99,18 +93,16 @@ public class AgentCore {
     private static final Logger log = LoggerFactory.getLogger(AgentCore.class);
 
     private final List<Class<? extends FastForwardModule>> modules;
-    private final Optional<InputStream> configStream;
     private final Optional<Path> configPath;
     private final CoreStatistics statistics;
 
     private final Injector primaryInjector;
 
     private AgentCore(
-        final List<Class<? extends FastForwardModule>> modules, Optional<InputStream> configStream,
+        final List<Class<? extends FastForwardModule>> modules,
         Optional<Path> configPath, CoreStatistics statistics
     ) {
         this.modules = modules;
-        this.configStream = configStream;
         this.configPath = configPath;
         this.statistics = statistics;
 
@@ -150,18 +142,15 @@ public class AgentCore {
     }
 
     private Thread setupShutdownHook(final Injector primary, final CountDownLatch shutdown) {
-        final Thread thread = new Thread() {
-            @Override
-            public void run() {
-                try {
-                    AgentCore.this.stop(primary);
-                } catch (Exception e) {
-                    log.error("AgentCore#stop(Injector) failed", e);
-                }
-
-                shutdown.countDown();
+        final Thread thread = new Thread(() -> {
+            try {
+                AgentCore.this.stop(primary);
+            } catch (Exception e) {
+                log.error("AgentCore#stop(Injector) failed", e);
             }
-        };
+
+            shutdown.countDown();
+        });
 
         thread.setName("ffwd-agent-core-shutdown-hook");
 
@@ -285,10 +274,9 @@ public class AgentCore {
         modules.add(new AbstractModule() {
             @Override
             protected void configure() {
-                final Debug debug = config.getDebug();
-                if (debug != null) {
+                if (config.hasDebug()) {
                     bind(DebugServer.class).toInstance(
-                        new NettyDebugServer(debug.getLocalAddress()));
+                        new NettyDebugServer(config.getDebugLocalAddress()));
                 } else {
                     bind(DebugServer.class).toInstance(new NoopDebugServer());
                 }
@@ -386,32 +374,26 @@ public class AgentCore {
         return early.createChildInjector(modules);
     }
 
-    private AgentConfig readConfig(Injector early) throws IOException {
-        final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    /**
+     * Reads the configuration of the agent from multiple possible sources. In order of precedence,
+     * the following sources are loaded:
+     * - System properties
+     * - Environment variables
+     * - YAML file in specified location
+     * - YAML file bundled with JAR
+     *
+     * Values are merged, those higher on this list override those that are lower.
+     *
+     * @param early
+     * @return Data class of parsed config.
+     * @throws IOException when the passed config path is not valid YAML.
+     */
+    private AgentConfig readConfig(Injector early) {
         final SimpleModule module =
-            early.getInstance(Key.get(SimpleModule.class, Names.named("config")));
+          early.getInstance(Key.get(SimpleModule.class, Names.named("config")));
 
-        mapper.registerModule(new Jdk8Module());
-        mapper.registerModule(module);
-        mapper.registerModule(new KotlinModule());
-
-        final InputStream stream = configStream.orElseGet(() -> configPath
-            .map(this::getConfigStream)
-            .orElseGet(() -> getConfigStream(DEFAULT_CONFIG_PATH)));
-
-        try {
-            return mapper.readValue(stream, AgentConfig.class);
-        } catch (JsonParseException | JsonMappingException e) {
-            throw new IOException("Failed to parse configuration", e);
-        }
-    }
-
-    private InputStream getConfigStream(final Path path) {
-        try {
-            return Files.newInputStream(path);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to read configuration file '" + path + "'", e);
-        }
+        final Config config = AgentConfig.load(configPath.orElse(DEFAULT_CONFIG_PATH), module);
+        return new AgentConfig(config);
     }
 
     private List<FastForwardModule> loadModules(Injector injector) throws Exception {
@@ -451,18 +433,8 @@ public class AgentCore {
 
     public static final class Builder {
         private List<Class<? extends FastForwardModule>> modules = Lists.newArrayList();
-        private Optional<InputStream> configStream = Optional.empty();
         private Optional<Path> configPath = Optional.empty();
         private CoreStatistics statistics = NoopCoreStatistics.get();
-
-        public Builder configStream(final InputStream configStream) {
-            if (configStream == null) {
-                throw new NullPointerException("'configStream' must not be null");
-            }
-
-            this.configStream = Optional.of(configStream);
-            return this;
-        }
 
         public Builder configPath(final Path configPath) {
             if (configPath == null) {
@@ -492,7 +464,7 @@ public class AgentCore {
         }
 
         public AgentCore build() {
-            return new AgentCore(modules, configStream, configPath, statistics);
+            return new AgentCore(modules, configPath, statistics);
         }
     }
 }

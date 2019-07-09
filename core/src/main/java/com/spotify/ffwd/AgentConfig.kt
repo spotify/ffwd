@@ -16,40 +16,78 @@
 
 package com.spotify.ffwd
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
 import com.spotify.ffwd.domain.SearchDomainDiscovery
 import com.spotify.ffwd.input.InputManagerModule
 import com.spotify.ffwd.output.OutputManagerModule
+import com.uchuhimo.konf.Config
+import com.uchuhimo.konf.ConfigSpec
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.UnknownHostException
 import java.nio.file.Path
-import java.nio.file.Paths
 
-data class AgentConfig(
-    @JsonProperty("debug") var debug: Debug?,
-    @JsonProperty("host") var host: String = buildDefaultHost(),
-    @JsonProperty("tags") var tags: Map<String, String> = emptyMap(),
-    @JsonProperty("tagsToResource") var tagsToResource: Map<String, String> = emptyMap(),
-    @JsonProperty("riemannTags") var riemannTags: Set<String> = emptySet(),
-    @JsonProperty("skipTagsForKeys") var skipTagsForKeys: Set<String> = emptySet(),
-    @JsonProperty("automaticHostTag") var automaticHostTag: Boolean = true,
-    var input: InputManagerModule =
-        InputManagerModule.supplyDefault().get(),
-    @JsonProperty("output") var output: OutputManagerModule =
-        OutputManagerModule.supplyDefault().get(),
-    @JsonProperty("searchDomain") var searchDomain: SearchDomainDiscovery =
-        SearchDomainDiscovery.supplyDefault(),
-    @JsonProperty("asyncThreads") var asyncThreads: Int = 4,
-    @JsonProperty("schedulerThreads") var schedulerThreads: Int = 4,
-    @JsonProperty("bossThreads") var bossThreads: Int = 2,
-    @JsonProperty("workerThreads") var workerThreads: Int = 4,
-    @JsonProperty("ttl") var ttl: Long = 0,
-    // NB(hexedpackets): qlog is unused and can be removed once the config parser ignores unknown
-    // properties.
-    @JsonProperty("qlog") var qlog: String?
-)
+// Helper class to make interop with java easier. The configuration loading is done through the
+// static object.
+class AgentConfig(val config: Config) {
+    fun hasDebug(): Boolean = config.contains(Debug.host) or config.contains(Debug.port)
+
+    val debugLocalAddress =  config[Debug.localAddress]
+    val host = config[AgentConfig.host]
+    val tags = config[AgentConfig.tags]
+    val tagsToResource = config[AgentConfig.tagsToResource]
+    val riemannTags = config[AgentConfig.riemannTags]
+    val skipTagsForKeys = config[AgentConfig.skipTagsForKeys]
+    val automaticHostTag = config[AgentConfig.automaticHostTag]
+    val input: InputManagerModule = config[AgentConfig.input]
+    val output: OutputManagerModule = config[AgentConfig.output]
+    val searchDomain = config[AgentConfig.searchDomain]
+    val asyncThreads = config[AgentConfig.asyncThreads]
+    val schedulerThreads = config[AgentConfig.schedulerThreads]
+    val bossThreads = config[AgentConfig.bossThreads]
+    val workerThreads = config[AgentConfig.workerThreads]
+    val ttl = config[AgentConfig.ttl]
+
+    companion object : ConfigSpec("") {
+        object Debug : ConfigSpec() {
+            val host by optional("localhost")
+            val port by optional(19001)
+            val localAddress by lazy { InetSocketAddress(it[host], it[port]) }
+        }
+
+        val host by lazy { buildDefaultHost() }
+        val tags by optional(emptyMap<String, String>())
+        val tagsToResource by optional(emptyMap<String, String>())
+        val riemannTags by optional(emptySet<String>())
+        val skipTagsForKeys by optional(emptySet<String>())
+        val automaticHostTag by optional(true)
+        val input by lazy { InputManagerModule.supplyDefault().get() }
+        val output by lazy { OutputManagerModule.supplyDefault().get() }
+
+        val searchDomain by lazy { SearchDomainDiscovery.supplyDefault() }
+        val asyncThreads by optional(4)
+        val schedulerThreads by optional(4)
+        val bossThreads by optional(2)
+        val workerThreads by optional(4)
+        val ttl by optional(0)
+
+        @JvmStatic
+        fun load(path: Path, extraModule: SimpleModule): Config {
+            val config = Config { addSpec(AgentConfig) }
+            config.mapper
+                .registerModule(Jdk8Module())
+                .registerModule(extraModule)
+
+            // Load yaml config files with no prefix, then set it to "ffwd" for other sources.
+            return config
+                .from.yaml.file(path.toFile())
+                .withPrefix("ffwd")
+                .from.env()
+                .from.systemProperties()
+        }
+    }
+}
 
 private fun buildDefaultHost(): String {
     try {
@@ -57,12 +95,4 @@ private fun buildDefaultHost(): String {
     } catch (e: UnknownHostException) {
         throw RuntimeException("unable to get local host", e)
     }
-}
-
-data class Debug(
-    val localAddress: InetSocketAddress
-) {
-    @JsonCreator
-    constructor(@JsonProperty("host") host: String?, @JsonProperty port: Int?)
-        : this(InetSocketAddress(host ?: "localhost", port ?: 19001))
 }

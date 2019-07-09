@@ -21,3 +21,4 @@ release.properties
 
 # Documentation build
 /docs/_site/
+.pr-train.yml

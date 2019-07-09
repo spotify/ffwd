@@ -9,7 +9,7 @@
     </parent>
 
     <artifactId>ffwd-module-pubsub</artifactId>
-  <version>0.4.12-SNAPSHOT</version>
+    <version>0.4.12-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>FastForward Pubsub Module</name>
 
@@ -51,18 +51,18 @@
             <version>27.0.1-jre</version>
         </dependency>
 
-      <!-- testing -->
-      <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>4.11</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.mockito</groupId>
-        <artifactId>mockito-core</artifactId>
-        <scope>test</scope>
-      </dependency>
+        <!-- testing -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -90,6 +90,17 @@
                                     <exclude>io.netty:*</exclude>
                                 </excludes>
                             </artifactSet>
+
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
 
                             <relocations>
                                 <!-- move protobuf to a shaded package -->

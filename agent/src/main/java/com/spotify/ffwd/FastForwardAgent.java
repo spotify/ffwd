@@ -29,7 +29,6 @@ import com.spotify.metrics.jvm.GarbageCollectorMetricSet;
 import com.spotify.metrics.jvm.MemoryUsageGaugeSet;
 import com.spotify.metrics.jvm.ThreadStatesMetricSet;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -52,13 +51,11 @@ public class FastForwardAgent {
             path = Optional.of(Paths.get(argv[0]));
         }
 
-        final FastForwardAgent agent = setup(path, Optional.empty());
+        final FastForwardAgent agent = setup(path);
         run(agent);
     }
 
-    static FastForwardAgent setup(
-        final Optional<Path> configPath, final Optional<InputStream> configStream
-    ) {
+    static FastForwardAgent setup(final Optional<Path> configPath) {
         // needed for HTTP content decompression in:
         // com.spotify.ffwd.http.HttpModule
         System.setProperty("io.netty.noJdkZlibDecoder", "false");
@@ -102,12 +99,9 @@ public class FastForwardAgent {
         final AgentCore.Builder builder = AgentCore.builder()
             .modules(modules)
             .statistics(statistics.statistics);
-
-        configStream.map(builder::configStream);
         configPath.map(builder::configPath);
 
         final AgentCore core = builder.build();
-
         return new FastForwardAgent(statistics, core);
     }
 

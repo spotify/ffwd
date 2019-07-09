@@ -2,7 +2,7 @@
  * -\-\-
  * FastForward Core
  * --
- * Copyright (C) 2016 - 2018 Spotify AB
+ * Copyright (C) 2016 - 2019 Spotify AB
  * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,12 +42,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class CoreOutputManager implements OutputManager {
     private static final String DEBUG_ID = "core.output";
     private static final String HOST = "host";
+    private static final Logger log = LoggerFactory.getLogger(CoreOutputManager.class);
 
     @Inject
     @Getter
@@ -84,9 +85,17 @@ public class CoreOutputManager implements OutputManager {
     @Named("host")
     private String host;
 
+    public String getHost() {
+        return host;
+    }
+
     @Inject
     @Named("ttl")
     private long ttl;
+
+    public long getTtl() {
+        return ttl;
+    }
 
     @Inject
     private DebugServer debug;

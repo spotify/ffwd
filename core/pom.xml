@@ -30,6 +30,10 @@
       <groupId>org.jetbrains.kotlin</groupId>
       <artifactId>kotlin-stdlib-jdk8</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.uchuhimo</groupId>
+      <artifactId>konf</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>com.fasterxml.jackson.module</groupId>
