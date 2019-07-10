@@ -55,7 +55,7 @@ public class HttpOutputPlugin extends OutputPlugin {
         @JsonProperty("filter") Optional<Filter> filter
 
     ) {
-        super(filter, Batching.from(flushInterval, batching, Optional.of(DEFAULT_FLUSH_INTERVAL)));
+        super(filter, Batching.from(flushInterval.orElse(DEFAULT_FLUSH_INTERVAL), batching));
         this.discovery = Optional.ofNullable(discovery).orElseGet(HttpDiscovery::supplyDefault);
     }
 

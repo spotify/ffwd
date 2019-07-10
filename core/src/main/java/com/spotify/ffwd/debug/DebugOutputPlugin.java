@@ -45,7 +45,7 @@ public class DebugOutputPlugin extends OutputPlugin {
         @JsonProperty("batching") Optional<Batching> batching,
         @JsonProperty("filter") Optional<Filter> filter
     ) {
-        super(filter, Batching.from(flushInterval, batching, Optional.of(DEFAULT_FLUSH_INTERVAL)));
+        super(filter, Batching.from(flushInterval.orElse(DEFAULT_FLUSH_INTERVAL), batching));
     }
 
     @Override

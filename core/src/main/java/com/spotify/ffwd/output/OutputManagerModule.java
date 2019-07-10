@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
 
 public class OutputManagerModule {
     private static final List<OutputPlugin> DEFAULT_PLUGINS = Lists.newArrayList();
@@ -54,13 +55,17 @@ public class OutputManagerModule {
 
     private final List<OutputPlugin> plugins;
     private final Filter filter;
+    @Nullable private final Integer rateLimit;
 
     @JsonCreator
     public OutputManagerModule(
-        @JsonProperty("plugins") List<OutputPlugin> plugins, @JsonProperty("filter") Filter filter
+        @JsonProperty("plugins") List<OutputPlugin> plugins,
+        @JsonProperty("filter") Filter filter,
+        @JsonProperty("ratelimit") @Nullable Integer rateLimit
     ) {
         this.plugins = Optional.ofNullable(plugins).orElse(DEFAULT_PLUGINS);
         this.filter = Optional.ofNullable(filter).orElseGet(TrueFilter::new);
+        this.rateLimit = rateLimit;
     }
 
     public Module module() {
@@ -147,6 +152,14 @@ public class OutputManagerModule {
                 return filter;
             }
 
+            @Provides
+            @Singleton
+            @Named("rateLimit")
+            @Nullable
+            public Integer rateLimit() {
+                return rateLimit;
+            }
+
             @Override
             protected void configure() {
                 bind(OutputManager.class).to(CoreOutputManager.class).in(Scopes.SINGLETON);
@@ -222,6 +235,6 @@ public class OutputManagerModule {
     }
 
     public static Supplier<OutputManagerModule> supplyDefault() {
-        return () -> new OutputManagerModule(null, null);
+        return () -> new OutputManagerModule(null, null, null);
     }
 }

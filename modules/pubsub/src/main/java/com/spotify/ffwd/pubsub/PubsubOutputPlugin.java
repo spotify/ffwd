@@ -50,6 +50,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import java.io.IOException;
 import java.util.Optional;
+import javax.annotation.Nullable;
 import org.threeten.bp.Duration;
 
 public class PubsubOutputPlugin extends OutputPlugin {
@@ -71,7 +72,7 @@ public class PubsubOutputPlugin extends OutputPlugin {
   @JsonCreator
   public PubsubOutputPlugin(
     @JsonProperty("filter") Optional<Filter> filter,
-    @JsonProperty("flushInterval") Optional<Long> flushInterval,
+    @JsonProperty("flushInterval") @Nullable Long flushInterval,
     @JsonProperty("batching") Optional<Batching> batching,
     @JsonProperty("serializer") Serializer serializer,
 

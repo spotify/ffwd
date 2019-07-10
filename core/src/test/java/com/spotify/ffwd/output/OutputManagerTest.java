@@ -38,6 +38,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
+import com.google.inject.util.Providers;
 import com.spotify.ffwd.debug.DebugServer;
 import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.model.Batch;
@@ -75,10 +76,9 @@ public class OutputManagerTest {
     private Set<String> riemannTags = ImmutableSet.of();
     private Set<String> skipTagsForKeys = ImmutableSet.of();
     private Boolean automaticHostTag = true;
-
     private String host = HOST;
-
     private long ttl = 0L;
+    private Integer rateLimit = null;
 
     @Mock
     private DebugServer debugServer;
@@ -129,6 +129,7 @@ public class OutputManagerTest {
                     .toInstance(automaticHostTag);
                 bind(String.class).annotatedWith(Names.named("host")).toInstance(host);
                 bind(long.class).annotatedWith(Names.named("ttl")).toInstance(ttl);
+                bind(Integer.class).annotatedWith(Names.named("rateLimit")).toProvider(Providers.of(rateLimit));
                 bind(DebugServer.class).toInstance(debugServer);
                 bind(OutputManagerStatistics.class).toInstance(statistics);
                 bind(Filter.class).toInstance(filter);
@@ -201,6 +202,31 @@ public class OutputManagerTest {
             ImmutableMap.of("bar","fooval"), m1.getValue(), m1.getTime().getTime());
 
         assertEquals(expected, sendAndCaptureBatch(batch).getPoints().get(0));
+    }
+
+    @Test
+    public void testAcceptedRateLimiting() {
+        rateLimit = 1000;
+        OutputManager outputManager = createOutputManager();
+        ArgumentCaptor<Metric> captor = ArgumentCaptor.forClass(Metric.class);
+
+        outputManager.sendMetric(m1);
+        outputManager.sendMetric(m1);
+
+        verify(sink, times(2)).sendMetric(captor.capture());
+    }
+
+    @Test
+    public void testDroppingRateLimiting() {
+        rateLimit = 1;
+        OutputManager outputManager = createOutputManager();
+        ArgumentCaptor<Metric> captor = ArgumentCaptor.forClass(Metric.class);
+
+        outputManager.sendMetric(m1);
+        outputManager.sendMetric(m1);
+
+        // The first metric should be accepted and the second dropped
+        verify(sink, times(1)).sendMetric(captor.capture());
     }
 
     private Metric sendAndCaptureMetric(Metric metric) {

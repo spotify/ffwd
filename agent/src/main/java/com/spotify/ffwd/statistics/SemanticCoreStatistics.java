@@ -97,13 +97,17 @@ public class SemanticCoreStatistics implements CoreStatistics {
 
         return new OutputManagerStatistics() {
             private final Meter sentMetrics =
-                registry.meter(m.tagged("what", "sent-metrics", "unit", "metric"));
+              registry.meter(m.tagged("what", "sent-metrics", "unit", "metric"));
             private final Meter sentEvents =
-                registry.meter(m.tagged("what", "sent-events", "unit", "event"));
-            private final Meter metricsDroppedByFilter =
-                registry.meter(m.tagged("what", "metrics-dropped-by-filter", "unit", "metric"));
+              registry.meter(m.tagged("what", "sent-events", "unit", "event"));
             private final Meter eventsDroppedByFilter =
-                registry.meter(m.tagged("what", "events-dropped-by-filter", "unit", "event"));
+              registry.meter(m.tagged("what", "events-dropped-by-filter", "unit", "event"));
+            private final Meter eventsDroppedByRateLimit =
+              registry.meter(m.tagged("what", "events-dropped-by-ratelimit", "unit", "metric"));
+            private final Meter metricsDroppedByFilter =
+              registry.meter(m.tagged("what", "metrics-dropped-by-filter", "unit", "metric"));
+            private final Meter metricsDroppedByRateLimit =
+              registry.meter(m.tagged("what", "metrics-dropped-by-ratelimit", "unit", "metric"));
 
             @Override
             public void reportSentMetrics(int sent) {
@@ -121,8 +125,18 @@ public class SemanticCoreStatistics implements CoreStatistics {
             }
 
             @Override
+            public void reportEventsDroppedByRateLimit(final int dropped) {
+                eventsDroppedByRateLimit.mark(dropped);
+            }
+
+            @Override
             public void reportMetricsDroppedByFilter(int dropped) {
                 metricsDroppedByFilter.mark(dropped);
+            }
+
+            @Override
+            public void reportMetricsDroppedByRateLimit(int dropped) {
+                metricsDroppedByRateLimit.mark(dropped);
             }
         };
     }

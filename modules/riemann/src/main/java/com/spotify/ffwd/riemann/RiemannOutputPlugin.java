@@ -38,6 +38,7 @@ import com.spotify.ffwd.protocol.ProtocolPluginSink;
 import com.spotify.ffwd.protocol.ProtocolType;
 import com.spotify.ffwd.protocol.RetryPolicy;
 import java.util.Optional;
+import javax.annotation.Nullable;
 
 public class RiemannOutputPlugin extends OutputPlugin {
     private static final ProtocolType DEFAULT_PROTOCOL = ProtocolType.TCP;
@@ -49,7 +50,7 @@ public class RiemannOutputPlugin extends OutputPlugin {
 
     @JsonCreator
     public RiemannOutputPlugin(
-        @JsonProperty("flushInterval") Optional<Long> flushInterval,
+        @JsonProperty("flushInterval") @Nullable Long flushInterval,
         @JsonProperty("batching") Optional<Batching> batching,
         @JsonProperty("protocol") ProtocolFactory protocol,
         @JsonProperty("retry") RetryPolicy retry, @JsonProperty("filter") Optional<Filter> filter

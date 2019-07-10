@@ -62,7 +62,15 @@ public class NoopCoreStatistics implements CoreStatistics {
             }
 
             @Override
+            public void reportEventsDroppedByRateLimit(int dropped) {
+            }
+
+            @Override
             public void reportMetricsDroppedByFilter(int dropped) {
+            }
+
+            @Override
+            public void reportMetricsDroppedByRateLimit(final int dropped) {
             }
         };
 
@@ -71,12 +79,7 @@ public class NoopCoreStatistics implements CoreStatistics {
         return noopOutputManagerStatistics;
     }
 
-    private static final OutputPluginStatistics noopOutputPluginStatistics =
-        new OutputPluginStatistics() {
-            @Override
-            public void reportDropped(int dropped) {
-            }
-        };
+    private static final OutputPluginStatistics noopOutputPluginStatistics = dropped -> { };
 
     @Override
     public OutputPluginStatistics newOutputPlugin(String id) {

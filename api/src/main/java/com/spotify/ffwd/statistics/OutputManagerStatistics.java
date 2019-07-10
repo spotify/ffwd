@@ -26,30 +26,48 @@ public interface OutputManagerStatistics {
      *
      * @param sent The number of metrics sent.
      */
-    public void reportSentEvents(int sent);
+    void reportSentEvents(int sent);
 
     /**
      * Report that the given number of metrics have been sent to output plugins.
      *
      * @param sent The number of metrics sent.
      */
-    public void reportSentMetrics(int sent);
+    void reportSentMetrics(int sent);
 
     /**
      * Reported that the given number of events were filtered.
      * <p>
      * Filtered events are <em>not</em> sent to output plugins.
      *
-     * @param filtered The number of filtered events.
+     * @param dropped The number of filtered events.
      */
-    public void reportEventsDroppedByFilter(int dropped);
+    void reportEventsDroppedByFilter(int dropped);
+
+    /**
+     * Reported that the given number of events were dropped due to a rate limit.
+     * <p>
+     * Dropped events are <em>not</em> sent to output plugins.
+     *
+     * @param dropped The number of dropped events.
+     */
+    void reportEventsDroppedByRateLimit(int dropped);
 
     /**
      * Reported that the given number of metrics were filtered.
      * <p>
      * Filtered metrics are <em>not</em> sent to output plugins.
      *
-     * @param filtered The number of filtered metrics.
+     * @param dropped The number of filtered metrics.
      */
-    public void reportMetricsDroppedByFilter(int dropped);
+    void reportMetricsDroppedByFilter(int dropped);
+
+    /**
+     * Reported that the given number of metrics were dropped due to a rate limit.
+     * <p>
+     * Dropped metrics are <em>not</em> sent to output plugins.
+     *
+     * @param dropped The number of dropped metrics.
+     */
+    void reportMetricsDroppedByRateLimit(int dropped);
 }

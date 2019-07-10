@@ -93,8 +93,12 @@ public class FfwdConfigurationTest {
     @Test
     public void testConfigFromEnvVars() {
         environmentVariables.set("FFWD_TTL", "100");
+        environmentVariables.set("FFWD_OUTPUT_RATELIMIT", "1000");
+
         CoreOutputManager outputManager = getOutputManager(null);
+
         assertEquals(100, outputManager.getTtl());
+        assertEquals(Double.valueOf(1000), outputManager.getRateLimit());
     }
 
     @Test

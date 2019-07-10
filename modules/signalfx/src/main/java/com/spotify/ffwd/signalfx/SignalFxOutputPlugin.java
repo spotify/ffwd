@@ -66,7 +66,7 @@ public class SignalFxOutputPlugin extends OutputPlugin {
         @JsonProperty("batching") Optional<Batching> batching,
         @JsonProperty("soTimeout") Integer soTimeout,
         @JsonProperty("filter") Optional<Filter> filter) {
-        super(filter, Batching.from(flushInterval, batching, Optional.of(DEFAULT_FLUSH_INTERVAL)));
+        super(filter, Batching.from(flushInterval.orElse(DEFAULT_FLUSH_INTERVAL), batching));
         this.sourceName = Optional.ofNullable(sourceName).orElse(DEFAULT_SOURCE_NAME);
         this.authToken = Optional
             .ofNullable(authToken)

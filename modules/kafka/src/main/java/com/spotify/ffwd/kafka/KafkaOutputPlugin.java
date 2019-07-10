@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import javax.annotation.Nullable;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.ProducerConfig;
 
@@ -54,7 +55,7 @@ public class KafkaOutputPlugin extends OutputPlugin {
     @JsonCreator
     public KafkaOutputPlugin(
         @JsonProperty("producer") Map<String, String> properties,
-        @JsonProperty("flushInterval") Optional<Long> flushInterval,
+        @JsonProperty("flushInterval") @Nullable Long flushInterval,
         @JsonProperty("batching") Optional<Batching> batching,
         @JsonProperty("router") KafkaRouter router,
         @JsonProperty("partitioner") KafkaPartitioner partitioner,

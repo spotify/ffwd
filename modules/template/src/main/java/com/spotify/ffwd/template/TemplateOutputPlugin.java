@@ -36,6 +36,7 @@ import com.spotify.ffwd.protocol.ProtocolPluginSink;
 import com.spotify.ffwd.protocol.ProtocolType;
 import com.spotify.ffwd.protocol.RetryPolicy;
 import java.util.Optional;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +52,7 @@ public class TemplateOutputPlugin extends OutputPlugin {
         @JsonProperty("protocol") final ProtocolFactory protocol,
         @JsonProperty("retry") final RetryPolicy retry,
         @JsonProperty("filter") Optional<Filter> filter,
-        @JsonProperty("flushInterval") Optional<Long> flushInterval,
+        @JsonProperty("flushInterval") @Nullable Long flushInterval,
         @JsonProperty("batching") Optional<Batching> batching
     ) {
         super(filter, Batching.from(flushInterval, batching));
