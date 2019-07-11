@@ -88,7 +88,7 @@ Releasing is done via the `maven-release-plugin`.
 
 To release, run:
 
-`mvn -P release release:prepare`
+`mvn release:clean release:prepare -D autoVersionSubmodules=true`
 
 You will be prompted for the release version and the next development version. 
 
