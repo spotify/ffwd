@@ -29,6 +29,8 @@ import com.spotify.metrics.core.MetricId;
 import com.spotify.metrics.core.SemanticMetricBuilder;
 import com.spotify.metrics.core.SemanticMetricRegistry;
 import eu.toolchain.async.FutureFinished;
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 
@@ -146,12 +148,23 @@ public class SemanticCoreStatistics implements CoreStatistics {
         final MetricId m = metric.tagged("component", "output-plugin", "plugin_id", id);
 
         return new OutputPluginStatistics() {
-            private final Meter dropped =
-                registry.meter(m.tagged("what", "dropped-metrics", "unit", "metric"));
+            private final Meter dropped = registry.meter(
+                m.tagged("what", "dropped-metrics", "unit", "metric"));
+            private Map<MetricId, Metric> gauges = Collections.emptyMap();
+
+            @Override
+            public Map<MetricId, Metric> getMetrics() {
+                return this.gauges;
+            }
 
             @Override
             public void reportDropped(int dropped) {
                 this.dropped.mark(dropped);
+            }
+
+            @Override
+            public void registerCacheStats(SemanticCacheStatistics s) {
+                registry.register(m, s);
             }
         };
     }

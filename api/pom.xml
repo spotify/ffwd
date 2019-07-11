@@ -59,6 +59,11 @@
       <artifactId>jackson-datatype-jdk8</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>com.spotify.metrics</groupId>
+      <artifactId>semantic-metrics-core</artifactId>
+    </dependency>
+
     <!-- testing -->
     <dependency>
       <groupId>junit</groupId>

@@ -25,25 +25,30 @@ import com.google.api.core.ApiFutureCallback;
 import com.google.api.core.ApiFutures;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.pubsub.v1.Publisher;
+import com.google.common.cache.Cache;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.ProjectTopicName;
 import com.google.pubsub.v1.PubsubMessage;
+import com.spotify.ffwd.cache.WriteCache;
 import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchablePluginSink;
 import com.spotify.ffwd.output.FakeBatchablePluginSinkBase;
 import com.spotify.ffwd.serializer.Serializer;
+import com.spotify.ffwd.statistics.OutputPluginStatistics;
+import com.spotify.ffwd.statistics.SemanticCacheStatistics;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Executor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 
 /**
  * This output plugin sends metrics to Google pubsub.
@@ -52,7 +57,6 @@ import lombok.extern.slf4j.Slf4j;
  * map from `ApiFuture` to `AsyncFuture` and the PluginSink that executes this one calls
  * `collectAndDiscard` on the futures anyway.
  */
-@Slf4j
 public class PubsubPluginSink extends FakeBatchablePluginSinkBase implements BatchablePluginSink {
   @Inject
   AsyncFramework async;
@@ -69,6 +73,18 @@ public class PubsubPluginSink extends FakeBatchablePluginSinkBase implements Bat
   @Inject
   ProjectTopicName topicName;
 
+  @Inject
+  WriteCache writeCache;
+
+  @Inject
+  Logger logger;
+
+  @Inject
+  OutputPluginStatistics statistics;
+
+  @Inject
+  Optional<Cache<String, Boolean>> cache;
+
   private final Executor executorService = MoreExecutors.directExecutor();
 
   @Override
@@ -81,18 +97,24 @@ public class PubsubPluginSink extends FakeBatchablePluginSinkBase implements Bat
 
   @Override
   public AsyncFuture<Void> sendEvents(Collection<Event> events) {
-    log.debug("Sending events is not supported!");
+    logger.debug("Sending events is not supported!");
     return async.resolved();
   }
 
-  private void publishPubSub(ByteString bytes) {
-    final ApiFuture<String> publish = publisher.publish(
-      PubsubMessage.newBuilder().setData(bytes).build());
+  private void publishPubSub(final ByteString bytes) {
+    // don't publish "\000" - indicates all the metrics are in the writeCache
+    if (bytes.size() <= 1) {
+      return;
+    }
+
+    final ApiFuture<String> publish =
+        publisher.publish(PubsubMessage.newBuilder().setData(bytes).build());
+
 
     ApiFutures.addCallback(publish, new ApiFutureCallback<String>() {
       @Override
       public void onFailure(Throwable t) {
-        log.error("Failed sending metrics {}", t.getMessage());
+        logger.error("Failed sending metrics {}", t.getMessage());
       }
 
       @Override
@@ -104,17 +126,14 @@ public class PubsubPluginSink extends FakeBatchablePluginSinkBase implements Bat
   // The pubsub plugin only supports sending batches of metrics.
   @Override
   public AsyncFuture<Void> sendMetrics(Collection<Metric> metrics) {
-    log.debug("Sending {} metrics", metrics.size());
+    logger.debug("Sending {} metrics", metrics.size());
 
-    int size = 0;
     try {
-      final ByteString m = ByteString.copyFrom(serializer.serialize(metrics));
+      final ByteString m = ByteString.copyFrom(serializer.serialize(metrics, writeCache));
       publishPubSub(m);
-      size += m.size();
     } catch (Exception e) {
-      log.error("Failed to serialize batch of metrics {}", e);
+      logger.error("Failed to serialize batch of metrics {}", e);
     }
-    log.debug("Total size of sent metrics {} bytes", size);
     return async.resolved();
   }
 
@@ -146,15 +165,21 @@ public class PubsubPluginSink extends FakeBatchablePluginSinkBase implements Bat
    */
   @Override
   public AsyncFuture<Void> start() {
-    log.info("Connecting to topic {}", topicName);
+    logger.info("Connecting to topic {}", topicName);
     try {
       topicAdmin.getClient().getTopic(topicName);
-      log.info("Topic exists");
+      logger.info("Topic exists");
     } catch (IOException e) {
-      log.error("Topic admin", e);
+      logger.error("Topic admin", e);
     } catch (NotFoundException e) {
-      log.warn("Topic {} not found or permission issues", topicName);
+      logger.warn("Topic {} not found or permission issues", topicName);
     }
+
+    cache.ifPresent(c -> {
+      final SemanticCacheStatistics stats = new SemanticCacheStatistics(c);
+      statistics.registerCacheStats(stats);
+    });
+
     return async.resolved();
   }
 

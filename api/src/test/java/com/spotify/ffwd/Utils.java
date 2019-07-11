@@ -1,8 +1,8 @@
 /*-
  * -\-\-
- * FastForward API
+ * FastForward Pubsub Module
  * --
- * Copyright (C) 2016 - 2018 Spotify AB
+ * Copyright (C) 2016 - 2019 Spotify AB
  * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,18 @@
  * limitations under the License.
  * -/-/-
  */
+package com.spotify.ffwd;
 
-package com.spotify.ffwd.serializer;
-
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.spotify.ffwd.cache.WriteCache;
-import com.spotify.ffwd.model.Event;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.spotify.ffwd.model.Metric;
-import java.util.Collection;
+import java.util.Date;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface Serializer {
-    byte[] serialize(Event event) throws Exception;
+public class Utils {
 
-    byte[] serialize(Metric metric) throws Exception;
+  public static Metric makeMetric() {
+    return new Metric("key1", 1278, new Date(), ImmutableSet.of(),
+      ImmutableMap.of("what", "test"), ImmutableMap.of(), null);
+  }
 
-    byte[] serialize(Collection<Metric> metrics, WriteCache writeCache) throws Exception;
 }

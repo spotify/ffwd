@@ -14,10 +14,6 @@
     <relativePath>..</relativePath>
   </parent>
 
-  <properties>
-    <spotify-metrics.version>1.0.2</spotify-metrics.version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.projectlombok</groupId>
@@ -81,6 +77,15 @@
       <artifactId>log4j-1.2-api</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>com.spotify.metrics</groupId>
+      <artifactId>semantic-metrics-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.spotify.metrics</groupId>
+      <artifactId>semantic-metrics-ffwd-reporter</artifactId>
+    </dependency>
+
     <!-- testing -->
     <dependency>
       <groupId>junit</groupId>
@@ -98,18 +103,6 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- semantic metrics -->
-    <dependency>
-      <groupId>com.spotify.metrics</groupId>
-      <artifactId>semantic-metrics-core</artifactId>
-      <version>${spotify-metrics.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.spotify.metrics</groupId>
-      <artifactId>semantic-metrics-ffwd-reporter</artifactId>
-      <version>${spotify-metrics.version}</version>
-    </dependency>
   </dependencies>
 
   <build>

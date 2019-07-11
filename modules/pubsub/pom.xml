@@ -24,7 +24,6 @@
             <groupId>com.spotify.ffwd</groupId>
             <artifactId>ffwd-api</artifactId>
         </dependency>
-
         <dependency>
             <groupId>com.spotify.ffwd</groupId>
             <artifactId>ffwd-core</artifactId>

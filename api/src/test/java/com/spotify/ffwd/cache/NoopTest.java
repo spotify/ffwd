@@ -2,7 +2,7 @@
  * -\-\-
  * FastForward API
  * --
- * Copyright (C) 2016 - 2018 Spotify AB
+ * Copyright (C) 2016 - 2019 Spotify AB
  * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,18 @@
  * -/-/-
  */
 
-package com.spotify.ffwd.serializer;
+package com.spotify.ffwd.cache;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.spotify.ffwd.cache.WriteCache;
-import com.spotify.ffwd.model.Event;
-import com.spotify.ffwd.model.Metric;
-import java.util.Collection;
+import static org.junit.Assert.assertFalse;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface Serializer {
-    byte[] serialize(Event event) throws Exception;
+import com.spotify.ffwd.Utils;
+import org.junit.Test;
 
-    byte[] serialize(Metric metric) throws Exception;
+public class NoopTest {
 
-    byte[] serialize(Collection<Metric> metrics, WriteCache writeCache) throws Exception;
+  @Test
+  public void testIsCached() {
+    assertFalse(new NoopCache().checkCacheOrSet(Utils.makeMetric()));
+  }
+
 }

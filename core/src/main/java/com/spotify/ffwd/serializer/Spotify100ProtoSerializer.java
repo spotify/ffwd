@@ -20,11 +20,11 @@
 
 package com.spotify.ffwd.serializer;
 
+import com.spotify.ffwd.cache.WriteCache;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.proto.Spotify100;
 import java.util.Collection;
-import lombok.extern.slf4j.Slf4j;
 import org.xerial.snappy.Snappy;
 
 /**
@@ -34,12 +34,9 @@ import org.xerial.snappy.Snappy;
  *
  * Compression is done with the snappy library via JNI.
  */
-@Slf4j
 public class Spotify100ProtoSerializer implements Serializer {
-
   @Override
   public byte[] serialize(final Event event) throws Exception {
-    log.debug("Serializing events is not supported");
     return new byte[0];
   }
 
@@ -49,13 +46,14 @@ public class Spotify100ProtoSerializer implements Serializer {
   }
 
   @Override
-  public byte[] serialize(final Collection<Metric> metrics) throws Exception {
+  public byte[] serialize(Collection<Metric> metrics, WriteCache writeCache) throws Exception {
     final Spotify100.Batch.Builder batch = Spotify100.Batch.newBuilder();
 
     for (Metric metric : metrics) {
-      batch.addMetric(serializeMetric(metric));
+      if (!writeCache.checkCacheOrSet(metric)) {
+        batch.addMetric(serializeMetric(metric));
+      }
     }
-
     return Snappy.compress(batch.build().toByteArray());
   }
 

@@ -33,6 +33,8 @@ import com.google.api.gax.grpc.GrpcTransportChannel;
 import com.google.api.gax.rpc.FixedTransportChannelProvider;
 import com.google.api.gax.rpc.TransportChannelProvider;
 import com.google.cloud.pubsub.v1.Publisher;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.Provides;
@@ -40,6 +42,9 @@ import com.google.inject.Scopes;
 import com.google.inject.Singleton;
 import com.google.inject.name.Names;
 import com.google.pubsub.v1.ProjectTopicName;
+import com.spotify.ffwd.cache.ExpiringCache;
+import com.spotify.ffwd.cache.NoopCache;
+import com.spotify.ffwd.cache.WriteCache;
 import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.module.Batching;
 import com.spotify.ffwd.output.OutputPlugin;
@@ -59,11 +64,17 @@ public class PubsubOutputPlugin extends OutputPlugin {
   private static final long DEFAULT_COUNT_THRESHOLD = 1000L;
   private static final long DEFAULT_DELAY_THRESHOLD = Duration.ofMillis(200).toMillis();
 
+  private static final long DEFAULT_CACHE_MINUTES = 0L;
+  private static final long DEFAULT_CACHE_MAX_SIZE = 50_000L; // roughly 7.2 MB of memory
+
   private final Optional<Serializer> serializer;
 
   private final Optional<String> serviceAccount;
   private final Optional<String> project;
   private final Optional<String> topic;
+
+  private final long writeCacheDurationMinutes;
+  private final long writeCacheMaxSize;
 
   private final long requestBytesThreshold;
   private final long messageCountBatchSize;
@@ -80,6 +91,9 @@ public class PubsubOutputPlugin extends OutputPlugin {
     @JsonProperty("project") String project,
     @JsonProperty("topic") String topic,
 
+    @JsonProperty("writeCacheDurationMinutes") Long writeCacheDurationMinutes,
+    @JsonProperty("writeCacheMaxSize") Long writeCacheMaxSize,
+
     @JsonProperty("requestBytesThreshold") Long requestBytesThreshold,
     @JsonProperty("messageCountBatchSize") Long messageCountBatchSize,
     @JsonProperty("publishDelayThresholdMs") Long publishDelayThresholdMs
@@ -90,6 +104,10 @@ public class PubsubOutputPlugin extends OutputPlugin {
     this.serviceAccount = ofNullable(serviceAccount);
     this.project = ofNullable(project);
     this.topic = ofNullable(topic);
+
+    this.writeCacheDurationMinutes =
+        ofNullable(writeCacheDurationMinutes).orElse(DEFAULT_CACHE_MINUTES);
+    this.writeCacheMaxSize = ofNullable(writeCacheMaxSize).orElse(DEFAULT_CACHE_MAX_SIZE);
 
     this.requestBytesThreshold = ofNullable(requestBytesThreshold).orElse(DEFAULT_BYTES_THRESHOLD);
     this.messageCountBatchSize = ofNullable(messageCountBatchSize).orElse(DEFAULT_COUNT_THRESHOLD);
@@ -113,25 +131,27 @@ public class PubsubOutputPlugin extends OutputPlugin {
       @Singleton
       public Publisher publisher() throws IOException {
         // Publish request based on request size, messages count & time since last publish
-        BatchingSettings batchingSettings = BatchingSettings.newBuilder()
-          .setElementCountThreshold(messageCountBatchSize)
-          .setRequestByteThreshold(requestBytesThreshold)
-          .setDelayThreshold(publishDelayThreshold)
-          .build();
+        BatchingSettings batchingSettings =
+            BatchingSettings.newBuilder()
+                .setElementCountThreshold(messageCountBatchSize)
+                .setRequestByteThreshold(requestBytesThreshold)
+                .setDelayThreshold(publishDelayThreshold)
+                .build();
 
-        ExecutorProvider executorProvider = InstantiatingExecutorProvider.newBuilder()
-          .setExecutorThreadCount(1).build();
+        ExecutorProvider executorProvider =
+            InstantiatingExecutorProvider.newBuilder().setExecutorThreadCount(1).build();
 
-        final Publisher.Builder publisher = Publisher.newBuilder(topicName())
-          .setBatchingSettings(batchingSettings)
-          .setExecutorProvider(executorProvider);
+        final Publisher.Builder publisher =
+            Publisher.newBuilder(topicName())
+                .setBatchingSettings(batchingSettings)
+                .setExecutorProvider(executorProvider);
 
         final String emulatorHost = System.getenv("PUBSUB_EMULATOR_HOST");
         if (emulatorHost != null) {
           ManagedChannel channel =
-            ManagedChannelBuilder.forTarget(emulatorHost).usePlaintext().build();
+              ManagedChannelBuilder.forTarget(emulatorHost).usePlaintext().build();
           TransportChannelProvider channelProvider =
-            FixedTransportChannelProvider.create(GrpcTransportChannel.create(channel));
+              FixedTransportChannelProvider.create(GrpcTransportChannel.create(channel));
 
           publisher.setChannelProvider(channelProvider);
           publisher.setCredentialsProvider(NoCredentialsProvider.create());
@@ -140,6 +160,24 @@ public class PubsubOutputPlugin extends OutputPlugin {
         return publisher.build();
       }
 
+      @Provides
+      @Singleton
+      public Optional<Cache<String, Boolean>> cache() {
+        if (writeCacheDurationMinutes > 0) {
+          return Optional.of(CacheBuilder.newBuilder()
+              .expireAfterAccess(java.time.Duration.ofMinutes(writeCacheDurationMinutes))
+              .maximumSize(writeCacheMaxSize)
+              .recordStats()
+              .build());
+        }
+        return Optional.empty();
+      }
+
+      @Provides
+      @Singleton
+      public WriteCache writeCache(Optional<Cache<String, Boolean>> cache) {
+        return cache.<WriteCache>map(ExpiringCache::new).orElseGet(NoopCache::new);
+      }
 
       @Override
       protected void configure() {
@@ -150,7 +188,7 @@ public class PubsubOutputPlugin extends OutputPlugin {
         }
 
         final Key<PubsubPluginSink> sinkKey =
-          Key.get(PubsubPluginSink.class, Names.named("pubsubSink"));
+            Key.get(PubsubPluginSink.class, Names.named("pubsubSink"));
         bind(sinkKey).to(PubsubPluginSink.class).in(Scopes.SINGLETON);
         install(wrapPluginSink(sinkKey, key));
         expose(key);

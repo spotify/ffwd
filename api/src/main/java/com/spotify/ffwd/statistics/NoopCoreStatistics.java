@@ -20,7 +20,11 @@
 
 package com.spotify.ffwd.statistics;
 
+import com.codahale.metrics.Metric;
+import com.spotify.metrics.core.MetricId;
 import eu.toolchain.async.FutureFinished;
+import java.util.Collections;
+import java.util.Map;
 
 public class NoopCoreStatistics implements CoreStatistics {
     private static final InputManagerStatistics noopInputManagerStatistics =
@@ -79,7 +83,19 @@ public class NoopCoreStatistics implements CoreStatistics {
         return noopOutputManagerStatistics;
     }
 
-    private static final OutputPluginStatistics noopOutputPluginStatistics = dropped -> { };
+    private static final OutputPluginStatistics noopOutputPluginStatistics =
+        new OutputPluginStatistics() {
+          @Override
+          public Map<MetricId, Metric> getMetrics() {
+            return Collections.emptyMap();
+          }
+
+          @Override
+          public void reportDropped(int dropped) { }
+
+          @Override
+          public void registerCacheStats(SemanticCacheStatistics stats) { }
+        };
 
     @Override
     public OutputPluginStatistics newOutputPlugin(String id) {

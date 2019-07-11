@@ -20,11 +20,19 @@
 
 package com.spotify.ffwd.statistics;
 
-public interface OutputPluginStatistics {
-    /**
-     * Report that a number of events and metrics have been dropped.
-     *
-     * @param dropped The number of events and metrics that we have dropped.
-     */
-    void reportDropped(int dropped);
+import com.spotify.metrics.core.SemanticMetricSet;
+
+public interface OutputPluginStatistics extends SemanticMetricSet {
+  /**
+   * Report that a number of events and metrics have been dropped.
+   *
+   * @param dropped The number of events and metrics that we have dropped.
+   */
+  void reportDropped(int dropped);
+
+  /**
+   * Register cache stats. This is a bit of a leaky abstraction. Adding metrics to the cache is
+   * difficult.
+   */
+  void registerCacheStats(SemanticCacheStatistics stats);
 }

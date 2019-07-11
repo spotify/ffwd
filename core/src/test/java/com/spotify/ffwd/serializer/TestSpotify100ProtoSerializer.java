@@ -26,6 +26,7 @@ import static org.junit.Assert.assertThat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.spotify.ffwd.cache.NoopCache;
 import com.spotify.ffwd.model.Metric;
 import java.time.Instant;
 import java.util.Date;
@@ -35,6 +36,8 @@ import org.junit.Test;
 public class TestSpotify100ProtoSerializer {
   private Serializer serializer;
   private Metric metric1;
+
+  private static NoopCache writeCache = new NoopCache();
 
   @Before
   public void setup() {
@@ -64,7 +67,7 @@ public class TestSpotify100ProtoSerializer {
       ImmutableMap.of(),
       "");
 
-    serializer.serialize(ImmutableList.of(metric1));
+    serializer.serialize(ImmutableList.of(metric1), writeCache);
   }
 
   @Test
@@ -84,7 +87,7 @@ public class TestSpotify100ProtoSerializer {
       ImmutableMap.of("resource-a", "bar"),
       "");
 
-    final byte[] serialize = serializer.serialize(ImmutableList.of(metric1, metric2));
+    final byte[] serialize = serializer.serialize(ImmutableList.of(metric1, metric2), writeCache);
 
     assertThat(serialize, is(
       new byte[]{93, -120, 10, 40, 16, -64, -37, -106, -74, -13, 44, 34, 12, 10, 5, 116, 97, 103,

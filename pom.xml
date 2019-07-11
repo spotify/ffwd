@@ -64,6 +64,7 @@
     <slf4j.version>1.7.25</slf4j.version>
     <jackson.version>2.9.9</jackson.version>
     <kotlin.version>1.3.31</kotlin.version>
+    <spotify-metrics.version>1.0.2</spotify-metrics.version>
   </properties>
 
   <profiles>
@@ -234,6 +235,19 @@
         <groupId>com.uchuhimo</groupId>
         <artifactId>konf</artifactId>
         <version>0.13.3</version>
+      </dependency>
+
+
+      <dependency>
+        <groupId>com.spotify.metrics</groupId>
+        <artifactId>semantic-metrics-core</artifactId>
+        <version>${spotify-metrics.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.spotify.metrics</groupId>
+        <artifactId>semantic-metrics-ffwd-reporter</artifactId>
+        <version>${spotify-metrics.version}</version>
       </dependency>
 
       <dependency>

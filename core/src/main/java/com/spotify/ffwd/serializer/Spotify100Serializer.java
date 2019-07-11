@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
+import com.spotify.ffwd.cache.WriteCache;
 import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import java.util.Collection;
@@ -80,7 +81,7 @@ public class Spotify100Serializer implements Serializer {
     }
 
     @Override
-    public byte[] serialize(Collection<Metric> metrics) throws Exception {
+    public byte[] serialize(Collection<Metric> metrics, WriteCache writeCache) throws Exception {
         throw new UnsupportedOperationException("Not supported");
     }
 }
