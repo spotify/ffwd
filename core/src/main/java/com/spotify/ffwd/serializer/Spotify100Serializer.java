@@ -81,7 +81,7 @@ public class Spotify100Serializer implements Serializer {
     }
 
     @Override
-    public byte[] serialize(Collection<Metric> metrics, WriteCache writeCache) throws Exception {
+    public byte[] serialize(Collection<Metric> metrics, WriteCache writeCache) {
         throw new UnsupportedOperationException("Not supported");
     }
 }

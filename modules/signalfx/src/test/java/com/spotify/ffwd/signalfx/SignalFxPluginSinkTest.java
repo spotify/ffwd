@@ -1,3 +1,23 @@
+/*-
+ * -\-\-
+ * FastForward SignalFx Module
+ * --
+ * Copyright (C) 2016 - 2019 Spotify AB
+ * --
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * -/-/-
+ */
+
 package com.spotify.ffwd.signalfx;
 
 import static org.junit.Assert.assertEquals;
@@ -5,7 +25,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.signalfx.metrics.flush.AggregateMetricSender;
 import com.signalfx.metrics.protobuf.SignalFxProtocolBuffers.DataPoint;
 import com.signalfx.metrics.protobuf.SignalFxProtocolBuffers.Dimension;
@@ -14,6 +34,7 @@ import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.TinyAsync;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -69,8 +90,9 @@ public class SignalFxPluginSinkTest {
     @Test
     public void sendMetricNotExceedCharLim() throws ExecutionException, InterruptedException {
         Metric metric =
-            new Metric(METRIC_KEY_NOT_EXCEEDING, 1278, new Date(), "", ImmutableSet.of(),
-                ImmutableMap.of("what", WHAT, "pod", TAG_VAL_NOT_EXCEEDING), "test_proc");
+            new Metric(METRIC_KEY_NOT_EXCEEDING, 1278, new Date(), Sets.newHashSet(),
+                ImmutableMap.of("what", WHAT, "pod", TAG_VAL_NOT_EXCEEDING),
+                new HashMap<>(), "test_proc");
         final List<Metric> metricsList = Collections.singletonList(metric);
 
         ArgumentCaptor<DataPoint> captor = ArgumentCaptor.forClass(DataPoint.class);
@@ -94,8 +116,9 @@ public class SignalFxPluginSinkTest {
 
     @Test
     public void sendMetricExceedCharLim() throws InterruptedException, ExecutionException {
-        Metric metric = new Metric(METRIC_KEY_EXCEEDING, 1278, new Date(), "", ImmutableSet.of(),
-            ImmutableMap.of("what", WHAT, "pod", TAG_VAL_EXCEEDING), "test_proc");
+        Metric metric = new Metric(METRIC_KEY_EXCEEDING, 1278, new Date(), Sets.newHashSet(),
+            ImmutableMap.of("what", WHAT, "pod", TAG_VAL_EXCEEDING),
+            new HashMap<>(), "test_proc");
         final List<Metric> metricsList = Collections.singletonList(metric);
 
         ArgumentCaptor<DataPoint> captor = ArgumentCaptor.forClass(DataPoint.class);
