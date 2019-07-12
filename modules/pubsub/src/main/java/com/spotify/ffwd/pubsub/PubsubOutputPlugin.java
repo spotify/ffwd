@@ -69,7 +69,6 @@ public class PubsubOutputPlugin extends OutputPlugin {
 
   private final Optional<Serializer> serializer;
 
-  private final Optional<String> serviceAccount;
   private final Optional<String> project;
   private final Optional<String> topic;
 
@@ -87,7 +86,6 @@ public class PubsubOutputPlugin extends OutputPlugin {
     @JsonProperty("batching") Optional<Batching> batching,
     @JsonProperty("serializer") Serializer serializer,
 
-    @JsonProperty("serviceAccount") String serviceAccount,
     @JsonProperty("project") String project,
     @JsonProperty("topic") String topic,
 
@@ -101,7 +99,6 @@ public class PubsubOutputPlugin extends OutputPlugin {
     super(filter, Batching.from(flushInterval, batching));
     this.serializer = ofNullable(serializer);
 
-    this.serviceAccount = ofNullable(serviceAccount);
     this.project = ofNullable(project);
     this.topic = ofNullable(topic);
 
