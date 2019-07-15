@@ -26,7 +26,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.spotify.ffwd.cache.WriteCache;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import java.util.Collection;
 import java.util.Map;
@@ -62,14 +61,6 @@ public class Spotify100Serializer implements Serializer {
 
     @JsonCreator
     public Spotify100Serializer() {
-    }
-
-    @Override
-    public byte[] serialize(Event source) throws Exception {
-        final Spotify100Event e =
-            new Spotify100Event(source.getKey(), source.getHost(), source.getTime().getTime(),
-                source.getTags(), source.getValue());
-        return mapper.writeValueAsBytes(e);
     }
 
     @Override

@@ -21,11 +21,9 @@
 package com.spotify.ffwd.filter;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.google.common.collect.ImmutableList;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import java.io.IOException;
 import java.util.List;
@@ -34,17 +32,6 @@ import lombok.Data;
 @Data
 public class OrFilter implements Filter {
     final List<Filter> terms;
-
-    @Override
-    public boolean matchesEvent(Event event) {
-        for (final Filter f : terms) {
-            if (f.matchesEvent(event)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
 
     @Override
     public boolean matchesMetric(Metric metric) {
@@ -59,8 +46,7 @@ public class OrFilter implements Filter {
 
     public static class Deserializer implements FilterDeserializer.PartialDeserializer {
         @Override
-        public Filter deserialize(JsonParser p, DeserializationContext ctx)
-            throws IOException, JsonProcessingException {
+        public Filter deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
             final ImmutableList.Builder<Filter> builder = ImmutableList.builder();
 
             while (p.nextToken() == JsonToken.START_ARRAY) {

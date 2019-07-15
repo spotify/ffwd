@@ -21,25 +21,14 @@
 package com.spotify.ffwd.statistics;
 
 public interface InputManagerStatistics {
-    public void reportReceivedMetrics(int received);
-
-    public void reportReceivedEvents(int received);
-
-    /**
-     * Reported that the given number of events were dropped by a filter.
-     * <p>
-     * Filtered events are <em>not</em> sent to output plugins.
-     *
-     * @param filtered The number of filtered events.
-     */
-    public void reportEventsDroppedByFilter(int dropped);
+    void reportReceivedMetrics(int received);
 
     /**
      * Reported that the given number of metrics were dropped by a filter.
      * <p>
      * Filtered metrics are <em>not</em> sent to output plugins.
      *
-     * @param filtered The number of filtered metrics.
+     * @param dropped The number of filtered metrics.
      */
-    public void reportMetricsDroppedByFilter(int dropped);
+    void reportMetricsDroppedByFilter(int dropped);
 }

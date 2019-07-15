@@ -22,36 +22,12 @@ package com.spotify.ffwd.statistics;
 
 public interface OutputManagerStatistics {
     /**
-     * Report that the given number of events have been sent to output plugins.
-     *
-     * @param sent The number of metrics sent.
-     */
-    void reportSentEvents(int sent);
-
-    /**
      * Report that the given number of metrics have been sent to output plugins.
      *
      * @param sent The number of metrics sent.
      */
-    void reportSentMetrics(int sent);
-
-    /**
-     * Reported that the given number of events were filtered.
-     * <p>
-     * Filtered events are <em>not</em> sent to output plugins.
-     *
-     * @param dropped The number of filtered events.
-     */
-    void reportEventsDroppedByFilter(int dropped);
-
-    /**
-     * Reported that the given number of events were dropped due to a rate limit.
-     * <p>
-     * Dropped events are <em>not</em> sent to output plugins.
-     *
-     * @param dropped The number of dropped events.
-     */
-    void reportEventsDroppedByRateLimit(int dropped);
+    default void reportSentMetrics(int sent) {
+    }
 
     /**
      * Reported that the given number of metrics were filtered.
@@ -60,7 +36,8 @@ public interface OutputManagerStatistics {
      *
      * @param dropped The number of filtered metrics.
      */
-    void reportMetricsDroppedByFilter(int dropped);
+    default void reportMetricsDroppedByFilter(int dropped) {
+    }
 
     /**
      * Reported that the given number of metrics were dropped due to a rate limit.
@@ -69,5 +46,6 @@ public interface OutputManagerStatistics {
      *
      * @param dropped The number of dropped metrics.
      */
-    void reportMetricsDroppedByRateLimit(int dropped);
+    default void reportMetricsDroppedByRateLimit(int dropped) {
+    }
 }

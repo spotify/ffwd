@@ -21,18 +21,15 @@
 package com.spotify.ffwd.debug;
 
 import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import eu.toolchain.async.AsyncFuture;
 
 public interface DebugServer {
-    public void inspectEvent(String id, Event event);
+    void inspectMetric(String id, Metric metric);
 
-    public void inspectMetric(String id, Metric metric);
+    void inspectBatch(String id, Batch batch);
 
-    public void inspectBatch(String id, Batch batch);
+    AsyncFuture<Void> start();
 
-    public AsyncFuture<Void> start();
-
-    public AsyncFuture<Void> stop();
+    AsyncFuture<Void> stop();
 }

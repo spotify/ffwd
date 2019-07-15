@@ -21,20 +21,11 @@
 package com.spotify.ffwd.output;
 
 import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import eu.toolchain.async.AsyncFuture;
 import java.util.Collection;
 
 public interface BatchablePluginSink extends PluginSink {
-    /**
-     * Send the given collection of events.
-     *
-     * @param events Collection of events to send.
-     * @return A future that will be resolved when the events have been sent.
-     */
-    AsyncFuture<Void> sendEvents(Collection<Event> events);
-
     /**
      * Send the given collection of metrics.
      *

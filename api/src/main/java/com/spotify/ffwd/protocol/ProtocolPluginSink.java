@@ -25,18 +25,14 @@ import com.google.inject.Inject;
 import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.filter.TrueFilter;
 import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchablePluginSink;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
-import eu.toolchain.async.LazyTransform;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 
-@RequiredArgsConstructor
 public class ProtocolPluginSink implements BatchablePluginSink {
     @Inject
     private AsyncFramework async;
@@ -60,23 +56,12 @@ public class ProtocolPluginSink implements BatchablePluginSink {
 
     private final AtomicReference<ProtocolConnection> connection = new AtomicReference<>();
 
-    @Override
-    public void init() {
+    public ProtocolPluginSink(RetryPolicy retry) {
+        this.retry = retry;
     }
 
     @Override
-    public void sendEvent(Event event) {
-        final ProtocolConnection c = connection.get();
-
-        if (c == null) {
-            return;
-        }
-
-        if (filter != null && !filter.matchesEvent(event)) {
-            return;
-        }
-
-        c.send(event);
+    public void init() {
     }
 
     @Override
@@ -106,17 +91,6 @@ public class ProtocolPluginSink implements BatchablePluginSink {
     }
 
     @Override
-    public AsyncFuture<Void> sendEvents(Collection<Event> events) {
-        final ProtocolConnection c = connection.get();
-
-        if (c == null) {
-            return async.failed(new IllegalStateException("not connected to " + protocol));
-        }
-
-        return c.sendAll(filterEvents(events));
-    }
-
-    @Override
     public AsyncFuture<Void> sendMetrics(Collection<Metric> metrics) {
         final ProtocolConnection c = connection.get();
 
@@ -138,21 +112,6 @@ public class ProtocolPluginSink implements BatchablePluginSink {
         return c.sendAll(batches);
     }
 
-    public Collection<Event> filterEvents(Collection<Event> input) {
-        if (filter == null || filter instanceof TrueFilter) {
-            return input;
-        }
-
-        final ImmutableList.Builder<Event> output = ImmutableList.builder();
-
-        for (final Event e : input) {
-            if (filter.matchesEvent(e)) {
-                output.add(e);
-            }
-        }
-
-        return output.build();
-    }
 
     public Collection<Metric> filterMetrics(Collection<Metric> input) {
         if (filter == null || filter instanceof TrueFilter) {
@@ -174,15 +133,12 @@ public class ProtocolPluginSink implements BatchablePluginSink {
     public AsyncFuture<Void> start() {
         return clients
             .connect(log, protocol, client, retry)
-            .lazyTransform(new LazyTransform<ProtocolConnection, Void>() {
-                @Override
-                public AsyncFuture<Void> transform(ProtocolConnection result) throws Exception {
-                    if (!connection.compareAndSet(null, result)) {
-                        return result.stop();
-                    }
-
-                    return async.resolved(null);
+            .lazyTransform(result -> {
+                if (!connection.compareAndSet(null, result)) {
+                    return result.stop();
                 }
+
+                return async.resolved(null);
             });
     }
 

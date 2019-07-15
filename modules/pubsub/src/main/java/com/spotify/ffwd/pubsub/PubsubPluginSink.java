@@ -33,7 +33,6 @@ import com.google.pubsub.v1.ProjectTopicName;
 import com.google.pubsub.v1.PubsubMessage;
 import com.spotify.ffwd.cache.WriteCache;
 import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchablePluginSink;
 import com.spotify.ffwd.output.FakeBatchablePluginSinkBase;
@@ -95,12 +94,6 @@ public class PubsubPluginSink extends FakeBatchablePluginSinkBase implements Bat
   @Override
   public void init() { }
 
-  @Override
-  public AsyncFuture<Void> sendEvents(Collection<Event> events) {
-    logger.debug("Sending events is not supported!");
-    return async.resolved();
-  }
-
   private void publishPubSub(final ByteString bytes) {
     // don't publish "\000" - indicates all the metrics are in the writeCache
     if (bytes.size() <= 1) {
@@ -141,12 +134,6 @@ public class PubsubPluginSink extends FakeBatchablePluginSinkBase implements Bat
   public AsyncFuture<Void> sendBatches(Collection<Batch> batches) {
     final List<Metric> metrics = convertBatchesToMetrics(batches);
     return sendMetrics(metrics);
-  }
-
-
-  @Override
-  public void sendEvent(final Event event) {
-    sendEvents(Collections.singletonList(event));
   }
 
   @Override

@@ -25,7 +25,6 @@ import com.google.inject.Inject;
 import com.spotify.ffwd.debug.DebugServer;
 import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.OutputManager;
 import com.spotify.ffwd.statistics.InputManagerStatistics;
@@ -67,18 +66,6 @@ public class CoreInputManager implements InputManager {
         for (final PluginSource s : sources) {
             s.init();
         }
-    }
-
-    @Override
-    public void receiveEvent(Event event) {
-        if (!filter.matchesEvent(event)) {
-            statistics.reportEventsDroppedByFilter(1);
-            return;
-        }
-
-        statistics.reportReceivedEvents(1);
-        debug.inspectEvent(DEBUG_ID, event);
-        output.sendEvent(event);
     }
 
     @Override

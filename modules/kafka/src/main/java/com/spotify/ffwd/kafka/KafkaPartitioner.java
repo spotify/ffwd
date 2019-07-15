@@ -24,13 +24,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import java.util.Optional;
-import java.util.function.Supplier;
-import java.util.zip.CRC32;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
     @JsonSubTypes.Type(value = KafkaPartitioner.Tag.class, name = "tag"),
     @JsonSubTypes.Type(value = KafkaPartitioner.Hashed.class, name = "static"),
@@ -38,20 +35,11 @@ import java.util.zip.CRC32;
     @JsonSubTypes.Type(value = KafkaPartitioner.Random.class, name = "random")
 })
 public interface KafkaPartitioner {
-    int partition(final Event event);
-
     int partition(final Metric metric, final String defaultHost);
 
     class Host implements KafkaPartitioner {
         @JsonCreator
         public Host() {
-        }
-
-        @Override
-        public int partition(final Event event) {
-            final CRC32 crcGenerator = new CRC32();
-            crcGenerator.update(event.getHost().getBytes());
-            return (int) crcGenerator.getValue();
         }
 
         @Override
@@ -75,18 +63,6 @@ public interface KafkaPartitioner {
         }
 
         @Override
-        public int partition(final Event event) {
-            final String tagValue = event.getTags().get(tagKey);
-
-            if (tagValue != null) {
-                return tagValue.hashCode();
-            }
-
-            throw new IllegalArgumentException(
-                String.format("missing tag '%s' for event %s", tagKey, event));
-        }
-
-        @Override
         public int partition(final Metric metric, final String defaultHost) {
             final String tagValue = metric.getTags().get(tagKey);
 
@@ -97,10 +73,6 @@ public interface KafkaPartitioner {
             throw new IllegalArgumentException(
                 String.format("missing tag '%s' for metric %s", tagKey, metric));
         }
-
-        public static Supplier<KafkaPartitioner> supplier() {
-            return () -> new Tag(null);
-        }
     }
 
     class Hashed implements KafkaPartitioner {
@@ -109,17 +81,8 @@ public interface KafkaPartitioner {
         }
 
         @Override
-        public int partition(final Event event) {
-            return event.hashCode();
-        }
-
-        @Override
         public int partition(final Metric metric, final String defaultHost) {
             return metric.hashCode();
-        }
-
-        public static Supplier<KafkaPartitioner> supplier() {
-            return Hashed::new;
         }
     }
 
@@ -133,17 +96,8 @@ public interface KafkaPartitioner {
         }
 
         @Override
-        public int partition(final Event event) {
-            return rand.nextInt();
-        }
-
-        @Override
         public int partition(final Metric metric, final String defaultHost) {
             return rand.nextInt();
-        }
-
-        public static Supplier<KafkaPartitioner> supplier() {
-            return Random::new;
         }
     }
 }

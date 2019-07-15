@@ -22,7 +22,6 @@ package com.spotify.ffwd.protobuf;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf250.InvalidProtocolBufferException;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.protocol0.Protocol0;
 import io.netty.buffer.ByteBuf;
@@ -37,11 +36,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Sharable
 public class ProtobufDecoder extends MessageToMessageDecoder<ByteBuf> {
+    private static final Logger log = LoggerFactory.getLogger(ProtobufDecoder.class);
     public static final int MAX_FRAME_SIZE = 0xffffff;
 
     @Override
@@ -107,10 +107,6 @@ public class ProtobufDecoder extends MessageToMessageDecoder<ByteBuf> {
             throw new Exception("Invalid protobuf message", e);
         }
 
-        if (message.hasEvent()) {
-            return decodeEvent0(message.getEvent());
-        }
-
         if (message.hasMetric()) {
             return decodeMetric0(message.getMetric());
         }
@@ -144,19 +140,5 @@ public class ProtobufDecoder extends MessageToMessageDecoder<ByteBuf> {
         }
 
         return attributes;
-    }
-
-    private Object decodeEvent0(final Protocol0.Event event) {
-        final String key = event.hasKey() ? event.getKey() : null;
-        final double value = event.hasValue() ? event.getValue() : Double.NaN;
-        final Date time = event.hasTime() ? new Date(event.getTime()) : null;
-        final long ttl = event.hasTtl() ? event.getTtl() : 0;
-        final String state = event.hasState() ? event.getState() : null;
-        final String description = event.hasDescription() ? event.getDescription() : null;
-        final String host = event.hasHost() ? event.getHost() : null;
-        final Set<String> riemannTags = new HashSet<>(event.getTagsList());
-        final Map<String, String> tags = convertAttributes0(event.getAttributesList());
-
-        return new Event(key, value, time, ttl, state, description, host, riemannTags, tags);
     }
 }

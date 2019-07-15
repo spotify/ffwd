@@ -24,13 +24,6 @@ import eu.toolchain.async.FutureFinished;
 
 public interface BatchingStatistics {
     /**
-     * Report that the given number of events have been sent to output plugins.
-     *
-     * @param sent The number of events sent.
-     */
-    void reportSentEvents(int sent);
-
-    /**
      * Report that the given number of metrics have been sent to output plugins.
      *
      * @param sent The number of metrics sent.
@@ -81,15 +74,6 @@ public interface BatchingStatistics {
      * @return A FutureFinished object to be registered with a write completion future
      */
     FutureFinished monitorWrite();
-
-    /**
-     * Reported that the given number of events were dropped.
-     * <p>
-     * Filtered events are <em>not</em> sent to output plugins.
-     *
-     * @param dropped The number of dropped events.
-     */
-    void reportEventsDroppedByFilter(int dropped);
 
     /**
      * Reported that the given number of metrics were dropped.

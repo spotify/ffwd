@@ -28,7 +28,6 @@ import com.google.inject.name.Named;
 import com.spotify.ffwd.debug.DebugServer;
 import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.statistics.OutputManagerStatistics;
 import eu.toolchain.async.AsyncFramework;
@@ -136,29 +135,6 @@ public class CoreOutputManager implements OutputManager {
     }
 
     @Override
-    public void sendEvent(Event event) {
-        if (!filter.matchesEvent(event)) {
-            statistics.reportEventsDroppedByFilter(1);
-            return;
-        }
-
-        final Event filtered = filter(event);
-
-        debug.inspectEvent(DEBUG_ID, filtered);
-
-        if (!rateLimitAllowed(1)) {
-            statistics.reportEventsDroppedByRateLimit(1);
-            return;
-        }
-
-        sinks.stream()
-          .filter(PluginSink::isReady)
-          .forEach(s -> s.sendEvent(filtered));
-
-        statistics.reportSentEvents(1);
-    }
-
-    @Override
     public void sendMetric(Metric metric) {
         if (!filter.matchesMetric(metric)) {
             statistics.reportMetricsDroppedByFilter(1);
@@ -224,28 +200,6 @@ public class CoreOutputManager implements OutputManager {
             return true;
         }
         return rateLimiter.tryAcquire(permits);
-    }
-
-    /**
-     * Filter the provided Event and complete fields.
-     */
-    private Event filter(Event event) {
-        if (tags.isEmpty() && ttl == 0) {
-            return event;
-        }
-
-        final String host = event.getHost() != null ? event.getHost() : this.host;
-        final Map<String, String> mergedTags = Maps.newHashMap(tags);
-        mergedTags.putAll(event.getTags());
-
-        final Set<String> mergedRiemannTags = Sets.newHashSet(riemannTags);
-        mergedRiemannTags.addAll(event.getRiemannTags());
-
-        final Date time = event.getTime() != null ? event.getTime() : new Date();
-        final Long ttl = event.getTtl() != 0 ? event.getTtl() : this.ttl;
-
-        return new Event(event.getKey(), event.getValue(), time, ttl, event.getState(),
-            event.getDescription(), host, mergedRiemannTags, mergedTags);
     }
 
     /**

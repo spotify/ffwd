@@ -30,11 +30,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.spotify.ffwd.filter.MatchKey;
-import com.spotify.ffwd.filter.MatchTag;
 import com.spotify.ffwd.filter.NotFilter;
 import com.spotify.ffwd.filter.TrueFilter;
 import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import java.util.Date;
 import org.junit.Before;
@@ -52,7 +50,6 @@ public class FilteringPluginSinkTest {
     private FilteringPluginSink sink;
 
     private Metric metric;
-    private Event event;
     private Batch batch;
 
     @Before
@@ -61,9 +58,6 @@ public class FilteringPluginSinkTest {
         sink.sink = childSink;
         metric = new Metric("test_metric", 1278, new Date(), ImmutableSet.of(),
             ImmutableMap.of("what", "stats", "pod", "gew1"), ImmutableMap.of(), "test_proc");
-        event =
-            new Event("test_event", 1278, new Date(), 12L, "critical", "test_event", "test_host",
-                ImmutableSet.of(), ImmutableMap.of("what", "stats", "pod", "gew1"));
         batch = new Batch(ImmutableMap.of("what", "stats", "pod", "gew1"), ImmutableMap.of(),
             ImmutableList.of());
     }
@@ -91,35 +85,9 @@ public class FilteringPluginSinkTest {
     }
 
     @Test
-    public void testSendEventTrueFilter() {
-        sink.filter = new TrueFilter();
-        doNothing().when(childSink).sendEvent(event);
-        ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
-
-        sink.sendEvent(event);
-        verify(childSink, times(1)).sendEvent(captor.capture());
-
-        Event sentEvent = captor.getValue();
-        assertEquals("test_event", sentEvent.getKey());
-    }
-
-    @Test
-    public void testSendEventMatchTagFilter() {
-        sink.filter = new MatchTag("pod", "gew1");
-        doNothing().when(childSink).sendEvent(event);
-        ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
-
-        sink.sendEvent(event);
-        verify(childSink, times(1)).sendEvent(captor.capture());
-
-        Event sentEvent = captor.getValue();
-        assertEquals("test_event", sentEvent.getKey());
-    }
-
-    @Test
     public void testSendBatchTrueFilter() {
         sink.filter = new TrueFilter();
-        doNothing().when(childSink).sendEvent(event);
+        doNothing().when(childSink).sendBatch(batch);
         ArgumentCaptor<Batch> captor = ArgumentCaptor.forClass(Batch.class);
 
         sink.sendBatch(batch);

@@ -22,26 +22,22 @@ package com.spotify.ffwd.input;
 
 import com.google.inject.Inject;
 import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Sharable
 public class InputChannelInboundHandler extends ChannelInboundHandlerAdapter {
+    private static final Logger log = LoggerFactory.getLogger(InputChannelInboundHandler.class);
+
     @Inject
     private InputManager input;
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (msg instanceof Event) {
-            input.receiveEvent((Event) msg);
-            return;
-        }
-
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
         if (msg instanceof Metric) {
             input.receiveMetric((Metric) msg);
             return;
@@ -57,7 +53,7 @@ public class InputChannelInboundHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         log.info("{}: Error in channel, closing", ctx.channel(), cause);
         ctx.channel().close();
     }

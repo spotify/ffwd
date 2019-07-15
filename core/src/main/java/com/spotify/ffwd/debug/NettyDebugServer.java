@@ -25,7 +25,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
@@ -38,7 +37,6 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.group.ChannelGroup;
-import io.netty.channel.group.ChannelGroupFuture;
 import io.netty.channel.group.ChannelGroupFutureListener;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -47,14 +45,11 @@ import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
-@RequiredArgsConstructor
-@ToString(of = {"localAddress"})
 public class NettyDebugServer implements DebugServer {
+    private static final Logger log = LoggerFactory.getLogger(NettyDebugServer.class);
     private static final String LINE_ENDING = "\n";
     private static final Charset UTF8 = Charset.forName("UTF-8");
 
@@ -79,16 +74,8 @@ public class NettyDebugServer implements DebugServer {
 
     private final ChannelGroup connected = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
-    public void inspectEvent(final String id, Event event) {
-        if (connected.isEmpty()) {
-            return;
-        }
-
-        try {
-            sendInspectPacket(new WriteEventEvent(id, event));
-        } catch (Exception e) {
-            log.error("Failed to inspect event {}", event, e);
-        }
+    public NettyDebugServer(InetSocketAddress localAddress) {
+        this.localAddress = localAddress;
     }
 
     public void inspectMetric(final String id, Metric metric) {
@@ -132,38 +119,32 @@ public class NettyDebugServer implements DebugServer {
 
         s.childHandler(new ChannelInitializer<Channel>() {
             @Override
-            protected void initChannel(final Channel ch) throws Exception {
+            protected void initChannel(final Channel ch) {
                 connected.add(ch);
                 log.info("Connected {}", ch);
 
-                ch.closeFuture().addListener(new ChannelFutureListener() {
-                    @Override
-                    public void operationComplete(ChannelFuture future) throws Exception {
-                        connected.remove(ch);
-                        log.info("Disconnected {}", ch);
-                    }
+                ch.closeFuture().addListener((ChannelFutureListener) f -> {
+                    connected.remove(ch);
+                    log.info("Disconnected {}", ch);
                 });
             }
         });
 
-        s.bind(localAddress).addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(ChannelFuture f) throws Exception {
-                if (!f.isSuccess()) {
-                    future.fail(f.cause());
-                    return;
-                }
-
-                log.info("Bound to {}", localAddress);
-
-                if (!server.compareAndSet(null, f.channel())) {
-                    f.channel().close();
-                    future.fail(new IllegalStateException("server already started"));
-                    return;
-                }
-
-                future.resolve(null);
+        s.bind(localAddress).addListener((ChannelFutureListener) f -> {
+            if (!f.isSuccess()) {
+                future.fail(f.cause());
+                return;
             }
+
+            log.info("Bound to {}", localAddress);
+
+            if (!server.compareAndSet(null, f.channel())) {
+                f.channel().close();
+                future.fail(new IllegalStateException("server already started"));
+                return;
+            }
+
+            future.resolve(null);
         });
 
         return future;
@@ -178,34 +159,32 @@ public class NettyDebugServer implements DebugServer {
 
         final ResolvableFuture<Void> serverClose = async.future();
 
-        server.close().addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(ChannelFuture f) throws Exception {
-                if (!f.isSuccess()) {
-                    serverClose.fail(f.cause());
-                    return;
-                }
-
-                serverClose.resolve(null);
+        server.close().addListener((ChannelFutureListener) f -> {
+            if (!f.isSuccess()) {
+                serverClose.fail(f.cause());
+                return;
             }
+
+            serverClose.resolve(null);
         });
 
         final ResolvableFuture<Void> channelGroupClose = async.future();
 
-        connected.close().addListener(new ChannelGroupFutureListener() {
-            @Override
-            public void operationComplete(ChannelGroupFuture f) throws Exception {
-                if (!f.isSuccess()) {
-                    channelGroupClose.fail(f.cause());
-                    return;
-                }
-
-                channelGroupClose.resolve(null);
+        connected.close().addListener((ChannelGroupFutureListener) f -> {
+            if (!f.isSuccess()) {
+                channelGroupClose.fail(f.cause());
+                return;
             }
+
+            channelGroupClose.resolve(null);
         });
 
         return async.collectAndDiscard(
             ImmutableList.<AsyncFuture<Void>>of(serverClose, channelGroupClose));
+    }
+
+    public String toString() {
+        return "NettyDebugServer(localAddress=" + this.localAddress + ")";
     }
 
     @Data
@@ -213,13 +192,6 @@ public class NettyDebugServer implements DebugServer {
         private final String type = "metric";
         private final String id;
         private final Metric data;
-    }
-
-    @Data
-    public static class WriteEventEvent {
-        private final String type = "event";
-        private final String id;
-        private final Event data;
     }
 
     @Data

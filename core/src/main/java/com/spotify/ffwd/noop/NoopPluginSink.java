@@ -22,17 +22,18 @@ package com.spotify.ffwd.noop;
 
 import com.google.inject.Inject;
 import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchablePluginSink;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicLong;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class NoopPluginSink implements BatchablePluginSink {
+    private static final Logger log = LoggerFactory.getLogger(NoopPluginSink.class);
+
     private final AtomicLong date = new AtomicLong();
     private final AtomicLong last = new AtomicLong();
     private final AtomicLong total = new AtomicLong();
@@ -45,20 +46,11 @@ public class NoopPluginSink implements BatchablePluginSink {
     }
 
     @Override
-    public void sendEvent(Event event) {
-    }
-
-    @Override
     public void sendMetric(Metric metric) {
     }
 
     @Override
     public void sendBatch(final Batch batch) {
-    }
-
-    @Override
-    public AsyncFuture<Void> sendEvents(Collection<Event> events) {
-        return count(events.size());
     }
 
     @Override

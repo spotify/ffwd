@@ -30,15 +30,12 @@ import com.google.api.core.ApiFutures;
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.pubsub.v1.PubsubMessage;
 import com.spotify.ffwd.cache.NoopCache;
 import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.serializer.Spotify100ProtoSerializer;
 import eu.toolchain.async.AsyncFramework;
-import java.util.Date;
 import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
@@ -72,17 +69,6 @@ public class PubsubPluginSinkTest {
 
         metric = makeMetric();
 
-    }
-
-    private Event makeEvent() {
-        return new Event("test_event", 1278, new Date(), 12L, "critical", "test_event", "test_host",
-            ImmutableSet.of(), ImmutableMap.of("what", "stats", "pod", "gew1"));
-    }
-
-    @Test
-    public void testSendEvent() {
-        sink.sendEvent(makeEvent());
-        verifyZeroInteractions(publisher);
     }
 
     @Test

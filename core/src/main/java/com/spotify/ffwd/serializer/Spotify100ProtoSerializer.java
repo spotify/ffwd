@@ -21,7 +21,6 @@
 package com.spotify.ffwd.serializer;
 
 import com.spotify.ffwd.cache.WriteCache;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.proto.Spotify100;
 import java.util.Collection;
@@ -35,11 +34,6 @@ import org.xerial.snappy.Snappy;
  * Compression is done with the snappy library via JNI.
  */
 public class Spotify100ProtoSerializer implements Serializer {
-  @Override
-  public byte[] serialize(final Event event) throws Exception {
-    return new byte[0];
-  }
-
   @Override
   public byte[] serialize(final Metric metric) throws Exception {
     throw new UnsupportedOperationException("Not supported");

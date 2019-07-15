@@ -23,18 +23,16 @@ package com.spotify.ffwd.output;
 import com.google.inject.Inject;
 import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import eu.toolchain.async.AsyncFuture;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class FilteringPluginSink implements PluginSink {
+    private static final Logger log = LoggerFactory.getLogger(FilteringPluginSink.class);
 
     @Inject
     @FilteringDelegate
-    @Getter
     protected PluginSink sink;
 
     protected Filter filter;
@@ -46,13 +44,6 @@ public class FilteringPluginSink implements PluginSink {
     @Override
     public void init() {
         sink.init();
-    }
-
-    @Override
-    public void sendEvent(final Event event) {
-        if (filter.matchesEvent(event)) {
-            sink.sendEvent(event);
-        }
     }
 
     @Override
@@ -83,5 +74,9 @@ public class FilteringPluginSink implements PluginSink {
     @Override
     public boolean isReady() {
         return sink.isReady();
+    }
+
+    public PluginSink getSink() {
+        return this.sink;
     }
 }

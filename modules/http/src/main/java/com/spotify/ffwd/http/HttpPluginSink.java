@@ -25,7 +25,6 @@ import com.google.common.collect.ImmutableMap;
 import com.netflix.loadbalancer.ILoadBalancer;
 import com.netflix.loadbalancer.reactive.LoadBalancerCommand;
 import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchablePluginSink;
 import eu.toolchain.async.AsyncFramework;
@@ -82,23 +81,12 @@ public class HttpPluginSink implements BatchablePluginSink {
     }
 
     @Override
-    public void sendEvent(final Event event) {
-        sendEvents(Collections.singletonList(event));
-    }
-
-    @Override
     public void sendMetric(final Metric metric) {
         sendMetrics(Collections.singletonList(metric));
     }
 
     @Override
     public void sendBatch(final Batch batch) {
-    }
-
-    @Override
-    public AsyncFuture<Void> sendEvents(final Collection<Event> events) {
-        // TODO: Does not support events (yet?). Instrument that they have been dropped?
-        return async.resolved();
     }
 
     @Override

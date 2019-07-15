@@ -20,7 +20,6 @@
 
 package com.spotify.ffwd.json;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
@@ -30,7 +29,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
@@ -46,13 +44,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
-@RequiredArgsConstructor
 @Sharable
 public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
+    private static final Logger log = LoggerFactory.getLogger(JsonObjectMapperDecoder.class);
     private static final String HOST = "host";
     public static final Set<String> EMPTY_TAGS = Sets.newHashSet();
     public static final Map<String, String> EMPTY_ATTRIBUTES = new HashMap<>();
@@ -61,9 +58,11 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
     @Named("application/json")
     private ObjectMapper mapper;
 
+    JsonObjectMapperDecoder() {
+    }
+
     @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out)
-        throws Exception {
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
         if (!in.isReadable()) {
             return;
         }
@@ -80,8 +79,7 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
         out.add(frame);
     }
 
-    private Object decode0(ByteBuf in, List<Object> out)
-        throws IOException, JsonProcessingException {
+    private Object decode0(ByteBuf in, List<Object> out) throws IOException {
         final JsonNode tree;
 
         try (final InputStream input = new ByteBufInputStream(in)) {
@@ -95,10 +93,6 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
         }
 
         final String type = typeNode.asText();
-
-        if ("event".equals(type)) {
-            return decodeEvent(tree, out);
-        }
 
         if ("metric".equals(type)) {
             return decodeMetric(tree, out);
@@ -121,30 +115,6 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
         host.ifPresent(h -> tags.put(HOST, h));
 
         return new Metric(key, value, time, riemannTags, tags, resource, proc);
-    }
-
-    private Object decodeEvent(JsonNode tree, List<Object> out) {
-        final String key = decodeString(tree, "key");
-        final double value = decodeDouble(tree, "value");
-        final Date time = decodeTime(tree, "time");
-        final long ttl = decodeTtl(tree, "ttl");
-        final String state = decodeString(tree, "state");
-        final String description = decodeString(tree, "description");
-        final String host = decodeString(tree, HOST);
-        final Set<String> riemannTags = decodeTags(tree, "tags");
-        final Map<String, String> tags = decodeAttributes(tree, "attributes");
-
-        return new Event(key, value, time, ttl, state, description, host, riemannTags, tags);
-    }
-
-    private long decodeTtl(JsonNode tree, String name) {
-        final JsonNode n = tree.get(name);
-
-        if (n == null) {
-            return 0;
-        }
-
-        return n.asLong();
     }
 
     private Date decodeTime(JsonNode tree, String name) {

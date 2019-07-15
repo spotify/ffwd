@@ -28,7 +28,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.statistics.BatchingStatistics;
 import eu.toolchain.async.AsyncFramework;
@@ -55,9 +54,6 @@ public class BatchingPluginSinkTest {
 
     @Mock
     private Metric metric;
-
-    @Mock
-    private Event event;
 
     @Mock
     private BatchingPluginSink.Batch batch;
@@ -111,29 +107,7 @@ public class BatchingPluginSinkTest {
 
         doNothing().when(sink).checkBatch(sink.nextBatch);
 
-        sink.sendEvent(event);
-
-        verify(sink, never()).checkBatch(sink.nextBatch);
-    }
-
-    @Test
-    public void testSendEvent() {
-        assertEquals(0, sink.nextBatch.size());
-        doNothing().when(sink).checkBatch(sink.nextBatch);
-
-        sink.sendEvent(event);
-
-        assertEquals(1, sink.nextBatch.size());
-        verify(sink).checkBatch(sink.nextBatch);
-    }
-
-    @Test
-    public void testSendEventDrop() {
-        sink.nextBatch = null;
-
-        doNothing().when(sink).checkBatch(sink.nextBatch);
-
-        sink.sendEvent(event);
+        sink.sendMetric(metric);
 
         verify(sink, never()).checkBatch(sink.nextBatch);
     }

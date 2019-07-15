@@ -23,7 +23,6 @@ package com.spotify.ffwd.output;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.spotify.ffwd.filter.Filter;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.statistics.BatchingStatistics;
 import com.spotify.ffwd.statistics.OutputPluginStatistics;
@@ -45,7 +44,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 
 /**
@@ -54,7 +52,6 @@ import org.slf4j.Logger;
  *
  * @author udoprog
  */
-@RequiredArgsConstructor
 @Data
 public class BatchingPluginSink implements PluginSink {
     public static final long DEFAULT_BATCH_SIZE_LIMIT = 10000;
@@ -140,6 +137,12 @@ public class BatchingPluginSink implements PluginSink {
             maxPendingFlushes.orElse(DEFAULT_MAX_PENDING_FLUSHES));
     }
 
+    public BatchingPluginSink(long flushInterval, long batchSizeLimit, long maxPendingFlushes) {
+        this.flushInterval = flushInterval;
+        this.batchSizeLimit = batchSizeLimit;
+        this.maxPendingFlushes = maxPendingFlushes;
+    }
+
     @Override
     public void init() {
     }
@@ -159,17 +162,6 @@ public class BatchingPluginSink implements PluginSink {
     public void sendBatch(final com.spotify.ffwd.model.Batch b) {
         batchingStatistics.reportQueueSizeInc(b.getPoints().size());
         queueToBatch(batch -> batch.batches.add(b));
-    }
-
-    @Override
-    public void sendEvent(Event event) {
-        if (filter != null && !filter.matchesEvent(event)) {
-            batchingStatistics.reportEventsDroppedByFilter(1);
-            return;
-        }
-
-        batchingStatistics.reportQueueSizeInc(1);
-        queueToBatch(batch -> batch.events.add(event));
     }
 
     private void queueToBatch(final Consumer<Batch> consumer) {
@@ -228,7 +220,7 @@ public class BatchingPluginSink implements PluginSink {
              * Wait for all pending tasks to finish, stop accepting events and metrics.
              */
             @Override
-            public AsyncFuture<Void> transform(Void result) throws Exception {
+            public AsyncFuture<Void> transform(Void result) {
                 final ArrayList<AsyncFuture<Void>> pending = new ArrayList<>();
 
                 pending.add(doLastFlush());
@@ -245,7 +237,7 @@ public class BatchingPluginSink implements PluginSink {
              * Stop the underlying sink.
              */
             @Override
-            public AsyncFuture<Void> transform(Void result) throws Exception {
+            public AsyncFuture<Void> transform(Void result) {
                 return sink.stop();
             }
         });
@@ -369,8 +361,8 @@ public class BatchingPluginSink implements PluginSink {
             synchronized (pendingLock) {
                 if (pending.size() >= maxPendingFlushes) {
                     log.warn(
-                        "Max number of pending flushes ({}) reached, dropping {} metric(s) and " +
-                            "event(s)", pending.size(), batch.size());
+                        "Max number of pending flushes ({}) reached, dropping {} metric(s) ",
+                        pending.size(), batch.size());
                     statistics.reportDropped(batch.size());
                     batchingStatistics.reportQueueSizeDec(batch.size());
                     return async.resolved();
@@ -380,12 +372,6 @@ public class BatchingPluginSink implements PluginSink {
 
         final List<AsyncFuture<Void>> futures = new ArrayList<>();
         final FutureFinished writeMonitor = batchingStatistics.monitorWrite();
-
-        if (!batch.events.isEmpty()) {
-            futures.add(sink
-                .sendEvents(batch.events)
-                .onFinished(() -> batchingStatistics.reportSentEvents(batch.events.size())));
-        }
 
         if (!batch.metrics.isEmpty()) {
             futures.add(sink
@@ -419,27 +405,27 @@ public class BatchingPluginSink implements PluginSink {
         return new Batch();
     }
 
-    @RequiredArgsConstructor
     static class Batch {
-        private final List<Event> events = new ArrayList<>();
         private final List<Metric> metrics = new ArrayList<>();
         private final List<com.spotify.ffwd.model.Batch> batches = new ArrayList<>();
+
+        public Batch() {
+        }
 
         private int getBatchesSize() {
             return batches.stream().mapToInt(batch -> batch.getPoints().size()).sum();
         }
 
         public int size() {
-            return events.size() + metrics.size() + getBatchesSize();
+            return metrics.size() + getBatchesSize();
         }
 
         public boolean isEmpty() {
-            return events.isEmpty() && metrics.isEmpty() && batches.isEmpty();
+            return metrics.isEmpty() && batches.isEmpty();
         }
 
         public String toString() {
-            return "Batch{metrics=" + metrics.size() + ", events=" + events.size() + ", batches=" +
-                getBatchesSize() + "}";
+            return "Batch{metrics=" + metrics.size() + ", batches=" + getBatchesSize() + "}";
         }
     }
 }

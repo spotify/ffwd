@@ -51,7 +51,7 @@ public class RiemannSerialization {
         }
     }
 
-    public List<Object> decode0(Proto.Msg message) throws IOException {
+    public List<Object> decode0(Proto.Msg message) {
         final List<com.aphyr.riemann.Proto.Event> source = message.getEventsList();
 
         if (source.isEmpty()) {
@@ -77,8 +77,6 @@ public class RiemannSerialization {
         for (final Object d : messages) {
             if (d instanceof Metric) {
                 builder.addEvents(encodeMetric0((Metric) d));
-            } else if (d instanceof Event) {
-                builder.addEvents(encodeEvent0((Event) d));
             }
         }
 
@@ -117,35 +115,6 @@ public class RiemannSerialization {
 
         b.addAllTags(d.getRiemannTags());
         b.setTime(toRiemannTime(d.getTime()));
-
-        return b;
-    }
-
-    private Proto.Event.Builder encodeEvent0(final Event d) {
-        final Proto.Event.Builder b = Proto.Event.newBuilder();
-        if (d.getKey() != null) {
-            b.setService(d.getKey());
-        }
-
-        if (d.getHost() != null) {
-            b.setHost(d.getHost());
-        }
-
-        b.setMetricD(d.getValue());
-        b.addAllAttributes(convertTags0(d.getTags()));
-
-        b.addAllTags(d.getRiemannTags());
-        b.setTime(toRiemannTime(d.getTime()));
-
-        if (d.getDescription() != null) {
-            b.setDescription(d.getDescription());
-        }
-
-        b.setTtl(d.getTtl());
-
-        if (d.getState() != null) {
-            b.setState(d.getState());
-        }
 
         return b;
     }

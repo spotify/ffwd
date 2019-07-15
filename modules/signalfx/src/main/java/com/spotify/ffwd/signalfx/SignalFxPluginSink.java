@@ -26,7 +26,6 @@ import com.google.inject.Inject;
 import com.signalfx.metrics.flush.AggregateMetricSender;
 import com.signalfx.metrics.protobuf.SignalFxProtocolBuffers;
 import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchablePluginSink;
 import com.spotify.ffwd.output.FakeBatchablePluginSinkBase;
@@ -38,15 +37,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class SignalFxPluginSink extends FakeBatchablePluginSinkBase implements BatchablePluginSink {
+    private static final Logger log = LoggerFactory.getLogger(SignalFxPluginSink.class);
+
     @Inject
     AsyncFramework async;
 
@@ -65,11 +64,6 @@ public class SignalFxPluginSink extends FakeBatchablePluginSinkBase implements B
     }
 
     @Override
-    public void sendEvent(final Event event) {
-        sendEvents(Collections.singletonList(event));
-    }
-
-    @Override
     public void sendMetric(final Metric metric) {
         sendMetrics(Collections.singletonList(metric));
     }
@@ -77,17 +71,6 @@ public class SignalFxPluginSink extends FakeBatchablePluginSinkBase implements B
     @Override
     public void sendBatch(final Batch batch) {
         sendBatches(Collections.singletonList(batch));
-    }
-
-    @Override
-    public AsyncFuture<Void> sendEvents(final Collection<Event> events) {
-        // Ignore all events
-        return async.call(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                return null;
-            }
-        }, executorService);
     }
 
     @Override
@@ -99,68 +82,60 @@ public class SignalFxPluginSink extends FakeBatchablePluginSinkBase implements B
 
     @Override
     public AsyncFuture<Void> sendMetrics(final Collection<Metric> metrics) {
-        final AsyncFuture<Void> future = async.call(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                try (AggregateMetricSender.Session i = senderSupplier.get().createSession()) {
-                    for (Metric metric : metrics) {
-                        final SignalFxProtocolBuffers.DataPoint.Builder datapointBuilder =
-                            SignalFxProtocolBuffers.DataPoint
+        final AsyncFuture<Void> future = async.call(() -> {
+            try (AggregateMetricSender.Session i = senderSupplier.get().createSession()) {
+                for (Metric metric : metrics) {
+                    final SignalFxProtocolBuffers.DataPoint.Builder datapointBuilder =
+                        SignalFxProtocolBuffers.DataPoint
+                            .newBuilder()
+                            .setMetric(composeMetricIdentity(metric))
+                            .setMetricType(getMetricType(metric))
+                            .setValue(SignalFxProtocolBuffers.Datum
                                 .newBuilder()
-                                .setMetric(composeMetricIdentity(metric))
-                                .setMetricType(getMetricType(metric))
-                                .setValue(SignalFxProtocolBuffers.Datum
-                                    .newBuilder()
-                                    .setDoubleValue(metric.getValue()))
-                                .setTimestamp(metric.getTime().getTime());
+                                .setDoubleValue(metric.getValue()))
+                            .setTimestamp(metric.getTime().getTime());
 
-                        metric
-                            .getTags()
-                            .entrySet()
-                            .stream()
-                            .map(attribute -> SignalFxProtocolBuffers.Dimension
-                                .newBuilder()
-                                .setKey(attribute.getKey())
-                                .setValue(composeDimensionValue(attribute.getValue()))
-                                .build())
-                            .forEach(datapointBuilder::addDimensions);
-
-                      metric
-                        .getResource()
+                    metric
+                        .getTags()
                         .entrySet()
                         .stream()
                         .map(attribute -> SignalFxProtocolBuffers.Dimension
-                          .newBuilder()
-                          .setKey(attribute.getKey())
-                          .setValue(composeDimensionValue(attribute.getValue()))
-                          .build())
+                            .newBuilder()
+                            .setKey(attribute.getKey())
+                            .setValue(composeDimensionValue(attribute.getValue()))
+                            .build())
                         .forEach(datapointBuilder::addDimensions);
 
-                        // TODO: Why is this here? When we loop above all the tags above.
-                        final String host = metric.getTags().get("host");
-                        if (host != null) {
-                            datapointBuilder.addDimensions(SignalFxProtocolBuffers.Dimension
-                                .newBuilder()
-                                .setKey("host")
-                                .setValue(host)
-                                .build());
-                        }
+                  metric
+                    .getResource()
+                    .entrySet()
+                    .stream()
+                    .map(attribute -> SignalFxProtocolBuffers.Dimension
+                      .newBuilder()
+                      .setKey(attribute.getKey())
+                      .setValue(composeDimensionValue(attribute.getValue()))
+                      .build())
+                    .forEach(datapointBuilder::addDimensions);
 
-                        final SignalFxProtocolBuffers.DataPoint dataPoint =
-                            datapointBuilder.build();
-                        i.setDatapoint(dataPoint);
+                    // TODO: Why is this here? When we loop above all the tags above.
+                    final String host = metric.getTags().get("host");
+                    if (host != null) {
+                        datapointBuilder.addDimensions(SignalFxProtocolBuffers.Dimension
+                            .newBuilder()
+                            .setKey("host")
+                            .setValue(host)
+                            .build());
                     }
+
+                    final SignalFxProtocolBuffers.DataPoint dataPoint =
+                        datapointBuilder.build();
+                    i.setDatapoint(dataPoint);
                 }
-                return null;
             }
+            return null;
         }, executorService);
 
-        future.on(new FutureFailed() {
-            @Override
-            public void failed(Throwable throwable) throws Exception {
-                log.error("Failed to send metrics", throwable);
-            }
-        });
+        future.on((FutureFailed) throwable -> log.error("Failed to send metrics", throwable));
 
         return future;
     }
@@ -195,7 +170,7 @@ public class SignalFxPluginSink extends FakeBatchablePluginSinkBase implements B
                 metricIdentity.add(stat);
             }
         }
-        String resultIdentity = metricIdentity.stream().collect(Collectors.joining("."));
+        String resultIdentity = String.join(".", metricIdentity);
 
         return resultIdentity.length() > CHAR_LIMIT ? resultIdentity.substring(0, CHAR_LIMIT)
             : resultIdentity;

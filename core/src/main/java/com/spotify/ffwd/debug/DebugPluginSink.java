@@ -22,26 +22,22 @@ package com.spotify.ffwd.debug;
 
 import com.google.inject.Inject;
 import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchablePluginSink;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import java.util.Collection;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class DebugPluginSink implements BatchablePluginSink {
+    private static final Logger log = LoggerFactory.getLogger(DebugPluginSink.class);
+
     @Inject
     private AsyncFramework async;
 
     @Override
     public void init() {
-    }
-
-    @Override
-    public void sendEvent(Event event) {
-        log.info("E: {}", event);
     }
 
     @Override
@@ -52,17 +48,6 @@ public class DebugPluginSink implements BatchablePluginSink {
     @Override
     public void sendBatch(final Batch batch) {
         log.info("B: {}", batch);
-    }
-
-    @Override
-    public AsyncFuture<Void> sendEvents(Collection<Event> events) {
-        int i = 0;
-
-        for (final Event e : events) {
-            log.info("E#{}: {}", i++, e);
-        }
-
-        return async.resolved(null);
     }
 
     @Override

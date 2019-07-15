@@ -21,10 +21,8 @@
 package com.spotify.ffwd.filter;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import java.io.IOException;
 import lombok.Data;
@@ -34,19 +32,13 @@ public class NotFilter implements Filter {
     final Filter filter;
 
     @Override
-    public boolean matchesEvent(Event event) {
-        return !filter.matchesEvent(event);
-    }
-
-    @Override
     public boolean matchesMetric(Metric metric) {
         return !filter.matchesMetric(metric);
     }
 
     public static class Deserializer implements FilterDeserializer.PartialDeserializer {
         @Override
-        public Filter deserialize(JsonParser p, DeserializationContext ctx)
-            throws IOException, JsonProcessingException {
+        public Filter deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
             if (p.nextToken() != JsonToken.START_ARRAY) {
                 throw ctx.wrongTokenException(p, JsonToken.START_ARRAY, null);
             }

@@ -32,9 +32,7 @@ import eu.toolchain.async.FutureFinished;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 public class SemanticCoreStatistics implements CoreStatistics {
     private static final int HISTOGRAM_TTL_MINUTES = 2;
     private final SemanticMetricRegistry registry;
@@ -57,6 +55,10 @@ public class SemanticCoreStatistics implements CoreStatistics {
             }
         };
 
+    public SemanticCoreStatistics(SemanticMetricRegistry registry) {
+        this.registry = registry;
+    }
+
     @Override
     public InputManagerStatistics newInputManager() {
         final MetricId m = metric.tagged("component", "input-manager");
@@ -64,26 +66,12 @@ public class SemanticCoreStatistics implements CoreStatistics {
         return new InputManagerStatistics() {
             private final Meter receivedMetrics =
                 registry.meter(m.tagged("what", "received-metrics", "unit", "metric"));
-            private final Meter receivedEvents =
-                registry.meter(m.tagged("what", "received-events", "unit", "event"));
             private final Meter metricsDroppedByFilter =
                 registry.meter(m.tagged("what", "metrics-dropped-by-filter", "unit", "metric"));
-            private final Meter eventsDroppedByFilter =
-                registry.meter(m.tagged("what", "events-dropped-by-filter", "unit", "event"));
 
             @Override
             public void reportReceivedMetrics(int received) {
                 receivedMetrics.mark(received);
-            }
-
-            @Override
-            public void reportReceivedEvents(int received) {
-                receivedEvents.mark(received);
-            }
-
-            @Override
-            public void reportEventsDroppedByFilter(int dropped) {
-                eventsDroppedByFilter.mark(dropped);
             }
 
             @Override
@@ -100,12 +88,6 @@ public class SemanticCoreStatistics implements CoreStatistics {
         return new OutputManagerStatistics() {
             private final Meter sentMetrics =
               registry.meter(m.tagged("what", "sent-metrics", "unit", "metric"));
-            private final Meter sentEvents =
-              registry.meter(m.tagged("what", "sent-events", "unit", "event"));
-            private final Meter eventsDroppedByFilter =
-              registry.meter(m.tagged("what", "events-dropped-by-filter", "unit", "event"));
-            private final Meter eventsDroppedByRateLimit =
-              registry.meter(m.tagged("what", "events-dropped-by-ratelimit", "unit", "metric"));
             private final Meter metricsDroppedByFilter =
               registry.meter(m.tagged("what", "metrics-dropped-by-filter", "unit", "metric"));
             private final Meter metricsDroppedByRateLimit =
@@ -114,21 +96,6 @@ public class SemanticCoreStatistics implements CoreStatistics {
             @Override
             public void reportSentMetrics(int sent) {
                 sentMetrics.mark(sent);
-            }
-
-            @Override
-            public void reportSentEvents(int sent) {
-                sentEvents.mark(sent);
-            }
-
-            @Override
-            public void reportEventsDroppedByFilter(int dropped) {
-                eventsDroppedByFilter.mark(dropped);
-            }
-
-            @Override
-            public void reportEventsDroppedByRateLimit(final int dropped) {
-                eventsDroppedByRateLimit.mark(dropped);
             }
 
             @Override
@@ -176,12 +143,10 @@ public class SemanticCoreStatistics implements CoreStatistics {
         return new BatchingStatistics() {
             private final Meter sentMetrics =
                 registry.meter(m.tagged("what", "sent-metrics", "unit", "metric"));
-            private final Meter sentEvents =
-                registry.meter(m.tagged("what", "sent-events", "unit", "event"));
             private final Meter sentBatches =
                 registry.meter(m.tagged("what", "sent-batches", "unit", "batches"));
 
-            // Total number of metrics & events that has been sent, including batch content
+            // Total number of metrics that have been sent, including batch content
             private final Meter sentTotal =
                 registry.meter(m.tagged("what", "sent-total", "unit", "count"));
 
@@ -193,7 +158,7 @@ public class SemanticCoreStatistics implements CoreStatistics {
             private final Histogram writeBatchSize =
                 registry.getOrAdd(m.tagged("what", "write-batch-size"), HISTOGRAM_BUILDER);
 
-            // Total number of metrics & events that is currently enqueued, including batch content
+            // Total number of metrics that are currently enqueued, including batch content
             private final Counter totalEnqueued =
                 registry.counter(m.tagged("what", "total-enqueued", "unit", "count"));
 
@@ -207,14 +172,6 @@ public class SemanticCoreStatistics implements CoreStatistics {
 
             private final Meter metricsDroppedByFilter =
                 registry.meter(m.tagged("what", "metrics-dropped-by-filter", "unit", "metric"));
-            private final Meter eventsDroppedByFilter =
-                registry.meter(m.tagged("what", "events-dropped-by-filter", "unit", "event"));
-
-            @Override
-            public void reportSentEvents(final int sent) {
-                sentEvents.mark(sent);
-                sentTotal.mark(sent);
-            }
 
             @Override
             public void reportSentMetrics(final int sent) {
@@ -258,11 +215,6 @@ public class SemanticCoreStatistics implements CoreStatistics {
                         TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
                     pendingWrites.dec();
                 };
-            }
-
-            @Override
-            public void reportEventsDroppedByFilter(final int dropped) {
-                eventsDroppedByFilter.mark(dropped);
             }
 
             @Override

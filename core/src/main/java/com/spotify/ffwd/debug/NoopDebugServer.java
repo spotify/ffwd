@@ -22,7 +22,6 @@ package com.spotify.ffwd.debug;
 
 import com.google.inject.Inject;
 import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
@@ -30,10 +29,6 @@ import eu.toolchain.async.AsyncFuture;
 public class NoopDebugServer implements DebugServer {
     @Inject
     private AsyncFramework async;
-
-    @Override
-    public void inspectEvent(String id, Event event) {
-    }
 
     @Override
     public void inspectMetric(String id, Metric metric) {

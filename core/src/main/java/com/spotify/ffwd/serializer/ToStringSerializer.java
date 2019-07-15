@@ -22,35 +22,26 @@ package com.spotify.ffwd.serializer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.spotify.ffwd.cache.WriteCache;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import java.util.Collection;
-import java.util.function.Supplier;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class ToStringSerializer implements Serializer {
+    private static final Logger log = LoggerFactory.getLogger(ToStringSerializer.class);
+
     @JsonCreator
     public ToStringSerializer() {
         log.warn("This serializer should only be used for debugging purposes");
     }
 
     @Override
-    public byte[] serialize(Event event) throws Exception {
-        return event.toString().getBytes();
-    }
-
-    @Override
-    public byte[] serialize(Metric metric) throws Exception {
+    public byte[] serialize(Metric metric) {
         return metric.toString().getBytes();
     }
 
     @Override
-    public byte[] serialize(Collection<Metric> metrics, WriteCache writeCache) throws Exception {
+    public byte[] serialize(Collection<Metric> metrics, WriteCache writeCache) {
         throw new UnsupportedOperationException("Not supported");
-    }
-
-    public static Supplier<Serializer> defaultSupplier() {
-        return ToStringSerializer::new;
     }
 }

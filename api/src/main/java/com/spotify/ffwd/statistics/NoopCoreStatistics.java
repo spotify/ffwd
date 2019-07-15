@@ -34,14 +34,6 @@ public class NoopCoreStatistics implements CoreStatistics {
             }
 
             @Override
-            public void reportReceivedEvents(int received) {
-            }
-
-            @Override
-            public void reportEventsDroppedByFilter(int dropped) {
-            }
-
-            @Override
             public void reportMetricsDroppedByFilter(int dropped) {
             }
         };
@@ -52,31 +44,7 @@ public class NoopCoreStatistics implements CoreStatistics {
     }
 
     private static final OutputManagerStatistics noopOutputManagerStatistics =
-        new OutputManagerStatistics() {
-            @Override
-            public void reportSentMetrics(int sent) {
-            }
-
-            @Override
-            public void reportSentEvents(int sent) {
-            }
-
-            @Override
-            public void reportEventsDroppedByFilter(int dropped) {
-            }
-
-            @Override
-            public void reportEventsDroppedByRateLimit(int dropped) {
-            }
-
-            @Override
-            public void reportMetricsDroppedByFilter(int dropped) {
-            }
-
-            @Override
-            public void reportMetricsDroppedByRateLimit(final int dropped) {
-            }
-        };
+        new OutputManagerStatistics() { };
 
     @Override
     public OutputManagerStatistics newOutputManager() {
@@ -103,10 +71,6 @@ public class NoopCoreStatistics implements CoreStatistics {
     }
 
     public static final BatchingStatistics noopBatchingStatistics = new BatchingStatistics() {
-        @Override
-        public void reportSentEvents(final int sent) {
-        }
-
         @Override
         public void reportSentMetrics(final int sent) {
         }
@@ -135,10 +99,6 @@ public class NoopCoreStatistics implements CoreStatistics {
         public FutureFinished monitorWrite() {
             return () -> {
             };
-        }
-
-        @Override
-        public void reportEventsDroppedByFilter(final int dropped) {
         }
 
         @Override

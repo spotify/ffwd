@@ -25,19 +25,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Event;
 import com.spotify.ffwd.model.Metric;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
     @JsonSubTypes.Type(value = KafkaRouter.Tag.class, name = "tag"),
     @JsonSubTypes.Type(value = KafkaRouter.Static.class, name = "static")
 })
 public interface KafkaRouter {
-    String route(final Event event);
-
     String route(final Metric metric);
 
     String route(final Batch.Point point);
@@ -46,31 +43,17 @@ public interface KafkaRouter {
         private static final String DEFAULT = "default";
         private static final String DEFAULT_TAGKEY = "site";
         private static final String DEFAULT_METRICS = "metrics-%s";
-        private static final String DEFAULT_EVENTS = "events-%s";
 
         private final String tagKey;
         private final String metrics;
-        private final String events;
 
         @JsonCreator
         public Tag(
-            @JsonProperty("tag") final String tagKey, @JsonProperty("metrics") String metrics,
-            @JsonProperty("events") String events
+            @JsonProperty("tag") final String tagKey,
+            @JsonProperty("metrics") String metrics
         ) {
             this.tagKey = Optional.ofNullable(tagKey).orElse(DEFAULT_TAGKEY);
             this.metrics = Optional.ofNullable(metrics).orElse(DEFAULT_METRICS);
-            this.events = Optional.ofNullable(events).orElse(DEFAULT_EVENTS);
-        }
-
-        @Override
-        public String route(final Event event) {
-            final String tagValue = event.getTags().get(tagKey);
-
-            if (tagValue != null) {
-                return String.format(events, tagValue);
-            }
-
-            return String.format(events, DEFAULT);
         }
 
         @Override
@@ -95,29 +78,19 @@ public interface KafkaRouter {
             return String.format(metrics, DEFAULT);
         }
 
-        public static Supplier<KafkaRouter> supplier() {
-            return () -> new Tag(null, null, null);
+        static Supplier<KafkaRouter> supplier() {
+            return () -> new Tag(null, null);
         }
     }
 
     class Static implements KafkaRouter {
         private static final String DEFAULT_METRICS = "metrics";
-        private static final String DEFAULT_EVENTS = "events";
 
         private final String metrics;
-        private final String events;
 
         @JsonCreator
-        public Static(
-            @JsonProperty("metrics") String metrics, @JsonProperty("events") String events
-        ) {
+        public Static(@JsonProperty("metrics") String metrics) {
             this.metrics = Optional.ofNullable(metrics).orElse(DEFAULT_METRICS);
-            this.events = Optional.ofNullable(events).orElse(DEFAULT_EVENTS);
-        }
-
-        @Override
-        public String route(final Event event) {
-            return events;
         }
 
         @Override
@@ -128,10 +101,6 @@ public interface KafkaRouter {
         @Override
         public String route(final Batch.Point point) {
             return metrics;
-        }
-
-        public static Supplier<KafkaRouter> supplier() {
-            return () -> new Static(null, null);
         }
     }
 }
