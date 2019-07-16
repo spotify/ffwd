@@ -31,6 +31,5 @@ public class RiemannModule implements FastForwardModule {
     @Override
     public void setup() throws Exception {
         context.registerInput("riemann", RiemannInputPlugin.class);
-        context.registerOutput("riemann", RiemannOutputPlugin.class);
     }
 }

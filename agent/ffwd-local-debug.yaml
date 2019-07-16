@@ -12,12 +12,6 @@ input:
     - type: protobuf
       protocol:
         type: tcp
-    - type: riemann
-      protocol:
-        type: tcp
-    - type: riemann
-      protocol:
-        type: udp
     - type: http
       protocol:
         type: tcp

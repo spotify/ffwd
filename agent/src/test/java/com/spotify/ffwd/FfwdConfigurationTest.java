@@ -60,9 +60,6 @@ public class FfwdConfigurationTest {
                 "com.spotify.ffwd.kafka.KafkaPluginSink"),
             ImmutableList.of("com.spotify.ffwd.output.FilteringPluginSink",
                 "com.spotify.ffwd.output.BatchingPluginSink",
-                "com.spotify.ffwd.protocol.ProtocolPluginSink"),
-            ImmutableList.of("com.spotify.ffwd.output.FilteringPluginSink",
-                "com.spotify.ffwd.output.BatchingPluginSink",
                 "com.spotify.ffwd.signalfx.SignalFxPluginSink"));
 
         verifyLoadedSinksForConfig(
@@ -79,8 +76,6 @@ public class FfwdConfigurationTest {
             ImmutableList.of("com.spotify.ffwd.output.BatchingPluginSink",
                 "com.spotify.ffwd.http.HttpPluginSink"),
             ImmutableList.of("com.spotify.ffwd.kafka.KafkaPluginSink"),
-            ImmutableList.of("com.spotify.ffwd.output.FilteringPluginSink",
-                "com.spotify.ffwd.protocol.ProtocolPluginSink"),
             ImmutableList.of("com.spotify.ffwd.output.FilteringPluginSink",
                 "com.spotify.ffwd.output.BatchingPluginSink",
                 "com.spotify.ffwd.signalfx.SignalFxPluginSink"));

@@ -38,10 +38,6 @@ output:
       filter: ["key","foobar"]
       producer:
         metadata.broker.list: "server1:9092,server2:9092"
-    - type: riemann
-      batching:
-        flushInterval: 20000
-      filter: ["key","foobar"]
     - type: signalfx
       batching:
         flushInterval: 20000
