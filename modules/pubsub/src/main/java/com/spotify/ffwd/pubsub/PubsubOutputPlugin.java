@@ -162,7 +162,7 @@ public class PubsubOutputPlugin extends OutputPlugin {
       public Optional<Cache<String, Boolean>> cache() {
         if (writeCacheDurationMinutes > 0) {
           return Optional.of(CacheBuilder.newBuilder()
-              .expireAfterAccess(java.time.Duration.ofMinutes(writeCacheDurationMinutes))
+              .expireAfterWrite(java.time.Duration.ofMinutes(writeCacheDurationMinutes))
               .maximumSize(writeCacheMaxSize)
               .recordStats()
               .build());
