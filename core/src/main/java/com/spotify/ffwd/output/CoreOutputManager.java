@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,7 +22,6 @@ package com.spotify.ffwd.output;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.RateLimiter;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.spotify.ffwd.debug.DebugServer;
@@ -38,8 +37,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import org.isomorphism.util.TokenBucket;
+import org.isomorphism.util.TokenBuckets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +50,7 @@ public class CoreOutputManager implements OutputManager {
     private static final String HOST = "host";
     private static final Logger log = LoggerFactory.getLogger(CoreOutputManager.class);
 
-    private final RateLimiter rateLimiter;
+    private final TokenBucket rateLimiter;
 
     @Inject
     private List<PluginSink> sinks;
@@ -109,17 +111,23 @@ public class CoreOutputManager implements OutputManager {
     @Inject
     private Filter filter;
 
-    public final Double getRateLimit() {
+    public final Long getRateLimit() {
         if (rateLimiter == null) {
             return null;
         }
-        return rateLimiter.getRate();
+        return rateLimiter.getCapacity();
     }
 
     @Inject
     CoreOutputManager(@Named("rateLimit") @Nullable Integer rateLimit) {
         if (rateLimit != null && rateLimit > 0) {
-            rateLimiter = RateLimiter.create(rateLimit);
+            // Create a rate limiter with a configurable QPS, and
+            // tick every half second to reduce the delay between refills.
+            rateLimiter = TokenBuckets.builder()
+              .withCapacity(rateLimit)
+              .withInitialTokens(rateLimit)
+              .withFixedIntervalRefillStrategy(rateLimit / 2, 500, TimeUnit.MILLISECONDS)
+              .build();
         } else {
             rateLimiter = null;
         }
@@ -146,6 +154,7 @@ public class CoreOutputManager implements OutputManager {
         debug.inspectMetric(DEBUG_ID, filtered);
 
         if (!rateLimitAllowed(1)) {
+            log.debug("Dropping a metric due to rate limiting");
             statistics.reportMetricsDroppedByRateLimit(1);
             return;
         }
@@ -166,6 +175,7 @@ public class CoreOutputManager implements OutputManager {
         int batchSize = batch.getPoints().size();
 
         if (batchSize > 0 && !rateLimitAllowed(batchSize)) {
+            log.debug("Dropping {} metrics due to rate limiting", batchSize);
             statistics.reportMetricsDroppedByRateLimit(batchSize);
             return;
         }
@@ -199,7 +209,12 @@ public class CoreOutputManager implements OutputManager {
         if (rateLimiter == null) {
             return true;
         }
-        return rateLimiter.tryAcquire(permits);
+        try {
+            return rateLimiter.tryConsume(permits);
+        } catch (IllegalArgumentException e) {
+            // Thrown if permits > max capacity or permits is not a positive number
+            return false;
+        }
     }
 
     /**

@@ -295,6 +295,12 @@
       </dependency>
 
       <dependency>
+        <groupId>org.isomorphism</groupId>
+        <artifactId>token-bucket</artifactId>
+        <version>1.6</version>
+      </dependency>
+
+      <dependency>
         <groupId>com.google.inject</groupId>
         <artifactId>guice</artifactId>
         <version>${guice.version}</version>

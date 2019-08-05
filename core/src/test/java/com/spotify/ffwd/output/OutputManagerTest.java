@@ -218,15 +218,18 @@ public class OutputManagerTest {
 
     @Test
     public void testDroppingRateLimiting() {
-        rateLimit = 1;
+        rateLimit = 5;
         OutputManager outputManager = createOutputManager();
         ArgumentCaptor<Metric> captor = ArgumentCaptor.forClass(Metric.class);
 
-        outputManager.sendMetric(m1);
+        // Send a burst of metrics, all should be accepted
+        for (int i = 0; i < rateLimit; i++) {
+            outputManager.sendMetric(m1);
+        }
+        // Next metric is expected to be dropped
         outputManager.sendMetric(m1);
 
-        // The first metric should be accepted and the second dropped
-        verify(sink, times(1)).sendMetric(captor.capture());
+        verify(sink, times(rateLimit)).sendMetric(captor.capture());
     }
 
     private Metric sendAndCaptureMetric(Metric metric) {
