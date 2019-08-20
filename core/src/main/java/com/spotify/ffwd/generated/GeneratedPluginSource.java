@@ -94,11 +94,12 @@ public class GeneratedPluginSource implements PluginSource {
             final Date time = null;
             final String host = generateHost(i);
             final Set<String> riemannTags = ImmutableSet.of();
-            final Map<String, String> tags = ImmutableMap.of("what", "metric-" + i);
+            final Map<String, String> tags = ImmutableMap.of(
+                "what", "metric-" + i,
+                "host", host
+            );
             final Map<String, String> resource = ImmutableMap.of();
             final String proc = null;
-
-            tags.put("host", host);
 
             metrics.add(new Metric(key, value, time, riemannTags, tags, resource, proc));
         }
