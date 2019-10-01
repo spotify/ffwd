@@ -3,7 +3,7 @@
 
   <groupId>com.spotify.ffwd</groupId>
   <artifactId>ffwd-parent</artifactId>
-  <version>0.5.3</version>
+  <version>0.5.4-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>FastForward Parent</name>
@@ -44,7 +44,7 @@
     <connection>scm:git:git@github.com:spotify/ffwd</connection>
     <developerConnection>scm:git:git@github.com:spotify/ffwd</developerConnection>
     <url>https://github.com/spotify/ffwd</url>
-    <tag>0.5.3</tag>
+    <tag>0.4.0</tag>
   </scm>
 
   <developers>
