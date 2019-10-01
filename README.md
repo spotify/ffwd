@@ -9,7 +9,7 @@ By running locally, it is easily available to receive pushed data from any appli
 
 ffwd decorates the received metrics with system-wide tags or attributes. By doing this, the application generating the data becomes simpler to build, maintain, and configure since it doesn't have to know where it is running. Only that ffwd is available on the loopback interface.
 
-
+ 
 This project is currently: __experimental__, use at your own risk.
 
 __Head over to https://spotify.github.io/ffwd/ for documentation.__
