@@ -1,0 +1,21 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/ffwd
+
+    docker:
+      - image: circleci/openjdk:11-jdk-stretch
+
+    branches:
+      only:
+        - master
+
+    steps:
+      - checkout
+
+      - save_cache:
+          paths:
+            - $HOME/.m2
+            - .cache
+          key: ffwd-{{ checksum "pom.xml" }}
+      - run: mvn -D environment=test verify
