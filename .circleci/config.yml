@@ -9,6 +9,7 @@ jobs:
     branches:
       only:
         - master
+        - /pull\/[0-9]+/
 
     steps:
       - checkout
