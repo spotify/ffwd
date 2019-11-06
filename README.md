@@ -9,7 +9,6 @@ By running locally, it is easily available to receive pushed data from any appli
 
 ffwd decorates the received metrics with system-wide tags or attributes. By doing this, the application generating the data becomes simpler to build, maintain, and configure since it doesn't have to know where it is running. Only that ffwd is available on the loopback interface.
 
- 
 This project is currently: __experimental__, use at your own risk.
 
 __Head over to https://spotify.github.io/ffwd/ for documentation.__
@@ -64,6 +63,12 @@ This will setup a ffwd with a lot of input plugins that are printed to stdout.
 
 [maven]: https://maven.apache.org/
 
+# Production Debugging
+
+If the debug port is enabled, metrics can be emited to a shell with netcat:
+
+`nc localhost 19001`
+
 # Clients
 
 * [Java](https://github.com/udoprog/ffwd-java-client)
@@ -90,7 +95,6 @@ To release, run:
 
 `mvn release:clean release:prepare -D autoVersionSubmodules=true`
 
-You will be prompted for the release version and the next development version. 
+You will be prompted for the release version and the next development version.
 
 Add a Github release based on the tag that was created from the above command with notes on what changed.
-
