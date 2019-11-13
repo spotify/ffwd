@@ -1,5 +1,5 @@
 # ffwd-java &#187;
-[![Build Status](https://travis-ci.org/spotify/ffwd.svg?branch=master)](https://travis-ci.org/spotify/ffwd)
+[![Build Status](https://circleci.com/gh/spotify/ffwd.svg?style=svg)](https://circleci.com/gh/spotify/ffwd)
 [![License](https://img.shields.io/github/license/spotify/ffwd.svg)](LICENSE)
 
 
@@ -49,7 +49,7 @@ This adds:
 * [FindBugs](http://findbugs.sourceforge.net/)
 
 It is strongly recommended that you run the full test suite before setting up a
-pull request, otherwise it will be rejected by Travis.
+pull request, otherwise it will be rejected by the CI system.
 
 # Local Debugging
 
@@ -71,7 +71,7 @@ If the debug port is enabled, metrics can be emited to a shell with netcat:
 
 # Clients
 
-* [Java](https://github.com/udoprog/ffwd-java-client)
+* [Java-UDP](https://github.com/spotify/ffwd-client-java)
 * [Java-HTTP](https://github.com/spotify/ffwd-http-client)
 * [Python](https://pypi.python.org/pypi/ffwd)
 * [c++](https://github.com/udoprog/libffwd-client)
