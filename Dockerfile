@@ -14,6 +14,7 @@ EXPOSE 8080/tcp
 ENTRYPOINT ["/usr/bin/ffwd"]
 CMD ["/etc/ffwd/ffwd.yaml"]
 
-COPY agent/target/ffwd-full.jar /usr/share/ffwd/ffwd-full.jar
+COPY --from=0 agent/target/ffwd-full.jar /usr/share/ffwd/ffwd-full.jar
 COPY agent/ffwd.yaml /etc/ffwd/ffwd.yaml
-COPY agent/ffwd.sh /usr/bin/ffwd.sh
+COPY agent/ffwd /usr/bin/ffwd
+
