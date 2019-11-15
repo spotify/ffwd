@@ -1,0 +1,2 @@
+#!/bin/sh
+exec java $JVM_DEFAULT_ARGS $JVM_ARGS -cp /usr/share/ffwd/ffwd-full.jar com.spotify.ffwd.FastForwardAgent "$@"

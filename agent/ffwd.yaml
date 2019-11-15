@@ -1,60 +1,36 @@
 debug: {}
 
-tags:
-  role: test
-
-skipTagsForKeys:
-  - gcp
-
-riemannTags:
-  - ffwd
-
 input:
   plugins:
-    - type: generated
-      sameHost: true
-    - type: json
-      protocol:
-        type: tcp
-    - type: json
-      protocol:
-        type: udp
     - type: protobuf
       protocol:
         type: udp
-        receiveBufferSize: 106214400
-    - type: protobuf
+        receiveBufferSize: 26214400
+        host: "0.0.0.0"
+        port: 19091
+    - type: json
       protocol:
         type: tcp
-    - type: riemann
-      protocol:
-        type: tcp
-    - type: riemann
+        host: "0.0.0.0"
+        port: 19000
+    - type: json
       protocol:
         type: udp
+        receiveBufferSize: 26214400
+        host: "0.0.0.0"
+        port: 19000
+    - type: http
+      protocol:
+        type: tcp
+        host: "0.0.0.0"
+        port: 8080
 
 output:
-  filter:
-    - "not"
-    - - "and"
-      - ["key", "system"]
-      - ["=", "stat", "p99"]
   plugins:
-    - type: noop
-      flushInterval: 10000
-    - type: template
-    #- type: debug
-    #  flushInterval: 10000
-    #- type: kafka
-    #  flushInterval: 10000
-    #  serializer:
-    #    type: spotify100
-    #  router:
-    #    type: tag
-    #    tag: pod
-    #  partitioner:
-    #    type: host
-    #  producer:
-    #    metadata.broker.list: localhost:9092
-    #    request.required.acks: 1
-    #    request.timeout.ms: 1000
+    - type: debug
+      # filter out internal metrics so you can see your own
+      filter:
+        - "not"
+        - - "or"
+          - ["key", "ffwd-java"]
+          - ["key", "ffwd-java.ffwd-java"]

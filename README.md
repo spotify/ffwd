@@ -11,12 +11,39 @@ ffwd decorates the received metrics with system-wide tags or attributes. By doin
 
 __Head over to https://spotify.github.io/ffwd/ for documentation.__
 
-# Building
+
+# Quick Start
+
+ffwd can be started quickly with docker. This can be useful to run locally when troubleshooting metrics with your service.
+
+```bash
+docker run -it -p 19091:19091 -p 19000:19000 -p 8080:8080 spotify/ffwd:latest
+```
+
+# Production Debugging
+
+If the debug port is enabled, metrics can be emited to a shell with netcat:
+
+`nc localhost 19001`
+
+# Clients
+
+* [Java-UDP](https://github.com/spotify/ffwd-client-java)
+* [Java-HTTP](https://github.com/spotify/ffwd-http-client)
+* [Python](https://pypi.python.org/pypi/ffwd)
+* [c++](https://github.com/udoprog/libffwd-client)
+
+# Libraries
+
+* [semantic-metrics (ffwd-reporter)](https://github.com/spotify/semantic-metrics)
+
+
+# Developing
 
 This project is built using Maven. The package phase will also build a debian package.
 
 ```bash
-$> mvn package
+mvn package
 ```
 
 You can run the client using `tools/ffwd`.
@@ -24,7 +51,6 @@ You can run the client using `tools/ffwd`.
 ```bash
 $> tools/ffwd agent/ffwd.yaml
 ```
-
 
 ## Testing
 
@@ -48,35 +74,6 @@ This adds:
 
 It is strongly recommended that you run the full test suite before setting up a
 pull request, otherwise it will be rejected by the CI system.
-
-# Local Debugging
-
-Assuming you have [Maven][maven] installed, you can run the following to setup a local debug agent:
-
-```
-$> tools/ffwd agent/ffwd-local-debug.yaml
-```
-
-This will setup a ffwd with a lot of input plugins that are printed to stdout.
-
-[maven]: https://maven.apache.org/
-
-# Production Debugging
-
-If the debug port is enabled, metrics can be emited to a shell with netcat:
-
-`nc localhost 19001`
-
-# Clients
-
-* [Java-UDP](https://github.com/spotify/ffwd-client-java)
-* [Java-HTTP](https://github.com/spotify/ffwd-http-client)
-* [Python](https://pypi.python.org/pypi/ffwd)
-* [c++](https://github.com/udoprog/libffwd-client)
-
-# Libraries
-
-* [semantic-metrics (ffwd-reporter)](https://github.com/spotify/semantic-metrics)
 
 # Code of Conduct
 

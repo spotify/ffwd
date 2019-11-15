@@ -125,7 +125,7 @@ public class ProtocolServersImpl implements ProtocolServers {
 
                 @Override
                 public String toString() {
-                    return String.format("bind tcp://%s:%d", host, port);
+                    return String.format("bind udp://%s:%d", host, port);
                 }
             });
 
