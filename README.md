@@ -17,7 +17,7 @@ __Head over to https://spotify.github.io/ffwd/ for documentation.__
 ffwd can be started quickly with docker. This can be useful to run locally when troubleshooting metrics with your service.
 
 ```bash
-docker run -it -p 19091:19091 -p 19000:19000 -p 8080:8080 spotify/ffwd:latest
+docker run -it -p 19091:19091/udp -p 19000:19000 -p 8080:8080 spotify/ffwd:latest
 ```
 
 # Production Debugging
