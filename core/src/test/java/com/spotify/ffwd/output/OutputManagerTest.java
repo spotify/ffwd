@@ -227,9 +227,31 @@ public class OutputManagerTest {
             outputManager.sendMetric(m1);
         }
         // Next metric is expected to be dropped
-        outputManager.sendMetric(m1);
+        Metric mTest = new Metric(null, 42.0, new Date(), ImmutableSet.of(), ImmutableMap.of(), ImmutableMap.of(), null);
+        outputManager.sendMetric(mTest);
 
         verify(sink, times(rateLimit)).sendMetric(captor.capture());
+
+        // Next metric shouldn't be dropped
+        Metric mKey = new Metric("ffwd-java", 42.0, new Date(), ImmutableSet.of(), ImmutableMap.of(), ImmutableMap.of(), null);
+        outputManager.sendMetric(mKey);
+
+        verify(sink, times(rateLimit+1)).sendMetric(captor.capture());
+    }
+
+    @Test
+    public void testBatchNullKeyNotDropping() {
+        rateLimit = 5;
+        Map<String, String> m2Tags = new HashMap<>();
+        m2Tags.put("role", "abc");
+        m2Tags.put("foo", "fooval");
+
+        final Batch.Point point = new Batch.Point(null, m2Tags, m1.getResource(), m1.getValue(), m1.getTime().getTime());
+        final Batch batch = new Batch(Maps.newHashMap(), Maps.newHashMap(), Collections.singletonList(point));
+
+        final Batch.Point expected = new Batch.Point(null, ImmutableMap.of("role","abc"),
+            ImmutableMap.of("bar","fooval"), m1.getValue(), m1.getTime().getTime());
+        assertEquals(expected, sendAndCaptureBatch(batch).getPoints().get(0));
     }
 
     private Metric sendAndCaptureMetric(Metric metric) {

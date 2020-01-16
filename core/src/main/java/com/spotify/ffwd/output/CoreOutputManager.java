@@ -32,6 +32,7 @@ import com.spotify.ffwd.statistics.OutputManagerStatistics;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -49,6 +50,7 @@ public class CoreOutputManager implements OutputManager {
     private static final String DEBUG_ID = "core.output";
     private static final String HOST = "host";
     private static final Logger log = LoggerFactory.getLogger(CoreOutputManager.class);
+    private static final String[] KEYS_NEVER_TO_DROP = {"ffwd-java", "ffwd-java.ffwd-java"};
 
     private final TokenBucket rateLimiter;
 
@@ -153,7 +155,7 @@ public class CoreOutputManager implements OutputManager {
 
         debug.inspectMetric(DEBUG_ID, filtered);
 
-        if (!rateLimitAllowed(1)) {
+        if (!rateLimitAllowed(1, metric.getKey())) {
             log.debug("Dropping a metric due to rate limiting");
             statistics.reportMetricsDroppedByRateLimit(1);
             return;
@@ -174,7 +176,7 @@ public class CoreOutputManager implements OutputManager {
 
         int batchSize = batch.getPoints().size();
 
-        if (batchSize > 0 && !rateLimitAllowed(batchSize)) {
+        if (batchSize > 0 && !rateLimitAllowed(batchSize, batch.getPoints().get(0).getKey())) {
             log.debug("Dropping {} metrics due to rate limiting", batchSize);
             statistics.reportMetricsDroppedByRateLimit(batchSize);
             return;
@@ -205,8 +207,9 @@ public class CoreOutputManager implements OutputManager {
         return async.collectAndDiscard(futures);
     }
 
-    private boolean rateLimitAllowed(int permits) {
-        if (rateLimiter == null) {
+    private boolean rateLimitAllowed(int permits, String key) {
+        if (rateLimiter == null
+            || Arrays.asList(KEYS_NEVER_TO_DROP).contains(key)) {
             return true;
         }
         try {
