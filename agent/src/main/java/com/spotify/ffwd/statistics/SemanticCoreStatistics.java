@@ -21,6 +21,7 @@
 package com.spotify.ffwd.statistics;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
@@ -32,6 +33,7 @@ import eu.toolchain.async.FutureFinished;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class SemanticCoreStatistics implements CoreStatistics {
     private static final int HISTOGRAM_TTL_MINUTES = 2;
@@ -84,28 +86,45 @@ public class SemanticCoreStatistics implements CoreStatistics {
     @Override
     public OutputManagerStatistics newOutputManager() {
         final MetricId m = metric.tagged("component", "output-manager");
+        final AtomicLong metricsCardinality = new AtomicLong();
 
         return new OutputManagerStatistics() {
-            private final Meter sentMetrics =
-              registry.meter(m.tagged("what", "sent-metrics", "unit", "metric"));
-            private final Meter metricsDroppedByFilter =
-              registry.meter(m.tagged("what", "metrics-dropped-by-filter", "unit", "metric"));
-            private final Meter metricsDroppedByRateLimit =
-              registry.meter(m.tagged("what", "metrics-dropped-by-ratelimit", "unit", "metric"));
+            private final Counter sentMetrics =
+              registry.counter(m.tagged("what", "sent-metrics", "unit", "metric"));
+            private final Counter metricsDroppedByFilter =
+              registry.counter(m.tagged("what", "metrics-dropped-by-filter", "unit", "metric"));
+            private final Counter metricsDroppedByRateLimit =
+              registry.counter(m.tagged("what", "metrics-dropped-by-ratelimit", "unit", "metric"));
+            private final Counter metricsDroppedByCardinalityLimit =
+              registry.counter(m.tagged("what", "metrics-dropped-by-cardlimit", "unit", "metric"));
+
+            private final Gauge metricsCardinalityMetric =
+              registry.register(m.tagged("what", "metrics-cardinality"),
+                  (Gauge<Long>) () -> (long) metricsCardinality.get());
 
             @Override
             public void reportSentMetrics(int sent) {
-                sentMetrics.mark(sent);
+                sentMetrics.inc(sent);
             }
 
             @Override
             public void reportMetricsDroppedByFilter(int dropped) {
-                metricsDroppedByFilter.mark(dropped);
+                metricsDroppedByFilter.inc(dropped);
             }
 
             @Override
             public void reportMetricsDroppedByRateLimit(int dropped) {
-                metricsDroppedByRateLimit.mark(dropped);
+                metricsDroppedByRateLimit.inc(dropped);
+            }
+
+            @Override
+            public void reportMetricsDroppedByCardinalityLimit(int dropped) {
+                metricsDroppedByCardinalityLimit.inc(dropped);
+            }
+
+            @Override
+            public void reportMetricsCardinality(long cardinality) {
+                metricsCardinality.set(cardinality);
             }
         };
     }

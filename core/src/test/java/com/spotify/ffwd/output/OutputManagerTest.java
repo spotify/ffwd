@@ -57,6 +57,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -79,6 +80,8 @@ public class OutputManagerTest {
     private String host = HOST;
     private long ttl = 0L;
     private Integer rateLimit = null;
+    private Long cardinalityLimit = null;
+    private Long hyperLogLogPlusSwapPeriodMS = null;
 
     @Mock
     private DebugServer debugServer;
@@ -93,6 +96,7 @@ public class OutputManagerTest {
 
     @Before
     public void setup() {
+        MockitoAnnotations.initMocks(this);
         tags.put("role", "abc");
         tagsToResource.put("foo", "bar");
         resource.put("gke_pod", "123");
@@ -134,6 +138,9 @@ public class OutputManagerTest {
                 bind(OutputManagerStatistics.class).toInstance(statistics);
                 bind(Filter.class).toInstance(filter);
                 bind(OutputManager.class).to(CoreOutputManager.class);
+                bind(Long.class).annotatedWith(Names.named("cardinalityLimit")).toProvider(Providers.of(cardinalityLimit));
+                bind(Long.class).annotatedWith(Names.named("hyperLogLogPlusSwapPeriodMS")).toProvider(Providers.of(
+                    hyperLogLogPlusSwapPeriodMS));
             }
         });
 
@@ -252,6 +259,70 @@ public class OutputManagerTest {
         final Batch.Point expected = new Batch.Point(null, ImmutableMap.of("role","abc"),
             ImmutableMap.of("bar","fooval"), m1.getValue(), m1.getTime().getTime());
         assertEquals(expected, sendAndCaptureBatch(batch).getPoints().get(0));
+    }
+
+    @Test
+    public void testBatchCardinalityNotDropping() {
+        cardinalityLimit = 5L;
+        Map<String, String> m2Tags = new HashMap<>();
+        m2Tags.put("role", "abc");
+        m2Tags.put("foo", "fooval");
+
+        final Batch.Point point = new Batch.Point(null, m2Tags, m1.getResource(), m1.getValue(), m1.getTime().getTime());
+        final Batch batch = new Batch(Maps.newHashMap(), Maps.newHashMap(), Collections.singletonList(point));
+
+        final Batch.Point expected = new Batch.Point(null, ImmutableMap.of("role","abc"),
+            ImmutableMap.of("bar","fooval"), m1.getValue(), m1.getTime().getTime());
+        assertEquals(expected, sendAndCaptureBatch(batch).getPoints().get(0));
+    }
+
+    @Test
+    public void testBatchCardinalityDropping() {
+        cardinalityLimit = 19L;
+        int sendNum = 20;
+        OutputManager outputManager = createOutputManager();
+        ArgumentCaptor<Metric> captor = ArgumentCaptor.forClass(Metric.class);
+
+        // Send a burst of metrics, all should be accepted
+        for (int i = 0; i < sendNum; i++) {
+            outputManager.sendMetric(new Metric("main-key"+i, 42.0, new Date(), ImmutableSet.of(), Map.of("key"+i,"value"+i), ImmutableMap.of(), null));
+        }
+
+        verify(sink, times(sendNum-1)).sendMetric(captor.capture());
+
+        // Next metric shouldn't be dropped
+        Metric mKey = new Metric("ffwd-java", 42.0, new Date(), ImmutableSet.of(), ImmutableMap.of(), ImmutableMap.of(), null);
+        outputManager.sendMetric(mKey);
+
+        verify(sink, times(sendNum)).sendMetric(captor.capture());
+    }
+
+    @Test
+    public void testBatchCardinalityDroppingWithSwap() {
+        cardinalityLimit = 20L;
+        hyperLogLogPlusSwapPeriodMS = 2000L;
+        int sendNum = 20;
+        CoreOutputManager outputManager = (CoreOutputManager) createOutputManager();
+        ArgumentCaptor<Metric> captor = ArgumentCaptor.forClass(Metric.class);
+
+        // Send a burst of metrics, all should be accepted
+        for (int i = 0; i < sendNum; i++) {
+            outputManager.sendMetric(new Metric("main-key"+i, 42.0, new Date(), ImmutableSet.of(), Map.of("key"+i,"value"+i), ImmutableMap.of(), null));
+        }
+
+        // This metric shouldn't be dropped
+        Metric mKey = new Metric("ffwd-java", 42.0, new Date(), ImmutableSet.of(), ImmutableMap.of(), ImmutableMap.of(), null);
+        outputManager.sendMetric(mKey);
+
+        // This should give enough time to reset HLL++ in the next .sendMetric(..)
+        try{Thread.sleep(2500);}catch(InterruptedException e){System.out.println(e);}
+
+        // This should allow most of the metrics to be sent even though the cardinality is high
+        for (int i = 0; i < sendNum; i++) {
+            outputManager.sendMetric(new Metric("main-key"+i, 42.0, new Date(), ImmutableSet.of(), Map.of("key"+i,"value"+i), ImmutableMap.of(), null));
+        }
+
+        verify(sink, times(39)).sendMetric(captor.capture());
     }
 
     private Metric sendAndCaptureMetric(Metric metric) {

@@ -48,4 +48,22 @@ public interface OutputManagerStatistics {
      */
     default void reportMetricsDroppedByRateLimit(int dropped) {
     }
+
+    /**
+     * Reported that the given number of metrics were dropped due to a cardinality limit.
+     * <p>
+     * Dropped metrics are <em>not</em> sent to output plugins.
+     *
+     * @param dropped The number of dropped metrics.
+     */
+    default void reportMetricsDroppedByCardinalityLimit(int dropped) {
+    }
+
+    /**
+     * Report current cardinality of metrics sent to output plugins.
+     *
+     * @param cardinality The cardinality number of metrics sent.
+     */
+    default void reportMetricsCardinality(long cardinality) {
+    }
 }

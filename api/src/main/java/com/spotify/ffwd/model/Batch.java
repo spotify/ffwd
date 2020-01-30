@@ -28,9 +28,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
+@EqualsAndHashCode(of = {"commonTags", "commonResource"})
 public class Batch {
     private final Map<String, String> commonTags;
     private final Map<String, String> commonResource;
