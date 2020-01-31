@@ -62,6 +62,10 @@
       <groupId>com.spotify.ffwd</groupId>
       <artifactId>ffwd-module-pubsub</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.spotify.ffwd</groupId>
+      <artifactId>ffwd-module-opencensus</artifactId>
+    </dependency>
 
     <!-- logging -->
     <dependency>

@@ -31,6 +31,7 @@
     <module>modules/signalfx</module>
     <module>modules/http</module>
     <module>modules/pubsub</module>
+    <module>modules/opencensus</module>
   </modules>
 
   <licenses>
@@ -247,6 +248,11 @@
       <dependency>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-module-template</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.spotify.ffwd</groupId>
+        <artifactId>ffwd-module-opencensus</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
