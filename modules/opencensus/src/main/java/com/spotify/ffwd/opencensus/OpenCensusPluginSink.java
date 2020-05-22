@@ -24,8 +24,8 @@ package com.spotify.ffwd.opencensus;
 import com.google.inject.Inject;
 import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Metric;
-import com.spotify.ffwd.output.FakeBatchablePluginSinkBase;
 import com.spotify.ffwd.output.PluginSink;
+import com.spotify.ffwd.util.BatchMetricConverter;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import io.opencensus.exporter.stats.stackdriver.StackdriverStatsConfiguration;
@@ -65,7 +65,7 @@ import org.slf4j.LoggerFactory;
  * https://www.javadoc.io/doc/io.opencensus/opencensus-api/latest/io/opencensus/resource/
 package-summary.html
  */
-public class OpenCensusPluginSink extends FakeBatchablePluginSinkBase implements PluginSink  {
+public class OpenCensusPluginSink implements PluginSink  {
   private static final Logger log = LoggerFactory.getLogger(OpenCensusPluginSink.class);
   @Inject
   private AsyncFramework async;
@@ -139,7 +139,7 @@ public class OpenCensusPluginSink extends FakeBatchablePluginSinkBase implements
   public void sendBatch(Batch batch) {
     // NB: Unfortunately batches and measureMaps are not the same.
     batch.getPoints().forEach(point -> {
-      sendMetric(convertBatchMetric(batch, point));
+      sendMetric(BatchMetricConverter.convertBatchMetric(batch, point));
     });
   }
 

@@ -2,14 +2,14 @@
  * -\-\-
  * FastForward API
  * --
- * Copyright (C) 2016 - 2018 Spotify AB
+ * Copyright (C) 2020 Spotify AB
  * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,7 +18,7 @@
  * -/-/-
  */
 
-package com.spotify.ffwd.output;
+package com.spotify.ffwd.util;
 
 import com.google.common.collect.ImmutableSet;
 import com.spotify.ffwd.model.Batch;
@@ -30,8 +30,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FakeBatchablePluginSinkBase {
-    protected Metric convertBatchMetric(final Batch batch, final Batch.Point point) {
+public class BatchMetricConverter {
+    public static Metric convertBatchMetric(final Batch batch, final Batch.Point point) {
         final Map<String, String> allTags = new HashMap<>(batch.getCommonTags());
         allTags.putAll(point.getTags());
 
@@ -42,7 +42,7 @@ public class FakeBatchablePluginSinkBase {
             ImmutableSet.of(), allTags, allResource, null);
     }
 
-    protected List<Metric> convertBatchesToMetrics(final Collection<Batch> batches) {
+    public static List<Metric> convertBatchesToMetrics(final Collection<Batch> batches) {
         final List<Metric> metrics = new ArrayList<>();
 
         batches.forEach(batch -> {

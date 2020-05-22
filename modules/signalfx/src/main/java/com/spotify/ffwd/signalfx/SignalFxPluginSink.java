@@ -28,7 +28,7 @@ import com.signalfx.metrics.protobuf.SignalFxProtocolBuffers;
 import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchablePluginSink;
-import com.spotify.ffwd.output.FakeBatchablePluginSinkBase;
+import com.spotify.ffwd.util.BatchMetricConverter;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.FutureFailed;
@@ -43,7 +43,7 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SignalFxPluginSink extends FakeBatchablePluginSinkBase implements BatchablePluginSink {
+public class SignalFxPluginSink implements BatchablePluginSink {
     private static final Logger log = LoggerFactory.getLogger(SignalFxPluginSink.class);
 
     @Inject
@@ -75,7 +75,7 @@ public class SignalFxPluginSink extends FakeBatchablePluginSinkBase implements B
 
     @Override
     public AsyncFuture<Void> sendBatches(final Collection<Batch> batches) {
-        final List<Metric> metrics = convertBatchesToMetrics(batches);
+        final List<Metric> metrics = BatchMetricConverter.convertBatchesToMetrics(batches);
         return sendMetrics(metrics);
     }
 

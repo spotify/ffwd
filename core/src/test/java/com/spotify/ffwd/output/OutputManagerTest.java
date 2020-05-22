@@ -42,9 +42,11 @@ import com.google.inject.util.Providers;
 import com.spotify.ffwd.debug.DebugServer;
 import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.model.Batch;
+import com.spotify.ffwd.model.Batch.Point;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.statistics.OutputManagerStatistics;
 import eu.toolchain.async.AsyncFramework;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -277,7 +279,7 @@ public class OutputManagerTest {
     }
 
     @Test
-    public void testBatchCardinalityDropping() {
+    public void testMetricCardinalityDropping() {
         cardinalityLimit = 19L;
         int sendNum = 20;
         OutputManager outputManager = createOutputManager();
@@ -288,9 +290,10 @@ public class OutputManagerTest {
             outputManager.sendMetric(new Metric("main-key"+i, 42.0, new Date(), ImmutableSet.of(), Map.of("key"+i,"value"+i), ImmutableMap.of(), null));
         }
 
+        // dropped number 20 as it is above cardinality limit
         verify(sink, times(sendNum-1)).sendMetric(captor.capture());
 
-        // Next metric shouldn't be dropped
+        // Next metric shouldn't be dropped as it uses special key
         Metric mKey = new Metric("ffwd-java", 42.0, new Date(), ImmutableSet.of(), ImmutableMap.of(), ImmutableMap.of(), null);
         outputManager.sendMetric(mKey);
 
@@ -298,7 +301,7 @@ public class OutputManagerTest {
     }
 
     @Test
-    public void testBatchCardinalityDroppingWithSwap() {
+    public void testMetricCardinalityDroppingWithSwap() {
         cardinalityLimit = 20L;
         hyperLogLogPlusSwapPeriodMS = 2000L;
         int sendNum = 20;
@@ -310,7 +313,7 @@ public class OutputManagerTest {
             outputManager.sendMetric(new Metric("main-key"+i, 42.0, new Date(), ImmutableSet.of(), Map.of("key"+i,"value"+i), ImmutableMap.of(), null));
         }
 
-        // This metric shouldn't be dropped
+        // Next metric shouldn't be dropped as it uses special key
         Metric mKey = new Metric("ffwd-java", 42.0, new Date(), ImmutableSet.of(), ImmutableMap.of(), ImmutableMap.of(), null);
         outputManager.sendMetric(mKey);
 
@@ -323,6 +326,72 @@ public class OutputManagerTest {
         }
 
         verify(sink, times(39)).sendMetric(captor.capture());
+    }
+
+
+    @Test
+    public void testBatchCardinalityDropping() {
+        cardinalityLimit = 20L;
+        int sendNum = 20;
+        OutputManager outputManager = createOutputManager();
+        ArgumentCaptor<Metric> captor = ArgumentCaptor.forClass(Metric.class);
+        ArgumentCaptor<Batch> captorBatch = ArgumentCaptor.forClass(Batch.class);
+
+        List<Point> points = new ArrayList<>();
+
+        // Send a burst of metrics, all should be accepted
+        for (int i = 0; i < sendNum; i++) {
+            points.add(
+                new Batch.Point("main-key"+i, Map.of("key"+i,"value"+i), m1.getResource(), m1.getValue()+i, m1.getTime().getTime()));
+        }
+
+        final Batch batch = new Batch(Maps.newHashMap(), Maps.newHashMap(), points);
+
+        outputManager.sendBatch(batch);
+
+        verify(sink, times(1)).sendBatch(captorBatch.capture());
+
+        // Next metric shouldn't be dropped as it uses special key
+        Metric mKey = new Metric("ffwd-java", 42.0, new Date(), ImmutableSet.of(), ImmutableMap.of(), ImmutableMap.of(), null);
+        outputManager.sendMetric(mKey);
+
+        verify(sink, times(1)).sendMetric(captor.capture());
+    }
+
+    @Test
+    public void testBatchCardinalityDroppingWithSwap() {
+        cardinalityLimit = 20L;
+        hyperLogLogPlusSwapPeriodMS = 2000L;
+        int sendNum = 20;
+        CoreOutputManager outputManager = (CoreOutputManager) createOutputManager();
+        ArgumentCaptor<Metric> captor = ArgumentCaptor.forClass(Metric.class);
+        ArgumentCaptor<Batch> captorBatch = ArgumentCaptor.forClass(Batch.class);
+
+        List<Point> points = new ArrayList<>();
+
+        // Send a burst of metrics, all should be accepted
+        for (int i = 0; i < sendNum; i++) {
+            points.add(
+                new Batch.Point("main-key"+i, Map.of("key"+i,"value"+i), m1.getResource(), m1.getValue()+i, m1.getTime().getTime()));
+        }
+
+        final Batch batch = new Batch(Maps.newHashMap(), Maps.newHashMap(), points);
+        outputManager.sendBatch(batch);
+        verify(sink, times(1)).sendBatch(captorBatch.capture());
+
+        // Next metric shouldn't be dropped as it uses special key
+        Metric mKey = new Metric("ffwd-java", 42.0, new Date(), ImmutableSet.of(), ImmutableMap.of(), ImmutableMap.of(), null);
+        outputManager.sendMetric(mKey);
+
+        // This should give enough time to reset HLL++ in the next .sendMetric(..)
+        try{Thread.sleep(2500);}catch(InterruptedException e){System.out.println(e);}
+
+        // This should allow most of the metrics to be sent even though the cardinality is high
+        for (int i = 0; i < sendNum; i++) {
+            outputManager.sendMetric(new Metric("main-key"+i, 42.0, new Date(), ImmutableSet.of(), Map.of("key"+i,"value"+i), ImmutableMap.of(), null));
+        }
+
+        verify(sink, times(19)).sendMetric(captor.capture());
     }
 
     private Metric sendAndCaptureMetric(Metric metric) {

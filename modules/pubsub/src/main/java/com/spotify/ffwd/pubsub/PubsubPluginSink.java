@@ -35,10 +35,10 @@ import com.spotify.ffwd.cache.WriteCache;
 import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.output.BatchablePluginSink;
-import com.spotify.ffwd.output.FakeBatchablePluginSinkBase;
 import com.spotify.ffwd.serializer.Serializer;
 import com.spotify.ffwd.statistics.OutputPluginStatistics;
 import com.spotify.ffwd.statistics.SemanticCacheStatistics;
+import com.spotify.ffwd.util.BatchMetricConverter;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import java.io.IOException;
@@ -56,7 +56,7 @@ import org.slf4j.Logger;
  * map from `ApiFuture` to `AsyncFuture` and the PluginSink that executes this one calls
  * `collectAndDiscard` on the futures anyway.
  */
-public class PubsubPluginSink extends FakeBatchablePluginSinkBase implements BatchablePluginSink {
+public class PubsubPluginSink implements BatchablePluginSink {
   @Inject
   AsyncFramework async;
 
@@ -132,7 +132,7 @@ public class PubsubPluginSink extends FakeBatchablePluginSinkBase implements Bat
 
   @Override
   public AsyncFuture<Void> sendBatches(Collection<Batch> batches) {
-    final List<Metric> metrics = convertBatchesToMetrics(batches);
+    final List<Metric> metrics = BatchMetricConverter.convertBatchesToMetrics(batches);
     return sendMetrics(metrics);
   }
 

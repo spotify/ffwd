@@ -14,7 +14,7 @@
   <parent>
     <groupId>com.spotify</groupId>
     <artifactId>foss-root</artifactId>
-    <version>6</version>
+    <version>10</version>
   </parent>
 
   <modules>
@@ -439,7 +439,7 @@
         <artifactId>kotlin-maven-plugin</artifactId>
         <version>${kotlin.version}</version>
         <configuration>
-          <jvmTarget>1.8</jvmTarget>
+          <jvmTarget>11</jvmTarget>
         </configuration>
         <executions>
           <execution>

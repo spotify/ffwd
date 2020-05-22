@@ -2,14 +2,14 @@
  * -\-\-
  * FastForward API
  * --
- * Copyright (C) 2016 - 2018 Spotify AB
+ * Copyright (C) 2020 Spotify AB
  * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,13 +18,14 @@
  * -/-/-
  */
 
-package com.spotify.ffwd.output;
+package com.spotify.ffwd.util;
 
 import static org.junit.Assert.assertEquals;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.spotify.ffwd.model.Batch;
+import com.spotify.ffwd.model.Batch.Point;
 import com.spotify.ffwd.model.Metric;
 import java.util.List;
 import java.util.Map;
@@ -32,8 +33,8 @@ import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 
-public class FakeBatchablePluginSinkBaseTest {
-    public FakeBatchablePluginSinkBase fakeBatchablePluginSinkBase;
+
+public class BatchMetricConverterTest {
     public Map<String, String> baseTags;
     public Map<String, String> baseResources;
     public Map<String, String> commonTags;
@@ -42,7 +43,6 @@ public class FakeBatchablePluginSinkBaseTest {
 
     @Before
     public void setUp() throws Exception {
-        fakeBatchablePluginSinkBase = new FakeBatchablePluginSinkBase();
         baseTags = ImmutableMap.of("tag1", "v1", "tag2", "v2");
         baseResources = ImmutableMap.of("resource1", "v1", "resource2", "v2");
         commonTags = ImmutableMap.of("ctag1", "1", "ctag2", "2", "ctag3", "3");
@@ -53,9 +53,9 @@ public class FakeBatchablePluginSinkBaseTest {
 
     @Test
     public void convertBatchMetric() throws Exception {
-        final ImmutableList<Batch.Point> points = ImmutableList.of(point1);
+        final ImmutableList<Point> points = ImmutableList.of(point1);
         final Batch batch = Batch.create(Optional.of(commonTags), Optional.of(commonResources), points);
-        final Metric metric = fakeBatchablePluginSinkBase.convertBatchMetric(batch, points.get(0));
+        final Metric metric = BatchMetricConverter.convertBatchMetric(batch, points.get(0));
 
         final Map<String, String> resultingTags = metric.getTags();
         final Map<String, String> resultingResources = metric.getResource();
@@ -68,10 +68,10 @@ public class FakeBatchablePluginSinkBaseTest {
     }
 
     @Test
-    public void convertBatchesToMetrics() throws Exception {
+    public void testConvertBatchesToMetrics() throws Exception {
         final Batch batch1 = Batch.create(Optional.of(commonTags), Optional.of(commonResources), ImmutableList.of(point1));
         final Batch batch2 = Batch.create(Optional.of(commonTags), Optional.of(commonResources), ImmutableList.of(point1));
-        final List<Metric> results = fakeBatchablePluginSinkBase.convertBatchesToMetrics(ImmutableList.of(batch1, batch2));
+        final List<Metric> results = BatchMetricConverter.convertBatchesToMetrics(ImmutableList.of(batch1, batch2));
         assertEquals(2, results.size());
     }
 
@@ -79,13 +79,13 @@ public class FakeBatchablePluginSinkBaseTest {
     public void convertBatchesToMetricsEmptyPoints() throws Exception {
         final Batch batch1 = Batch.create(Optional.of(commonTags), Optional.of(commonResources), ImmutableList.of());
         final Batch batch2 = Batch.create(Optional.of(commonTags), Optional.of(commonResources), ImmutableList.of());
-        final List<Metric> results = fakeBatchablePluginSinkBase.convertBatchesToMetrics(ImmutableList.of(batch1, batch2));
+        final List<Metric> results = BatchMetricConverter.convertBatchesToMetrics(ImmutableList.of(batch1, batch2));
         assertEquals(0, results.size());
     }
 
     @Test
     public void convertBatchesToMetricsEmptyBatch() throws Exception {
-        final List<Metric> results = fakeBatchablePluginSinkBase.convertBatchesToMetrics(ImmutableList.of());
+        final List<Metric> results = BatchMetricConverter.convertBatchesToMetrics(ImmutableList.of());
         assertEquals(0, results.size());
     }
 }

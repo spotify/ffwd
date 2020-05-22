@@ -34,7 +34,7 @@
 
         <dependency>
             <groupId>com.spotify.ffwd</groupId>
-            <artifactId>ffwd-api</artifactId>
+            <artifactId>ffwd-core</artifactId>
         </dependency>
 
         <!-- testing -->

@@ -30,10 +30,12 @@ import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.model.Batch;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.statistics.OutputManagerStatistics;
+import com.spotify.ffwd.util.BatchMetricConverter;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -219,7 +221,10 @@ public class CoreOutputManager implements OutputManager {
 
         int batchSize = batch.getPoints().size();
 
-        hyperLog.get().offer(batch.hashCode());
+        BatchMetricConverter
+            .convertBatchesToMetrics(Collections.singletonList(batch))
+            .stream().forEach(metric -> hyperLog.get().offer(metric.hashCode()));
+
         statistics.reportMetricsCardinality(hyperLog.get().cardinality());
 
         if (isDroppable(batchSize, batch.getPoints().get(0).getKey())) {
