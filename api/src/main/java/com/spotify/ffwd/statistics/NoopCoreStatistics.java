@@ -111,6 +111,22 @@ public class NoopCoreStatistics implements CoreStatistics {
         return noopBatchingStatistics;
     }
 
+    @Override
+    public HighFrequencyDetectorStatistics newHighFrequency() {
+        return noopHighFrequencyDetectorStatistics;
+    }
+
+    private static final HighFrequencyDetectorStatistics noopHighFrequencyDetectorStatistics =
+        new HighFrequencyDetectorStatistics() {
+            @Override
+            public void reportHighFrequencyMetrics(int marked) {
+            }
+
+            @Override
+            public void reportHighFrequencyMetricsDropped(int dropped) {
+            }
+        };
+
     private static final NoopCoreStatistics instance = new NoopCoreStatistics();
 
     public static NoopCoreStatistics get() {

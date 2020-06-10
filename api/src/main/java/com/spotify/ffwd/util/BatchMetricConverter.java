@@ -45,11 +45,9 @@ public class BatchMetricConverter {
     public static List<Metric> convertBatchesToMetrics(final Collection<Batch> batches) {
         final List<Metric> metrics = new ArrayList<>();
 
-        batches.forEach(batch -> {
-            batch.getPoints().forEach(point -> {
-                metrics.add(convertBatchMetric(batch, point));
-            });
-        });
+        batches.forEach(batch -> batch.getPoints().forEach(point -> {
+            metrics.add(convertBatchMetric(batch, point));
+        }));
         return metrics;
     }
 }

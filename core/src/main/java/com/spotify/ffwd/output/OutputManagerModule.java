@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -36,6 +36,7 @@ import com.spotify.ffwd.AgentConfig;
 import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.filter.TrueFilter;
 import com.spotify.ffwd.statistics.CoreStatistics;
+import com.spotify.ffwd.statistics.HighFrequencyDetectorStatistics;
 import com.spotify.ffwd.statistics.OutputManagerStatistics;
 import java.util.HashMap;
 import java.util.List;
@@ -52,12 +53,20 @@ public class OutputManagerModule {
      */
     public static final String FFWD_TAG_PREFIX = "FFWD_TAG_";
     public static final String FFWD_RESOURCE_PREFIX = "FFWD_RESOURCE_";
+    private static final Boolean DEFAULT_DROP_HIGH_FREQUENCY = false;
+    private static final Integer DEFAULT_MIN_FREQUENCY_MS_ALLOWED = 1000;
+    private static final Integer DEFAULT_MIN_NUMBER_OF_TRIGGERS = 5;
+    private static final Long DEFAULT_HIGH_FREQUENCY_DATA_RECYCLE_MS = 3_600_000L;
 
     private final List<OutputPlugin> plugins;
     private final Filter filter;
     @Nullable private final Integer rateLimit;
     @Nullable private final Long cardinalityLimit;
     @Nullable private final Long hyperLogLogPlusSwapPeriodMS;
+    private final boolean dropHighFrequencyMetric;
+    private final int minFrequencyMillisAllowed;
+    private final int minNumberOfTriggers;
+    private final long highFrequencyDataRecycleMS;
 
     @JsonCreator
     public OutputManagerModule(
@@ -65,21 +74,40 @@ public class OutputManagerModule {
         @JsonProperty("filter") Filter filter,
         @JsonProperty("ratelimit") @Nullable Integer rateLimit,
         @JsonProperty("cardinalitylimit") @Nullable Long cardinalityLimit,
-        @JsonProperty("cardinalityttl") @Nullable Long hyperLogLogPlusSwapPeriodMS
-    ) {
-        this.plugins = Optional.ofNullable(plugins).orElse(DEFAULT_PLUGINS);
-        this.filter = Optional.ofNullable(filter).orElseGet(TrueFilter::new);
-        this.rateLimit = rateLimit;
-        this.cardinalityLimit = cardinalityLimit;
-        this.hyperLogLogPlusSwapPeriodMS = hyperLogLogPlusSwapPeriodMS;
+        @JsonProperty("cardinalityttl") @Nullable Long hyperLogLogPlusSwapPeriodMS,
+        @JsonProperty("dropHighFrequencyMetric") @Nullable Boolean dropHighFrequencyMetric,
+        @JsonProperty("minFrequencyMillisAllowed") @Nullable Integer minFrequencyMillisAllowed,
+        @JsonProperty("minNumberOfTriggers") @Nullable Integer minNumberOfTriggers,
+        @JsonProperty("highFrequencyDataRecycleMS") @Nullable Long highFrequencyDataRecycleMS) {
+      this.plugins = Optional.ofNullable(plugins).orElse(DEFAULT_PLUGINS);
+      this.filter = Optional.ofNullable(filter).orElseGet(TrueFilter::new);
+      this.rateLimit = rateLimit;
+      this.cardinalityLimit = cardinalityLimit;
+      this.hyperLogLogPlusSwapPeriodMS = hyperLogLogPlusSwapPeriodMS;
+      this.dropHighFrequencyMetric =
+          Optional.ofNullable(dropHighFrequencyMetric).orElse(DEFAULT_DROP_HIGH_FREQUENCY);
+      this.minFrequencyMillisAllowed =
+          Optional.ofNullable(minFrequencyMillisAllowed).orElse(DEFAULT_MIN_FREQUENCY_MS_ALLOWED);
+      this.minNumberOfTriggers =
+          Optional.ofNullable(minNumberOfTriggers).orElse(DEFAULT_MIN_NUMBER_OF_TRIGGERS);
+      this.highFrequencyDataRecycleMS =
+          Optional.ofNullable(highFrequencyDataRecycleMS)
+              .orElse(DEFAULT_HIGH_FREQUENCY_DATA_RECYCLE_MS);
     }
 
+    //CHECKSTYLE:OFF:MethodLength
     public Module module() {
         return new PrivateModule() {
             @Provides
             @Singleton
             public OutputManagerStatistics statistics(CoreStatistics statistics) {
                 return statistics.newOutputManager();
+            }
+
+            @Provides
+            @Singleton
+            public HighFrequencyDetectorStatistics highFreqStatistics(CoreStatistics statistics) {
+                return statistics.newHighFrequency();
             }
 
             @Provides
@@ -182,6 +210,34 @@ public class OutputManagerModule {
                 return hyperLogLogPlusSwapPeriodMS;
             }
 
+            @Provides
+            @Singleton
+            @Named("dropHighFrequencyMetric")
+            public boolean dropHighFrequencyMetric() {
+                return dropHighFrequencyMetric;
+            }
+
+            @Provides
+            @Singleton
+            @Named("minFrequencyMillisAllowed")
+            public int minFrequencyMillisAllowed() {
+                return minFrequencyMillisAllowed;
+            }
+
+            @Provides
+            @Singleton
+            @Named("minNumberOfTriggers")
+            public int minNumberOfTriggers() {
+                return minNumberOfTriggers;
+            }
+
+            @Provides
+            @Singleton
+            @Named("highFrequencyDataRecycleMS")
+            public long highFrequencyDataRecycleMS() {
+                return highFrequencyDataRecycleMS;
+            }
+
             @Override
             protected void configure() {
                 bind(OutputManager.class).to(CoreOutputManager.class).in(Scopes.SINGLETON);
@@ -205,6 +261,7 @@ public class OutputManagerModule {
             }
         };
     }
+    //CHECKSTYLE:ON:MethodLength
 
     /**
      * Extract tags from the system environment.
@@ -257,6 +314,6 @@ public class OutputManagerModule {
     }
 
     public static Supplier<OutputManagerModule> supplyDefault() {
-        return () -> new OutputManagerModule(null, null, null, null, null);
+        return () -> new OutputManagerModule(null, null, null, null, null, null, null, null, null);
     }
 }

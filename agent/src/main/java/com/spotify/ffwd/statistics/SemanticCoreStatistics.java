@@ -242,4 +242,29 @@ public class SemanticCoreStatistics implements CoreStatistics {
             }
         };
     }
+
+    @Override
+    public HighFrequencyDetectorStatistics newHighFrequency() {
+        final MetricId m = metric.tagged("component", "high-freq");
+        final AtomicLong highFreqMetrics = new AtomicLong();
+
+        return new HighFrequencyDetectorStatistics() {
+            private final Counter dropped = registry.counter(
+                m.tagged("what", "dropped-metrics", "unit", "metric"));
+
+            private final Gauge metricsCardinalityMetric =
+              registry.register(m.tagged("what", "high-freq-metrics"),
+                  (Gauge<Long>) () -> (long) highFreqMetrics.get());
+
+            @Override
+            public void reportHighFrequencyMetricsDropped(int dropped) {
+                this.dropped.inc(dropped);
+            }
+
+            @Override
+            public void reportHighFrequencyMetrics(int marked) {
+                highFreqMetrics.set(marked);
+            }
+        };
+    }
 }

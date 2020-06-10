@@ -80,7 +80,7 @@ public class NoopPluginSink implements BatchablePluginSink {
         }
 
         log.info("{} things/s (total: {})", rate, total);
-        return async.resolved(null);
+        return async.resolved();
     }
 
     @Override

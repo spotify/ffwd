@@ -2,14 +2,14 @@
  * -\-\-
  * FastForward API
  * --
- * Copyright (C) 2016 - 2018 Spotify AB
+ * Copyright (C) 2020 Spotify AB
  * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,14 +20,18 @@
 
 package com.spotify.ffwd.statistics;
 
-public interface CoreStatistics {
-    public InputManagerStatistics newInputManager();
+public interface HighFrequencyDetectorStatistics {
+    /**
+     * Report that the given number of metrics have been marked as high frequency.
+     *
+     * @param marked The number of metrics marked.
+     */
+    void reportHighFrequencyMetrics(int marked);
 
-    public OutputManagerStatistics newOutputManager();
-
-    public OutputPluginStatistics newOutputPlugin(String id);
-
-    public BatchingStatistics newBatching(String id);
-
-    public HighFrequencyDetectorStatistics newHighFrequency();
+    /**
+     * Report that the given number of metrics have been dropped.
+     *
+     * @param dropped The number of batches sent.
+     */
+    void reportHighFrequencyMetricsDropped(int dropped);
 }

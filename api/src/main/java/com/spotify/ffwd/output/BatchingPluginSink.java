@@ -26,6 +26,7 @@ import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.model.Metric;
 import com.spotify.ffwd.statistics.BatchingStatistics;
 import com.spotify.ffwd.statistics.OutputPluginStatistics;
+import com.spotify.ffwd.util.HighFrequencyDetector;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.FutureFinished;
@@ -127,6 +128,9 @@ public class BatchingPluginSink implements PluginSink {
      */
     final long maxPendingFlushes;
 
+    @Inject
+    HighFrequencyDetector highFrequencyDetector;
+
     volatile boolean stopped = false;
 
     public BatchingPluginSink(
@@ -169,7 +173,6 @@ public class BatchingPluginSink implements PluginSink {
             final Batch batch = nextBatch;
 
             if (batch == null) {
-                // TODO: instrument dropped metric.
                 log.warn("Dropping metrics since we're about to shut down");
                 return;
             }
@@ -375,10 +378,11 @@ public class BatchingPluginSink implements PluginSink {
 
         if (!batch.metrics.isEmpty()) {
             futures.add(sink
-                .sendMetrics(batch.metrics)
+                .sendMetrics(highFrequencyDetector.detect(batch.metrics))
                 .onFinished(() -> batchingStatistics.reportSentMetrics(batch.metrics.size())));
         }
 
+        // TODO finish batches
         if (!batch.batches.isEmpty()) {
             futures.add(sink
                 .sendBatches(batch.batches)

@@ -62,9 +62,8 @@ public class Metric {
         if (key != null) {
             hasher.putString(key, Charsets.UTF_8);
         }
-        TreeMap<String, String> sortedTags = new TreeMap<>(tags);
 
-        for (final Map.Entry<String, String> kv : sortedTags.entrySet()) {
+        for (final Map.Entry<String, String> kv : new TreeMap<>(tags).entrySet()) {
             final String k = kv.getKey();
             final String v = kv.getValue();
 

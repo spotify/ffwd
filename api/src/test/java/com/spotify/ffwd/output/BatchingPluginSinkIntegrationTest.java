@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,18 +27,33 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.name.Names;
 import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.noop.NoopPluginSink;
 import com.spotify.ffwd.statistics.BatchingStatistics;
+import com.spotify.ffwd.statistics.HighFrequencyDetectorStatistics;
 import com.spotify.ffwd.statistics.NoopCoreStatistics;
+import com.spotify.ffwd.statistics.OutputPluginStatistics;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.ResolvableFuture;
 import eu.toolchain.async.TinyAsync;
 import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.After;
@@ -54,6 +69,10 @@ import org.slf4j.Logger;
 @RunWith(MockitoJUnitRunner.class)
 public class BatchingPluginSinkIntegrationTest {
     private static final int BATCH_SIZE = 1000;
+    private final boolean dropHighFrequencyMetric = false;
+    private final int minFrequencyMillisAllowed = 1000;
+    private final long highFrequencyDataRecycleMS = 300_000;
+    private final int minNumberOfTriggers = 5;
 
     @Mock
     private BatchablePluginSink childSink;
@@ -75,19 +94,53 @@ public class BatchingPluginSinkIntegrationTest {
     private final ExecutorService executor =
         Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
+    @Mock
+    private ScheduledExecutorService scheduler;
+
     @Before
     public void setup() {
         // flush every second, limiting the batch sizes to 1000, with 5 max pending flushes.
-        sink = new BatchingPluginSink(0, BATCH_SIZE, 0);
         async = TinyAsync.builder().executor(executor).build();
+        sink = createBatchingPluginSink();
 
         doReturn(async.resolved()).when(childSink).start();
         doReturn(async.resolved()).when(childSink).stop();
 
+        metric = new Metric("KEY", 42.0, new Date(), ImmutableSet.of(), Map.of("tag1", "value1"), ImmutableMap.of(), null);
+
         sink.sink = childSink;
-        sink.async = async;
         sink.log = log;
         sink.batchingStatistics = batchingStatistics;
+    }
+
+    public BatchingPluginSink createBatchingPluginSink() {
+        final List<Module> modules = Lists.newArrayList();
+
+        modules.add(new AbstractModule() {
+            @Override
+            protected void configure() {
+            bind(BatchingPluginSink.class).toInstance(new BatchingPluginSink(0, BATCH_SIZE, 0));
+            bind(AsyncFramework.class).toInstance(async);
+            bind(BatchablePluginSink.class).annotatedWith(BatchingDelegate.class).toInstance(new NoopPluginSink());
+            bind(Boolean.class).annotatedWith(Names.named("dropHighFrequencyMetric")).toInstance(dropHighFrequencyMetric);
+            bind(Integer.class).annotatedWith(Names.named("minFrequencyMillisAllowed")).toInstance(minFrequencyMillisAllowed);
+            bind(Long.class)
+                .annotatedWith(Names.named("highFrequencyDataRecycleMS"))
+                .toInstance(highFrequencyDataRecycleMS);
+            bind(Integer.class)
+                .annotatedWith(Names.named("minNumberOfTriggers"))
+                .toInstance(minNumberOfTriggers);
+            bind(BatchingStatistics.class).toInstance(NoopCoreStatistics.noopBatchingStatistics);
+            bind(OutputPluginStatistics.class).toInstance(NoopCoreStatistics.get().newOutputPlugin("output"));
+            bind(HighFrequencyDetectorStatistics.class).toInstance(NoopCoreStatistics.get().newHighFrequency());
+            bind(Logger.class).toInstance(log);
+            bind(ScheduledExecutorService.class).toInstance(scheduler);
+            }
+        });
+
+        final Injector injector = Guice.createInjector(modules);
+
+        return injector.getInstance(BatchingPluginSink.class);
     }
 
     @After
