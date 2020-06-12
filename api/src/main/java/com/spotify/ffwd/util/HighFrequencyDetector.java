@@ -27,12 +27,14 @@ import com.spotify.ffwd.statistics.HighFrequencyDetectorStatistics;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.slf4j.Logger;
 
 /**
  * Class responsible for high frequency metrics detection.
@@ -40,6 +42,8 @@ import java.util.stream.IntStream;
  * If configured will drop metrics marked as high frequency.
  */
 public class HighFrequencyDetector {
+
+  public static final int BURST_THRESHOLD = 5;
 
   /** Allow to drop high frequency metrics. */
   @Inject
@@ -60,6 +64,9 @@ public class HighFrequencyDetector {
   @Inject
   @Named("highFrequencyDataRecycleMS")
   long highFrequencyDataRecycleMS;
+
+  @Inject
+  Logger log;
 
   @Inject
   private HighFrequencyDetectorStatistics statistics;
@@ -123,15 +130,28 @@ public class HighFrequencyDetector {
 
   private int computeTimeDelta(List<Metric> list) {
     int size = list.size();
-    return IntStream.range(1, size)
+    IntSummaryStatistics stats = IntStream.range(1, size)
         .map(
             x ->
                 (int)
                     (list.get(size - x).getTime().getTime()
                         - list.get(size - x - 1).getTime().getTime()))
         .filter(d -> (d >= 0 && d < minFrequencyMillisAllowed))
-        .min()
-        .orElse(-1);
+        .summaryStatistics();
+
+    int result = -1;
+
+    /**
+     * In order to be marked as high frequency metric the number of points
+     * should be above the BURST_THRESHOLD.
+     * It ignores any small bursts of high frequency metrics.
+     */
+    if (stats.getCount() > BURST_THRESHOLD) {
+      // uses minimal delta time from all consecutive data points
+      result = stats.getMin();
+      log.info("stats: " + stats);
+    }
+    return result;
   }
 
   /**

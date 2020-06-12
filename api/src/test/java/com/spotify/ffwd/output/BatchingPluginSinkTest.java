@@ -23,6 +23,7 @@ package com.spotify.ffwd.output;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
@@ -64,6 +65,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BatchingPluginSinkTest {
@@ -81,7 +83,6 @@ public class BatchingPluginSinkTest {
     @Mock
     private BatchingPluginSink.Batch batch;
 
-    @Mock
     private Logger log;
 
     @Mock
@@ -97,12 +98,16 @@ public class BatchingPluginSinkTest {
     @Mock
     private AsyncFuture<Void> future;
 
+    @Mock
+    private HighFrequencyDetectorStatistics statistics;
+
     AsyncFramework asyncFramework = TinyAsync.builder().executor(executor).build();
     BatchablePluginSink batchablePluginSink;
 
     @Before
     public void setup() {
         batchablePluginSink = spy(new NoopPluginSink());
+        log = LoggerFactory.getLogger(getClass());
         sink = createBatchingPluginSink();
         when(future.onFinished(any())).thenReturn(null);
         metric = new Metric("KEY", 42.0, new Date(), ImmutableSet.of(), Map.of("tag", "value"), ImmutableMap.of(), null);
@@ -116,6 +121,7 @@ public class BatchingPluginSinkTest {
             @Override
             protected void configure() {
             bind(BatchingPluginSink.class).toInstance(spy(new BatchingPluginSink(flushInterval, batchSizeLimit, maxPendingFlushes)));
+            bind(Logger.class).toInstance(log);
             bind(AsyncFramework.class).toInstance(asyncFramework);
             bind(BatchablePluginSink.class).annotatedWith(BatchingDelegate.class).toInstance(batchablePluginSink);
             bind(Boolean.class).annotatedWith(Names.named("dropHighFrequencyMetric")).toInstance(dropHighFrequencyMetric);
@@ -123,9 +129,8 @@ public class BatchingPluginSinkTest {
             bind(Long.class).annotatedWith(Names.named("highFrequencyDataRecycleMS")).toInstance(highFrequencyDataRecycleMS);
             bind(Integer.class).annotatedWith(Names.named("minNumberOfTriggers")).toInstance(minNumberOfTriggers);
             bind(BatchingStatistics.class).toInstance(NoopCoreStatistics.noopBatchingStatistics);
-            bind(HighFrequencyDetectorStatistics.class).toInstance(NoopCoreStatistics.get().newHighFrequency());
+            bind(HighFrequencyDetectorStatistics.class).toInstance(statistics);
             bind(OutputPluginStatistics.class).toInstance(NoopCoreStatistics.get().newOutputPlugin("output"));
-            bind(Logger.class).toInstance(log);
             bind(ScheduledExecutorService.class).toInstance(scheduler);
             }
         });
@@ -214,6 +219,9 @@ public class BatchingPluginSinkTest {
             assertTrue(c.size() <= 100);
         }
 
+        verify(statistics, times(10)).reportHighFrequencyMetricsDropped(anyInt());
+        verify(statistics, times(10)).reportHighFrequencyMetrics(1);
+
         // It starts dropping after detection happened 5 times
         assertEquals(400, sum);
     }
@@ -245,7 +253,49 @@ public class BatchingPluginSinkTest {
             assertTrue(c.size() <= 100);
         }
 
+        verify(statistics, never()).reportHighFrequencyMetricsDropped(anyInt());
+        verify(statistics, times(10)).reportHighFrequencyMetrics(0);
+
         assertEquals(1000, sum);
     }
 
+
+    @Test
+    public void testSendMetricHighFreqSmallNumberOfPoints(){
+        //Sends the same metric data points with small delta time only 5 times
+        // the rest will be sent as diff metrics.
+        //Should ignore small bursts of data points
+
+        assertEquals(0, sink.nextBatch.size());
+
+        sink.sendMetric(metric);
+
+        for (int x = 0; x < 10; x++){
+            for (int i = 0; i < 100; i++) {
+                String key = "KEY" + (i < 5 ? "" : i);
+                Metric tMetric = new Metric(key, 42.0 + i, new Date(), ImmutableSet.of(), Map
+                  .of("tag1", "value1"), ImmutableMap.of(), null);
+                sink.sendMetric(tMetric);
+            }
+        }
+
+        assertEquals(1, sink.nextBatch.size());
+        verify(sink).checkBatch(sink.nextBatch);
+        verify(sink.sink, times(10)).sendMetrics(metricsCaptor.capture());
+
+        int sum = 0;
+
+        for (final Collection<Metric> c : metricsCaptor.getAllValues()) {
+            sum += c.size();
+            // no single batch may be larger than the given batch size.
+            assertTrue(c.size() <= 100);
+        }
+
+
+        verify(statistics, never()).reportHighFrequencyMetricsDropped(anyInt());
+        verify(statistics, times(10)).reportHighFrequencyMetrics(0);
+
+        // It starts dropping after detection happened 5 times
+        assertEquals(1000, sum);
+    }
 }
