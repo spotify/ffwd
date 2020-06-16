@@ -87,7 +87,7 @@ public class OpenCensusPluginSink implements PluginSink  {
   public OpenCensusPluginSink(Optional<String> gcpProject, Optional<Integer> maxViews,
       Optional<String> outputMetricNamePattern) {
     this.gcpProject = gcpProject;
-    this.maxViews = maxViews.orElse(10000);
+    this.maxViews = maxViews.orElse(500);
     this.outputMetricNamePattern = outputMetricNamePattern.orElse("${key}_${what}");
   }
 
@@ -111,7 +111,7 @@ public class OpenCensusPluginSink implements PluginSink  {
         // from the start.
         final List<TagKey> columns = new ArrayList<TagKey>(metric.getTags().size());
         metric.getTags().keySet().forEach(tagName -> {
-            columns.add(TagKey.create(tagName));
+            columns.add(TagKey.create(sanitizeName(tagName)));
         });
         final View view =
             View.create(
@@ -125,7 +125,7 @@ public class OpenCensusPluginSink implements PluginSink  {
       }
       final TagContextBuilder builder = tagger.emptyBuilder();
       metric.getTags().forEach((k, v) -> {
-          builder.putPropagating(TagKey.create(k), TagValue.create(v));
+          builder.putPropagating(TagKey.create(sanitizeName(k)), TagValue.create(v));
       });
       final TagContext context = builder.build();
 
@@ -183,7 +183,22 @@ public class OpenCensusPluginSink implements PluginSink  {
         return metric.getTags().get(key);
       }
     });
-    return sub.replace(outputMetricNamePattern);
+    return sanitizeName(sub.replace(outputMetricNamePattern));
+  }
+
+  private String sanitizeName(String name) {
+    // acording to https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.metricDescriptors
+    // metric types and labels should only contain alphanumerics and underscores and shouldn't start
+    // with an underscore.
+    String sanitizedName = name.replaceAll("[^A-Za-z0-9_]", "_");
+    if (sanitizedName.startsWith("_")) {
+      if (sanitizedName.length() > 1) {
+        sanitizedName = sanitizedName.substring(1);
+      } else {
+        throw new RuntimeException("Invalid name '_'.");
+      }
+    }
+    return sanitizedName;
   }
 
 }
