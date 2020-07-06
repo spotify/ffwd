@@ -67,7 +67,7 @@ For more information about udp buffers check out...
 https://medium.com/@CameronSparr/increase-os-udp-buffers-to-improve-performance-51d167bb1360
 
 
-You can monitor for errors on the socket by checking `/proc/net/udp6` or `/proc/net/udp` depending on how you setup the listening socket. The last column is a counter of errors on the socket. Usually any errors on the socket are due to the buffer being full and packets being droppe
+You can monitor for errors on the socket by checking `/proc/net/udp6` or `/proc/net/udp` depending on how you setup the listening socket. The last column is a counter of errors on the socket. Usually any errors on the socket are due to the buffer being full and packets being dropped.
 
 The port, part of the ip:port combo, is hex encoded and can be decoded with python.
 
