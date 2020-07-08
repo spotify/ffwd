@@ -4,12 +4,12 @@
     <parent>
         <groupId>com.spotify.ffwd</groupId>
         <artifactId>ffwd-parent</artifactId>
-        <version>0.6.3-SNAPSHOT</version>
+        <version>0.6.3</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <artifactId>ffwd-module-pubsub</artifactId>
-    <version>0.6.3-SNAPSHOT</version>
+    <version>0.6.3</version>
     <packaging>jar</packaging>
     <name>FastForward Pubsub Module</name>
 
