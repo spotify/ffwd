@@ -23,7 +23,6 @@ package com.spotify.ffwd.json;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -53,6 +52,8 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
     private static final String HOST = "host";
     public static final Set<String> EMPTY_TAGS = Sets.newHashSet();
     public static final Map<String, String> EMPTY_ATTRIBUTES = new HashMap<>();
+    public static final Map<String, String> EMPTY_RESOURCES = new HashMap<>();
+
 
     @Inject
     @Named("application/json")
@@ -108,8 +109,7 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
         final Optional<String> host = Optional.ofNullable(decodeString(tree, HOST));
         final Set<String> riemannTags = decodeTags(tree, "tags");
         final Map<String, String> tags = decodeAttributes(tree, "attributes");
-        // TODO: support resource?
-        final Map<String, String> resource = ImmutableMap.of();
+        final Map<String, String> resource = decodeResources(tree, "resource");
         final String proc = decodeString(tree, "proc");
 
         host.ifPresent(h -> tags.put(HOST, h));
@@ -169,6 +169,29 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
         }
 
         return attributes;
+    }
+
+    private Map<String, String> decodeResources(JsonNode tree, String name) {
+        final JsonNode n = tree.get(name);
+
+        if (n == null) {
+            return EMPTY_RESOURCES;
+        }
+
+        if (n.getNodeType() != JsonNodeType.OBJECT) {
+            return EMPTY_RESOURCES;
+        }
+
+        final Map<String, String> resources = Maps.newHashMap();
+
+        final Iterator<Map.Entry<String, JsonNode>> iter = n.fields();
+
+        while (iter.hasNext()) {
+            final Map.Entry<String, JsonNode> e = iter.next();
+            resources.put(e.getKey(), e.getValue().asText());
+        }
+
+        return resources;
     }
 
     private Set<String> decodeTags(JsonNode tree, String name) {

@@ -52,6 +52,7 @@ Metric:
   time: optional Number
   host: optional String
   tags: optional [String, ..]
+  resource: optional {String: String, ..}
   attributes: optional {String: String, ..}
   proc: optional String
 ```
@@ -65,22 +66,6 @@ Metric:
   time: optional Number
   tags: optional {String: String, ..}
   proc: optional String
-```
-
-#### Event Object (v1)
-
-```
-Event:
-  type: required "event"
-  key: optional String
-  value: optional Number
-  time: optional Number
-  host: optional String
-  state: optional String
-  description: optional String
-  ttl: optional Number
-  tags: optional [String, ..]
-  attributes: optional {String: String, ..}
 ```
 
 ## Example Python Client
