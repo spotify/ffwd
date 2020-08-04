@@ -26,7 +26,7 @@ public interface HighFrequencyDetectorStatistics {
      *
      * @param marked The number of metrics marked.
      */
-    void reportHighFrequencyMetrics(int marked);
+    void reportHighFrequencyMetrics(int marked, String... tags);
 
     /**
      * Report that the given number of metrics have been dropped.

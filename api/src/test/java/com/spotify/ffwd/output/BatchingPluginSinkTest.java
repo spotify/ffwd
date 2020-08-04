@@ -113,7 +113,6 @@ public class BatchingPluginSinkTest {
         metric = new Metric("KEY", 42.0, new Date(), ImmutableSet.of(), Map.of("tag", "value"), ImmutableMap.of(), null);
     }
 
-
     public BatchingPluginSink createBatchingPluginSink() {
         final List<Module> modules = Lists.newArrayList();
 
@@ -203,7 +202,7 @@ public class BatchingPluginSinkTest {
 
         for (int i = 0; i < 1000; i++) {
             Metric tMetric = new Metric("KEY", 42.0 + i, new Date(), ImmutableSet.of(), Map
-              .of("tag1", "value1"), ImmutableMap.of(), null);
+              .of("tag1", "value1", "what", "fun"), ImmutableMap.of(), null);
             sink.sendMetric(tMetric);
         }
 
@@ -220,7 +219,7 @@ public class BatchingPluginSinkTest {
         }
 
         verify(statistics, times(10)).reportHighFrequencyMetricsDropped(anyInt());
-        verify(statistics, times(10)).reportHighFrequencyMetrics(1);
+        verify(statistics, times(10)).reportHighFrequencyMetrics(1, "keys", "KEY", "whats","fun");
 
         // It starts dropping after detection happened 5 times
         assertEquals(400, sum);
@@ -254,7 +253,7 @@ public class BatchingPluginSinkTest {
         }
 
         verify(statistics, never()).reportHighFrequencyMetricsDropped(anyInt());
-        verify(statistics, times(10)).reportHighFrequencyMetrics(0);
+        verify(statistics, times(10)).reportHighFrequencyMetrics(0, "keys", "", "whats","");
 
         assertEquals(1000, sum);
     }
@@ -293,7 +292,7 @@ public class BatchingPluginSinkTest {
 
 
         verify(statistics, never()).reportHighFrequencyMetricsDropped(anyInt());
-        verify(statistics, times(10)).reportHighFrequencyMetrics(0);
+        verify(statistics, times(10)).reportHighFrequencyMetrics(0, "keys", "", "whats","");
 
         // It starts dropping after detection happened 5 times
         assertEquals(1000, sum);

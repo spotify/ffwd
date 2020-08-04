@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.slf4j.Logger;
@@ -43,7 +44,7 @@ import org.slf4j.Logger;
  */
 public class HighFrequencyDetector {
 
-  public static final int BURST_THRESHOLD = 5;
+  public static final int BURST_THRESHOLD = 15;
 
   /** Allow to drop high frequency metrics. */
   @Inject
@@ -72,7 +73,7 @@ public class HighFrequencyDetector {
   private HighFrequencyDetectorStatistics statistics;
 
   /** High frequency metrics counter. */
-  final AtomicReference<Map<Integer, Integer>> highFrequencyMetrics =
+  final AtomicReference<Map<Metric, Integer>> highFrequencyMetrics =
       new AtomicReference<>(new HashMap<>());
 
   final AtomicLong highFrequencyTriggersTS;
@@ -99,14 +100,14 @@ public class HighFrequencyDetector {
   public List<Metric> detect(final List<Metric> metrics) {
     List<Metric> newList = new ArrayList<>();
 
-    // Groups metrics by metric hash code and finds times deltas of ordered data points.
-    // {hashcode -> -1, hashcode1 -> 10}
-    Map<Integer, Integer> groupedMetrics =
+    // Groups metrics by metric identity and finds times deltas of ordered data points.
+    // {metric1 -> -1, metric2 -> 10}
+    Map<Metric, Integer> groupedMetrics =
         metrics.stream()
             .sorted(Comparator.comparing(Metric::getTime))
             .collect(
                 Collectors.groupingBy(
-                    Metric::hashCode,
+                    Function.identity(),
                     Collectors.collectingAndThen(
                         Collectors.toList(),
                         this::computeTimeDelta)));
@@ -117,7 +118,7 @@ public class HighFrequencyDetector {
       metrics.stream()
           .filter(
               metric ->
-                  highFrequencyMetrics.get().getOrDefault(metric.hashCode(), 0)
+                  highFrequencyMetrics.get().getOrDefault(metric, 0)
                       < minNumberOfTriggers)
           .forEach(newList::add);
 
@@ -149,7 +150,6 @@ public class HighFrequencyDetector {
     if (stats.getCount() > BURST_THRESHOLD) {
       // uses minimal delta time from all consecutive data points
       result = stats.getMin();
-      log.info("stats: " + stats);
     }
     return result;
   }
@@ -159,17 +159,29 @@ public class HighFrequencyDetector {
    *
    * @param groupedMetrics - Grouped metrics
    */
-  private void updateHighFrequencyMetricsStats(final Map<Integer, Integer> groupedMetrics) {
+  private void updateHighFrequencyMetricsStats(final Map<Metric, Integer> groupedMetrics) {
     groupedMetrics.entrySet().stream()
         .filter(x -> x.getValue() >= 0)
         .forEach(
-            hashcode -> {
-              highFrequencyMetrics
-                  .get()
-                  .compute(hashcode.getKey(), (key, val) -> (val == null) ? 1 : val + 1);
-            });
+            metric ->
+                highFrequencyMetrics
+                    .get()
+                    .compute(metric.getKey(), (key, val) -> (val == null) ? 1 : val + 1));
 
-    statistics.reportHighFrequencyMetrics(highFrequencyMetrics.get().size());
+    String keys =
+        highFrequencyMetrics.get().keySet().stream()
+            .sorted()
+            .map(metric -> metric.getKey())
+            .distinct()
+            .collect(Collectors.joining("|"));
+    String whats =
+        highFrequencyMetrics.get().keySet().stream()
+            .sorted()
+            .map(metric -> metric.getTags().get("what"))
+            .distinct()
+            .collect(Collectors.joining("|"));
+    statistics.reportHighFrequencyMetrics(
+        highFrequencyMetrics.get().size(), "keys", keys, "whats", whats);
     swapHighFrequencyTriggersData();
   }
 

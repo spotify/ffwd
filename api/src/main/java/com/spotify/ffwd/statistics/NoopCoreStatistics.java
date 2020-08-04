@@ -119,7 +119,7 @@ public class NoopCoreStatistics implements CoreStatistics {
     private static final HighFrequencyDetectorStatistics noopHighFrequencyDetectorStatistics =
         new HighFrequencyDetectorStatistics() {
             @Override
-            public void reportHighFrequencyMetrics(int marked) {
+            public void reportHighFrequencyMetrics(int marked, String... tags) {
             }
 
             @Override

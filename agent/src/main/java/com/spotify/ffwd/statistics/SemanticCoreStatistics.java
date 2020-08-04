@@ -32,6 +32,7 @@ import com.spotify.metrics.core.SemanticMetricRegistry;
 import eu.toolchain.async.FutureFinished;
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -246,15 +247,11 @@ public class SemanticCoreStatistics implements CoreStatistics {
     @Override
     public HighFrequencyDetectorStatistics newHighFrequency() {
         final MetricId m = metric.tagged("component", "high-freq");
-        final AtomicLong highFreqMetrics = new AtomicLong();
+        final Map<MetricId, Long> highFreqMetricsMap = new ConcurrentHashMap<>();
 
         return new HighFrequencyDetectorStatistics() {
             private final Counter dropped = registry.counter(
                 m.tagged("what", "dropped-metrics", "unit", "metric"));
-
-            private final Gauge metricsCardinalityMetric =
-              registry.register(m.tagged("what", "high-freq-metrics"),
-                  (Gauge<Long>) () -> (long) highFreqMetrics.get());
 
             @Override
             public void reportHighFrequencyMetricsDropped(int dropped) {
@@ -262,8 +259,28 @@ public class SemanticCoreStatistics implements CoreStatistics {
             }
 
             @Override
-            public void reportHighFrequencyMetrics(int marked) {
-                highFreqMetrics.set(marked);
+            public void reportHighFrequencyMetrics(int marked, String... tags) {
+                MetricId gaugeMetric = m.tagged("what", "high-freq-metrics").tagged(tags);
+
+                registerGauge(gaugeMetric);
+
+                highFreqMetricsMap.put(gaugeMetric, (long) marked);
+            }
+
+            private void registerGauge(MetricId gauge) {
+                if (highFreqMetricsMap.containsKey(gauge)) {
+                    return;
+                }
+                try {
+                    registry.register(gauge, new Gauge<Long>() {
+                        @Override
+                        public Long getValue() {
+                            return highFreqMetricsMap.get(gauge);
+                        }
+                    });
+                } catch (IllegalArgumentException e) {
+                    // Do nothing as Gauge already registered
+                }
             }
         };
     }
