@@ -30,8 +30,8 @@ import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import io.opencensus.exporter.stats.stackdriver.StackdriverStatsConfiguration;
 import io.opencensus.exporter.stats.stackdriver.StackdriverStatsExporter;
-import io.opencensus.stats.Aggregation.Sum;
-import io.opencensus.stats.Measure.MeasureLong;
+import io.opencensus.stats.Aggregation.LastValue;
+import io.opencensus.stats.Measure.MeasureDouble;
 import io.opencensus.stats.Stats;
 import io.opencensus.stats.StatsRecorder;
 import io.opencensus.stats.View.Name;
@@ -70,7 +70,7 @@ public class OpenCensusPluginSink implements PluginSink  {
   @Inject
   private AsyncFramework async;
 
-  private Map<String, MeasureLong> measures;
+  private Map<String, MeasureDouble> measures;
 
   private static final Tagger tagger = Tags.getTagger();
   private static final StatsRecorder statsRecorder = Stats.getStatsRecorder();
@@ -81,7 +81,7 @@ public class OpenCensusPluginSink implements PluginSink  {
 
   public void init() {
     // Is this actually needed, not sure. Better safe than sorry!
-    measures = new ConcurrentHashMap<String, MeasureLong>();
+    measures = new ConcurrentHashMap<String, MeasureDouble>();
   }
 
   public OpenCensusPluginSink(Optional<String> gcpProject, Optional<Integer> maxViews,
@@ -94,7 +94,7 @@ public class OpenCensusPluginSink implements PluginSink  {
   public void sendMetric(Metric metric) {
     try {
       String metricName = getOutputMetricName(metric);
-      MeasureLong measure = measures.get(metricName);
+      MeasureDouble measure = measures.get(metricName);
 
       if (measure == null) {
         if (measures.size() > maxViews) {
@@ -102,7 +102,7 @@ public class OpenCensusPluginSink implements PluginSink  {
               "Please increase in configuration or decrease number of metrics.");
         }
 
-        measure = MeasureLong.create("Events", "Number of Events", "1");
+        measure = MeasureDouble.create("Metric", "Value", "1");
         measures.put(metricName, measure);
 
         // Stackdriver expects each metric to have the same set of tags so metrics
@@ -118,7 +118,7 @@ public class OpenCensusPluginSink implements PluginSink  {
                 Name.create(metricName),
                 metricName,
                 measure,
-                Sum.create(),
+                LastValue.create(),
                 columns);
 
         Stats.getViewManager().registerView(view);
@@ -129,7 +129,7 @@ public class OpenCensusPluginSink implements PluginSink  {
       });
       final TagContext context = builder.build();
 
-      statsRecorder.newMeasureMap().put(measure, (long) metric.getValue()).record(context);
+      statsRecorder.newMeasureMap().put(measure, metric.getValue()).record(context);
     } catch (Exception ex) {
       log.error("Couldn't send metric %s", ex);
       throw ex;
