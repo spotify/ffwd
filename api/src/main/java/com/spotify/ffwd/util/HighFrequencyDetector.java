@@ -78,13 +78,6 @@ public class HighFrequencyDetector {
 
   final AtomicLong highFrequencyTriggersTS;
 
-  /* TODO
-      1. unit tests
-          a. sendBatch with many points
-          b. send both with many points
-          c. check swap of high freq hashmap
-   */
-
   @Inject
   public HighFrequencyDetector() {
     this.highFrequencyTriggersTS = new AtomicLong(System.currentTimeMillis());
@@ -170,13 +163,13 @@ public class HighFrequencyDetector {
 
     String keys =
         highFrequencyMetrics.get().keySet().stream()
-            .sorted()
+            .sorted(Comparator.comparing(Metric::hashCode))
             .map(metric -> metric.getKey())
             .distinct()
             .collect(Collectors.joining("|"));
     String whats =
         highFrequencyMetrics.get().keySet().stream()
-            .sorted()
+            .sorted(Comparator.comparing(Metric::hashCode))
             .map(metric -> metric.getTags().get("what"))
             .distinct()
             .collect(Collectors.joining("|"));
