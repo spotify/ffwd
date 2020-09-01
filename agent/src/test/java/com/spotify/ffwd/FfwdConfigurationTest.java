@@ -20,6 +20,7 @@
 
 package com.spotify.ffwd;
 
+import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable;
 import static org.junit.Assert.assertEquals;
 
 import com.google.common.collect.ImmutableList;
@@ -34,17 +35,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FfwdConfigurationTest {
-
-    @Rule
-    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     @Test
     public void testConfAllPluginsEnabled() {
@@ -86,13 +82,12 @@ public class FfwdConfigurationTest {
     }
 
     @Test
-    public void testConfigFromEnvVars() {
-        environmentVariables.set("FFWD_TTL", "100");
-        environmentVariables.set("FFWD_OUTPUT_RATELIMIT", "1000");
-        environmentVariables.set("FFWD_OUTPUT_CARDINALITYLIMIT", "10000");
-        environmentVariables.set("FFWD_OUTPUT_CARDINALITYTTL", "3000000");
-
-        CoreOutputManager outputManager = getOutputManager(null);
+    public void testConfigFromEnvVars() throws Exception {
+        CoreOutputManager outputManager = withEnvironmentVariable("FFWD_TTL", "100")
+                .and("FFWD_OUTPUT_RATELIMIT", "1000")
+                .and("FFWD_OUTPUT_CARDINALITYLIMIT", "10000")
+                .and("FFWD_OUTPUT_CARDINALITYTTL", "3000000")
+                .execute(() -> getOutputManager(null));
 
         assertEquals(100, outputManager.getTtl());
         assertEquals(Long.valueOf(1000), outputManager.getRateLimit());
@@ -109,10 +104,10 @@ public class FfwdConfigurationTest {
     }
 
     @Test
-    public void testMergeOrder() {
-        environmentVariables.set("FFWD_TTL", "100");
+    public void testMergeOrder() throws Exception {
         Path configPath = resource("basic-settings.yaml");
-        CoreOutputManager outputManager = getOutputManager(configPath);
+        CoreOutputManager outputManager = withEnvironmentVariable("FFWD_TTL", "100")
+                .execute(() -> getOutputManager(configPath));
 
         assertEquals(100, outputManager.getTtl());
         assertEquals("jimjam", outputManager.getHost());
