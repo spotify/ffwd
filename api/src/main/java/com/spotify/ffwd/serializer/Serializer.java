@@ -27,7 +27,53 @@ import java.util.Collection;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface Serializer {
+    /**
+     * Serialize {@link Metric}
+     * @param metric
+     * @return
+     * @throws Exception
+     */
     byte[] serialize(Metric metric) throws Exception;
 
+    /**
+     * Serialize a batch of {@link Metric}
+     * @param metrics
+     * @param writeCache
+     * @return
+     * @throws Exception
+     */
     byte[] serialize(Collection<Metric> metrics, WriteCache writeCache) throws Exception;
+
+
+    /**
+     * Serialize {@link com.spotify.ffwd.model.v2.Metric}
+     *
+     * <p>This method doesn't have a default behavior it was added to maintain compatibility,
+     * please provide an implementation that fit your use case
+     *
+     * @param metric
+     * @return
+     * @throws Exception
+     */
+    default byte[] serialize(com.spotify.ffwd.model.v2.Metric metric) throws Exception {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+
+    /**
+     * Serialize a batch of {@link com.spotify.ffwd.model.v2.Metric}
+     *
+     * <p>This method doesn't have a default behavior it was added to maintain compatibility,
+     * please provide an implementation that fit your use case.
+     *
+     * @param metrics
+     * @param writeCache
+     * @return
+     * @throws Exception
+     */
+    default byte[] serializeMetrics(final Collection<com.spotify.ffwd.model.v2.Metric> metrics,
+                                    final WriteCache writeCache) throws Exception {
+        throw new UnsupportedOperationException("Not supported");
+        //TODO changer the name  or the param ?
+    }
 }

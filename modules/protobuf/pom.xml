@@ -24,10 +24,32 @@
       <groupId>com.spotify.ffwd</groupId>
       <artifactId>ffwd-api</artifactId>
     </dependency>
+  <dependency>
+    <groupId>com.spotify.ffwd</groupId>
+    <artifactId>ffwd-client</artifactId>
+    <version>0.2.2</version>
+  </dependency>
+      <dependency>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+      </dependency>
 
+  <!-- testing -->
+  <dependency>
+    <groupId>junit</groupId>
+    <artifactId>junit</artifactId>
+    <scope>test</scope>
+  </dependency>
+  <dependency>
+    <groupId>org.mockito</groupId>
+    <artifactId>mockito-core</artifactId>
+    <scope>test</scope>
+  </dependency>
     <dependency>
-      <groupId>eu.toolchain.ffwd</groupId>
-      <artifactId>ffwd-client</artifactId>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
     </dependency>
+
   </dependencies>
 </project>

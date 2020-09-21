@@ -2,7 +2,7 @@
  * -\-\-
  * FastForward API
  * --
- * Copyright (C) 2016 - 2018 Spotify AB
+ * Copyright (C) 2016 - 2020 Spotify AB
  * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,32 +18,30 @@
  * -/-/-
  */
 
-package com.spotify.ffwd.model;
+package com.spotify.ffwd.model.v2;
 
 import com.google.common.base.Charsets;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
-import java.util.Date;
+import com.spotify.ffwd.model.Metrics;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 
 @Data
-@EqualsAndHashCode(of = {"key",  "tags"})
+@EqualsAndHashCode(of = {"key", "tags"})
 public class Metric implements Metrics {
     static final HashFunction HASH_FUNCTION = Hashing.murmur3_128();
 
     private final String key;
-    private final double value;
-    private final Date time;
-    private final Set<String> riemannTags;
+    private final Value value;
+    private final long time;
     private final Map<String, String> tags;
     private final Map<String, String> resource;
-    private final String proc;
+
 
     /**
      * Convert into a batch point, lose information that is not relevant for batches.
@@ -51,7 +49,7 @@ public class Metric implements Metrics {
      * @return a batch point
      */
     public Batch.Point toBatchPoint() {
-        return new Batch.Point(key, tags, resource, value, time.getTime());
+        return new Batch.Point(key, tags, resource, value, time);
     }
 
     @Override

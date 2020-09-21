@@ -22,8 +22,10 @@ package com.spotify.ffwd.serializer;
 
 import com.spotify.ffwd.cache.WriteCache;
 import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Value;
 import com.spotify.proto.Spotify100;
 import java.util.Collection;
+import java.util.UnknownFormatConversionException;
 import org.xerial.snappy.Snappy;
 
 /**
@@ -34,30 +36,72 @@ import org.xerial.snappy.Snappy;
  * Compression is done with the snappy library via JNI.
  */
 public class Spotify100ProtoSerializer implements Serializer {
-  @Override
-  public byte[] serialize(final Metric metric) throws Exception {
-    throw new UnsupportedOperationException("Not supported");
-  }
-
-  @Override
-  public byte[] serialize(Collection<Metric> metrics, WriteCache writeCache) throws Exception {
-    final Spotify100.Batch.Builder batch = Spotify100.Batch.newBuilder();
-
-    for (Metric metric : metrics) {
-      if (!writeCache.checkCacheOrSet(metric)) {
-        batch.addMetric(serializeMetric(metric));
-      }
+    @Override
+    public byte[] serialize(final Metric metric) throws Exception {
+        throw new UnsupportedOperationException("Not supported");
     }
-    return Snappy.compress(batch.build().toByteArray());
-  }
 
-  private Spotify100.Metric serializeMetric(final Metric metric) {
-    return Spotify100.Metric.newBuilder()
-      .setKey(metric.getKey())
-      .setTime(metric.getTime().getTime())
-      .setValue(metric.getValue())
-      .putAllTags(metric.getTags())
-      .putAllResource(metric.getResource())
-      .build();
-  }
+    @Override
+    public byte[] serialize(Collection<Metric> metrics, WriteCache writeCache) throws Exception {
+        final Spotify100.Batch.Builder batch = Spotify100.Batch.newBuilder();
+
+        for (Metric metric : metrics) {
+            if (!writeCache.checkCacheOrSet(metric)) {
+                 batch.addMetric(serializeMetric(metric));
+            }
+        }
+        return Snappy.compress(batch.build().toByteArray());
+    }
+
+    private Spotify100.Metric serializeMetric(final Metric metric) {
+        return Spotify100.Metric.newBuilder()
+            .setKey(metric.getKey())
+            .setTime(metric.getTime().getTime())
+            .setValue(metric.getValue())
+            .putAllTags(metric.getTags())
+            .putAllResource(metric.getResource())
+            .build();
+    }
+
+    @Override
+    public byte[] serializeMetrics(final Collection<com.spotify.ffwd.model.v2.Metric> metrics,
+                                 WriteCache writeCache) throws Exception {
+        final Spotify100.Batch.Builder batch = Spotify100.Batch.newBuilder();
+
+        for (com.spotify.ffwd.model.v2.Metric metric : metrics) {
+            if (!writeCache.checkCacheOrSet(metric)) {
+                batch.addMetric(convertToSpotify100Metric(metric));
+            }
+        }
+        return Snappy.compress(batch.build().toByteArray());
+    }
+
+
+    private Spotify100.Metric convertToSpotify100Metric(
+            final com.spotify.ffwd.model.v2.Metric metric) {
+
+        Spotify100.Value.Builder valueBuilder = Spotify100.Value.newBuilder();
+
+        final com.spotify.ffwd.model.v2.Value value = metric.getValue();
+
+        if (value instanceof Value.DoubleValue) {
+            Value.DoubleValue doubleValue = (Value.DoubleValue) value;
+            valueBuilder.setDoubleValue(doubleValue.getValue());
+        } else if (value instanceof Value.DistributionValue) {
+            Value.DistributionValue distValue = (Value.DistributionValue) value;
+            valueBuilder.setDistributionValue(distValue.getValue());
+        } else {
+            throw new UnknownFormatConversionException("Unknown value type [ " + value + " ]");
+        }
+
+
+        Spotify100.Metric.Builder builder = Spotify100.Metric.newBuilder();
+        builder.setKey(metric.getKey())
+            .setDistributionTypeValue(valueBuilder.build())
+            .setTime(metric.getTime())
+            .putAllTags(metric.getTags())
+            .putAllResource(metric.getResource())
+            .build();
+        return builder.build();
+    }
 }
