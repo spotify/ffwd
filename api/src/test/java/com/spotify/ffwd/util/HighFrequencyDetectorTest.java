@@ -175,4 +175,29 @@ public class HighFrequencyDetectorTest {
     }
     assertEquals(280, finalList.size());
   }
+
+  @Test
+  public void testNew() {
+    long myTime = System.currentTimeMillis();
+    // verifies if high frequency metrics are captured and sortable - up to 1k
+    List<Metric> finalList = new ArrayList<>();
+    for (int y = 0; y < 10; y++) { // <-- number of high freq metrics kept in memory
+      List<Metric> list = new ArrayList<>();
+      for (int x = 0; x < 5; x++) { // <-- making sure it will kick in the detection
+        for (int i = 0; i < 20; i++) { // <--- reasonable batches
+          list.add(
+                  new Metric(
+                          "KEY" + x,
+                          42.0 + i,
+                          new Date(myTime + i*x),
+                          ImmutableSet.of(),
+                          Map.of("tag1", "value1", "what", "fun"),
+                          ImmutableMap.of(),
+                          null));
+        }
+      }
+      finalList.addAll(detector.detect(list));
+    }
+    assertEquals(20000, finalList.size());
+  }
 }

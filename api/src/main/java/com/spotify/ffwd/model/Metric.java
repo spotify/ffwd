@@ -24,12 +24,15 @@ import com.google.common.base.Charsets;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
+
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 
 @Data
@@ -39,6 +42,7 @@ public class Metric implements Metrics {
 
     private final String key;
     private final double value;
+    @ToString.Exclude
     private final Date time;
     private final Set<String> riemannTags;
     private final Map<String, String> tags;
@@ -76,6 +80,11 @@ public class Metric implements Metrics {
         }
 
         return hasher.hash().toString();
+    }
+
+    @ToString.Include(name = "timems")
+    private String formatScheduledStartDate() {
+        return new SimpleDateFormat("yyyy-MM-dd@HH:mm:ss.SSSZ").format(time.getTime());
     }
 
 }

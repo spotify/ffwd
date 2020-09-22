@@ -143,6 +143,12 @@ public class HighFrequencyDetector {
     if (stats.getCount() > BURST_THRESHOLD) {
       // uses minimal delta time from all consecutive data points
       result = stats.getMin();
+
+      /*
+      TODO add conversion of Date to millis in debug
+        verify how Date is set if it is not submitted by service
+       */
+      System.out.println("detected - stats: " + stats + "; list: " + list);
     }
     return result;
   }
