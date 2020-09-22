@@ -198,6 +198,6 @@ public class HighFrequencyDetectorTest {
       }
       finalList.addAll(detector.detect(list));
     }
-    assertEquals(20000, finalList.size());
+    assertEquals(100, finalList.size());
   }
 }
