@@ -34,6 +34,8 @@ import java.io.IOException;
  */
 public class ValueDeserializer extends StdDeserializer<Value> {
 
+    private static final long serialVersionUID = 6224613339173782914L;
+
     public ValueDeserializer() {
         this(Value.class);
     }
