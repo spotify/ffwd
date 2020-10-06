@@ -3,7 +3,7 @@ Version: [[version]]
 Source: ffwd
 Section: net
 Priority: extra
-Maintainer: layer8 <layer8@spotify.com>
+Maintainer: prism <prism@spotify.com>
 Build-Depends:
  debhelper,
  default-jdk (>= 1.8),
