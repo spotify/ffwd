@@ -20,7 +20,7 @@
 
 package com.spotify.ffwd.output;
 
-import com.clearspring.analytics.stream.cardinality.HyperLogLogPlus;
+import net.agkn.hll.HLL;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -48,6 +48,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+
+import net.agkn.hll.HLLType;
 import org.isomorphism.util.TokenBucket;
 import org.isomorphism.util.TokenBuckets;
 import org.slf4j.Logger;
@@ -58,8 +60,8 @@ public class CoreOutputManager implements OutputManager {
     private static final String HOST = "host";
     private static final Logger log = LoggerFactory.getLogger(CoreOutputManager.class);
     private static final String[] KEYS_NEVER_TO_DROP = {"ffwd-java", "ffwd-java.ffwd-java"};
-    private static final int HYPER_LOG_LOG_PLUS_PRECISION_NORMAL = 14;
-    private static final int HYPER_LOG_LOG_PLUS_PRECISION_SPARSE = 25;
+    private static final int HYPER_LOG_LOG_LOG2M = 14;
+    private static final int HYPER_LOG_LOG_REG_WIDTH = 5;
 
     private final TokenBucket rateLimiter;
     private final Long cardinalityLimit;
@@ -123,7 +125,7 @@ public class CoreOutputManager implements OutputManager {
     @Inject
     private Filter filter;
 
-    private AtomicReference<HyperLogLogPlus> hyperLog;
+    private AtomicReference<HLL> hyperLog;
     private AtomicLong hyperLogSwapTS;
     private AtomicBoolean hyperLogSwapLock;
     private Long hyperLogLogPlusSwapPeriodMS;
@@ -161,8 +163,10 @@ public class CoreOutputManager implements OutputManager {
             rateLimiter = null;
         }
 
-        hyperLog = new AtomicReference<>(new HyperLogLogPlus(
-                HYPER_LOG_LOG_PLUS_PRECISION_NORMAL, HYPER_LOG_LOG_PLUS_PRECISION_SPARSE));
+        hyperLog = new AtomicReference<>(new HLL(
+                HYPER_LOG_LOG_LOG2M,
+                HYPER_LOG_LOG_REG_WIDTH,
+                -1, false, HLLType.FULL));
         hyperLogSwapTS =  new AtomicLong(System.currentTimeMillis());
         hyperLogSwapLock = new AtomicBoolean(false);
         this.hyperLogLogPlusSwapPeriodMS =
@@ -199,7 +203,7 @@ public class CoreOutputManager implements OutputManager {
 
         debug.inspectMetric(DEBUG_ID, filtered);
 
-        hyperLog.get().offer(metric.hashCode());
+        hyperLog.get().addRaw(metric.hashCode());
         statistics.reportMetricsCardinality(hyperLog.get().cardinality());
 
         if (isDroppable(1, metric.getKey())) {
@@ -223,7 +227,7 @@ public class CoreOutputManager implements OutputManager {
 
         BatchMetricConverter
             .convertBatchesToMetrics(Collections.singletonList(batch))
-            .stream().forEach(metric -> hyperLog.get().offer(metric.hashCode()));
+            .stream().forEach(metric -> hyperLog.get().addRaw(metric.hashCode()));
 
         statistics.reportMetricsCardinality(hyperLog.get().cardinality());
 
@@ -278,8 +282,10 @@ public class CoreOutputManager implements OutputManager {
     private void swapHyperLogLogPlus() {
         if (System.currentTimeMillis() - hyperLogSwapTS.get() > hyperLogLogPlusSwapPeriodMS
             && hyperLogSwapLock.compareAndExchange(false, true)) {
-            hyperLog.set(new HyperLogLogPlus(
-                    HYPER_LOG_LOG_PLUS_PRECISION_NORMAL, HYPER_LOG_LOG_PLUS_PRECISION_SPARSE));
+            hyperLog.set(new HLL(
+                    HYPER_LOG_LOG_LOG2M,
+                    HYPER_LOG_LOG_REG_WIDTH,
+                    -1, false, HLLType.FULL));
             hyperLogSwapTS.set(System.currentTimeMillis());
             hyperLogSwapLock.set(false);
         }

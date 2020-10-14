@@ -89,8 +89,8 @@
     </dependency>
 
     <dependency>
-      <groupId>com.clearspring.analytics</groupId>
-      <artifactId>stream</artifactId>
+      <groupId>net.agkn</groupId>
+      <artifactId>hll</artifactId>
     </dependency>
 
     <!-- testing -->

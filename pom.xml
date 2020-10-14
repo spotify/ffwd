@@ -363,9 +363,9 @@
       </dependency>
 
       <dependency>
-        <groupId>com.clearspring.analytics</groupId>
-        <artifactId>stream</artifactId>
-        <version>2.9.8</version>
+        <groupId>net.agkn</groupId>
+        <artifactId>hll</artifactId>
+        <version>1.6.0</version>
       </dependency>
 
       <dependency>
