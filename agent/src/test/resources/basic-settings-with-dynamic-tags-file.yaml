@@ -1,0 +1,6 @@
+ttl: 50
+host: jimjam
+output:
+  dynamicTagsFile: src/test/resources/dynamic-tags-file.txt
+  cardinalitylimit: 10000
+  cardinalityttl: 555555

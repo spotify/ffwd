@@ -139,6 +139,7 @@ public class OutputManagerTest {
                 bind(DebugServer.class).toInstance(debugServer);
                 bind(OutputManagerStatistics.class).toInstance(statistics);
                 bind(Filter.class).toInstance(filter);
+                bind(String.class).annotatedWith(Names.named("dynamicTagsFile")).toInstance("");
                 bind(OutputManager.class).to(CoreOutputManager.class);
                 bind(Long.class).annotatedWith(Names.named("cardinalityLimit")).toProvider(Providers.of(cardinalityLimit));
                 bind(Long.class).annotatedWith(Names.named("hyperLogLogPlusSwapPeriodMS")).toProvider(Providers.of(

@@ -1,0 +1,6 @@
+ttl: 50
+host: jimjam
+output:
+  dynamicTagsFile: does/not/exist
+  cardinalitylimit: 10000
+  cardinalityttl: 555555

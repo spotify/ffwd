@@ -67,6 +67,7 @@ public class OutputManagerModule {
     private final int minFrequencyMillisAllowed;
     private final int minNumberOfTriggers;
     private final long highFrequencyDataRecycleMS;
+    @Nullable private final String dynamicTagsFile;
 
     @JsonCreator
     public OutputManagerModule(
@@ -78,7 +79,8 @@ public class OutputManagerModule {
         @JsonProperty("dropHighFrequencyMetric") @Nullable Boolean dropHighFrequencyMetric,
         @JsonProperty("minFrequencyMillisAllowed") @Nullable Integer minFrequencyMillisAllowed,
         @JsonProperty("minNumberOfTriggers") @Nullable Integer minNumberOfTriggers,
-        @JsonProperty("highFrequencyDataRecycleMS") @Nullable Long highFrequencyDataRecycleMS) {
+        @JsonProperty("highFrequencyDataRecycleMS") @Nullable Long highFrequencyDataRecycleMS,
+        @JsonProperty("dynamicTagsFile") @Nullable String dynamicTagsFile) {
       this.plugins = Optional.ofNullable(plugins).orElse(DEFAULT_PLUGINS);
       this.filter = Optional.ofNullable(filter).orElseGet(TrueFilter::new);
       this.rateLimit = rateLimit;
@@ -93,6 +95,7 @@ public class OutputManagerModule {
       this.highFrequencyDataRecycleMS =
           Optional.ofNullable(highFrequencyDataRecycleMS)
               .orElse(DEFAULT_HIGH_FREQUENCY_DATA_RECYCLE_MS);
+      this.dynamicTagsFile = dynamicTagsFile;
     }
 
     //CHECKSTYLE:OFF:MethodLength
@@ -238,6 +241,13 @@ public class OutputManagerModule {
                 return highFrequencyDataRecycleMS;
             }
 
+            @Provides
+            @Singleton
+            @Named("dynamicTagsFile")
+            public String dynamicTagsFile() {
+                return dynamicTagsFile;
+            }
+
             @Override
             protected void configure() {
                 bind(OutputManager.class).to(CoreOutputManager.class).in(Scopes.SINGLETON);
@@ -314,6 +324,7 @@ public class OutputManagerModule {
     }
 
     public static Supplier<OutputManagerModule> supplyDefault() {
-        return () -> new OutputManagerModule(null, null, null, null, null, null, null, null, null);
+        return () -> new OutputManagerModule(null, null, null, null, null, null, null, null, null,
+            null);
     }
 }

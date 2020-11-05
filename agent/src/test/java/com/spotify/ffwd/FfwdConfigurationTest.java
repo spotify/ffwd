@@ -21,6 +21,10 @@
 package com.spotify.ffwd;
 
 import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.assertEquals;
 
 import com.google.common.collect.ImmutableList;
@@ -33,6 +37,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import org.junit.Test;
@@ -113,6 +118,34 @@ public class FfwdConfigurationTest {
         assertEquals("jimjam", outputManager.getHost());
         assertEquals(Long.valueOf(10000), outputManager.getCardinalityLimit());
         assertEquals(Long.valueOf(555555), outputManager.getHLLPRefreshPeriodLimit());
+    }
+
+    @Test
+    public void testDynamicTagsFile() throws Exception {
+        Path configPath = resource("basic-settings-with-dynamic-tags-file.yaml");
+        CoreOutputManager outputManager = withEnvironmentVariable("FFWD_TAG_foo", "bar")
+            .and("FFWD_TAG_other", "constant")
+            .and("IS_FFWD_CONFIGURATION_TEST", "1")
+            .execute(() -> getOutputManager(configPath));
+
+        // At first tags should have the foo=bar entry set by the env var above.
+        assertThat(outputManager.getTags(), hasEntry("foo", "bar"));
+        // Then the tag value should be updated from bar to qux.
+        await().atMost(5, SECONDS).until(
+            () -> {
+                final Map<String, String> tags = outputManager.getTags();
+                return Objects.equals(tags.get("foo"), "qux")
+                       && Objects.equals(tags.get("other"), "constant")
+                       && tags.get("not-specified") == null;
+            });
+    }
+
+    @Test
+    public void testDynamicTagsFileDoesNotExist() throws Exception {
+        Path configPath = resource("basic-settings-with-non-existent-dynamic-tags-file.yaml");
+        CoreOutputManager outputManager = withEnvironmentVariable("FFWD_TAG_foo", "bar")
+            .execute(() -> getOutputManager(configPath));
+        assertThat(outputManager.getTags(), hasEntry("foo", "bar"));
     }
 
     private CoreOutputManager getOutputManager(final Path configPath) {

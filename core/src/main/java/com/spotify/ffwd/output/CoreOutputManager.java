@@ -20,9 +20,11 @@
 
 package com.spotify.ffwd.output;
 
-import net.agkn.hll.HLL;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.spotify.ffwd.debug.DebugServer;
@@ -33,6 +35,10 @@ import com.spotify.ffwd.statistics.OutputManagerStatistics;
 import com.spotify.ffwd.util.BatchMetricConverter;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Arrays;
 import java.util.Collections;
@@ -42,13 +48,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
-
+import net.agkn.hll.HLL;
 import net.agkn.hll.HLLType;
 import org.isomorphism.util.TokenBucket;
 import org.isomorphism.util.TokenBuckets;
@@ -79,6 +88,11 @@ public class CoreOutputManager implements OutputManager {
     @Inject
     @Named("tags")
     private Map<String, String> tags;
+
+    @VisibleForTesting
+    public Map<String, String> getTags() {
+        return tags;
+    }
 
     @Inject
     @Named("tagsToResource")
@@ -125,10 +139,14 @@ public class CoreOutputManager implements OutputManager {
     @Inject
     private Filter filter;
 
+    @Inject
+    private String dynamicTagsFile;
+
     private AtomicReference<HLL> hyperLog;
     private AtomicLong hyperLogSwapTS;
     private AtomicBoolean hyperLogSwapLock;
     private Long hyperLogLogPlusSwapPeriodMS;
+    private ScheduledExecutorService tagRefreshingThread = null;
 
     public final Long getRateLimit() {
         if (rateLimiter == null) {
@@ -148,7 +166,8 @@ public class CoreOutputManager implements OutputManager {
     @Inject
     CoreOutputManager(@Named("rateLimit") @Nullable Integer rateLimit,
         @Named("cardinalityLimit") @Nullable Long cardinalityLimit,
-        @Named("hyperLogLogPlusSwapPeriodMS") @Nullable Long hyperLogLogPlusSwapPeriodMS) {
+        @Named("hyperLogLogPlusSwapPeriodMS") @Nullable Long hyperLogLogPlusSwapPeriodMS,
+        @Named("dynamicTagsFile") @Nullable String dynamicTagsFile) {
 
         if (rateLimit != null && rateLimit > 0) {
             // Create a rate limiter with a configurable QPS, and
@@ -180,6 +199,35 @@ public class CoreOutputManager implements OutputManager {
             this.cardinalityLimit = cardinalityLimit;
         } else {
             this.cardinalityLimit = null;
+        }
+
+        if (!Strings.isNullOrEmpty(dynamicTagsFile)) {
+            final File file = new File(dynamicTagsFile);
+            if (file.exists() && file.canRead()) {
+                final int initialDelay =
+                    System.getenv().containsKey("IS_FFWD_CONFIGURATION_TEST") ? 3 : 60;
+                tagRefreshingThread = Executors.newSingleThreadScheduledExecutor(
+                    new ThreadFactoryBuilder().setNameFormat("tag-refreshing-thread").build());
+                tagRefreshingThread.scheduleWithFixedDelay(() -> refreshTagsFromFile(file.toPath()),
+                    initialDelay, 60, TimeUnit.SECONDS);
+            } else {
+                log.warn("Cannot read file at {}. Ignoring it.", dynamicTagsFile);
+            }
+        }
+    }
+
+    private void refreshTagsFromFile(final Path path) {
+        try (final Stream<String> lines = Files.lines(path)) {
+            lines.forEach(label -> {
+                final String[] labelParts = label.split("=", 2);
+                // Only update tag values if the tag keys are explicitly specified in normal configs
+                if (tags.get(labelParts[0]) != null) {
+                    // Remove quotes from the value string
+                    tags.put(labelParts[0], labelParts[1].replace("\"", ""));
+                }
+            });
+        } catch (IOException e) {
+            // Ignore
         }
     }
 
