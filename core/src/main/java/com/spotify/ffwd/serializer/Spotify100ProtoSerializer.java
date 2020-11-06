@@ -83,6 +83,7 @@ public class Spotify100ProtoSerializer implements Serializer {
         Spotify100.Value.Builder valueBuilder = Spotify100.Value.newBuilder();
 
         final com.spotify.ffwd.model.v2.Value value = metric.getValue();
+        Spotify100.Metric.Builder builder = Spotify100.Metric.newBuilder();
 
         if (value instanceof Value.DoubleValue) {
             Value.DoubleValue doubleValue = (Value.DoubleValue) value;
@@ -90,14 +91,13 @@ public class Spotify100ProtoSerializer implements Serializer {
         } else if (value instanceof Value.DistributionValue) {
             Value.DistributionValue distValue = (Value.DistributionValue) value;
             valueBuilder.setDistributionValue(distValue.getValue());
+            builder.setDistributionTypeValue(valueBuilder.build());
         } else {
             throw new UnknownFormatConversionException("Unknown value type [ " + value + " ]");
         }
 
 
-        Spotify100.Metric.Builder builder = Spotify100.Metric.newBuilder();
         builder.setKey(metric.getKey())
-            .setDistributionTypeValue(valueBuilder.build())
             .setTime(metric.getTime())
             .putAllTags(metric.getTags())
             .putAllResource(metric.getResource())
