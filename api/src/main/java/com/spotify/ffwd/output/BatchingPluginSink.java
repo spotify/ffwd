@@ -23,7 +23,7 @@ package com.spotify.ffwd.output;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.spotify.ffwd.filter.Filter;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.statistics.BatchingStatistics;
 import com.spotify.ffwd.statistics.OutputPluginStatistics;
 import com.spotify.ffwd.util.HighFrequencyDetector;
@@ -163,7 +163,7 @@ public class BatchingPluginSink implements PluginSink {
     }
 
     @Override
-    public void sendBatch(final com.spotify.ffwd.model.Batch b) {
+    public void sendBatch(final com.spotify.ffwd.model.v2.Batch b) {
         batchingStatistics.reportQueueSizeInc(b.getPoints().size());
         queueToBatch(batch -> batch.batches.add(b));
     }
@@ -411,7 +411,7 @@ public class BatchingPluginSink implements PluginSink {
 
     static class Batch {
         private final List<Metric> metrics = new ArrayList<>();
-        private final List<com.spotify.ffwd.model.Batch> batches = new ArrayList<>();
+        private final List<com.spotify.ffwd.model.v2.Batch> batches = new ArrayList<>();
 
         public Batch() {
         }

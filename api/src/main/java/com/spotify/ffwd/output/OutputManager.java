@@ -21,8 +21,8 @@
 package com.spotify.ffwd.output;
 
 import com.spotify.ffwd.Initializable;
-import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Batch;
+import com.spotify.ffwd.model.v2.Metric;
 import eu.toolchain.async.AsyncFuture;
 
 public interface OutputManager extends Initializable {
@@ -31,25 +31,6 @@ public interface OutputManager extends Initializable {
      */
     void sendMetric(Metric metric);
 
-    /**
-     * Send a batch collection of metrics to all output plugins.
-     *
-     * <p> This method was added to maintain compatibility.
-     * Please create an implementation that fit your need.
-     */
-    default void sendBatch(com.spotify.ffwd.model.v2.Batch batch) {
-        throw new RuntimeException("Method has not been implemented");
-    }
-
-    /**
-     * Send a collection of metrics to all output plugins.
-     *
-     * <p> This method was added to maintain compatibility.
-     * Please create an implementation that fit your need.
-     */
-    default void sendMetric(com.spotify.ffwd.model.v2.Metric metric) {
-        throw new RuntimeException("Method has not been implemented");
-    }
 
     /**
      * Send a batch collection of metrics to all output plugins.

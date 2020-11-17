@@ -24,8 +24,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.loadbalancer.ILoadBalancer;
 import com.netflix.loadbalancer.reactive.LoadBalancerCommand;
-import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Batch;
+import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.output.BatchablePluginSink;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
@@ -103,7 +103,7 @@ public class HttpPluginSink implements BatchablePluginSink {
         return sendBatches(ImmutableList.of(b));
     }
 
-    @Override
+   @Override
     public AsyncFuture<Void> sendBatches(final Collection<Batch> batches) {
         final List<Callable<AsyncFuture<Void>>> callables = new ArrayList<>();
 
@@ -120,6 +120,7 @@ public class HttpPluginSink implements BatchablePluginSink {
 
         return async.eventuallyCollect(callables, VOID_COLLECTOR, PARALLELISM);
     }
+
 
     private <T> AsyncFuture<T> fromObservable(final Observable<T> observable) {
         final ResolvableFuture<T> future = async.future();

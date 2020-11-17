@@ -20,8 +20,9 @@
 
 package com.spotify.ffwd.output;
 
-import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Metric;
+
+import com.spotify.ffwd.model.v2.Batch;
+import com.spotify.ffwd.model.v2.Metric;
 import eu.toolchain.async.AsyncFuture;
 import java.util.Collection;
 

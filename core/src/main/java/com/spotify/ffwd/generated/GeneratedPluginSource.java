@@ -21,20 +21,18 @@
 package com.spotify.ffwd.generated;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.spotify.ffwd.input.InputManager;
 import com.spotify.ffwd.input.PluginSource;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Metric;
+import com.spotify.ffwd.model.v2.Value;
 import com.spotify.ffwd.output.OutputManager;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -90,18 +88,15 @@ public class GeneratedPluginSource implements PluginSource {
 
         for (int i = 0; i < count; i++) {
             final String key = "generated";
-            final double value = 0.42 * i;
-            final Date time = null;
+            final Value value = Value.DoubleValue.create(0.42 * i);
             final String host = generateHost(i);
-            final Set<String> riemannTags = ImmutableSet.of();
             final Map<String, String> tags = ImmutableMap.of(
-                "what", "metric-" + i,
-                "host", host
+                    "what", "metric-" + i,
+                    "host", host
             );
             final Map<String, String> resource = ImmutableMap.of();
-            final String proc = null;
 
-            metrics.add(new Metric(key, value, time, riemannTags, tags, resource, proc));
+            metrics.add(new Metric(key, value, System.currentTimeMillis(), tags, resource));
         }
 
         return metrics;

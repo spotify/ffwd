@@ -33,14 +33,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.name.Names;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Metric;
+import com.spotify.ffwd.model.v2.Value;
 import com.spotify.ffwd.noop.NoopPluginSink;
 import com.spotify.ffwd.statistics.BatchingStatistics;
 import com.spotify.ffwd.statistics.HighFrequencyDetectorStatistics;
@@ -76,6 +76,7 @@ public class BatchingPluginSinkTest {
     private final int minFrequencyMillisAllowed = 1000;
     private final long highFrequencyDataRecycleMS = 300_000;
     private final int minNumberOfTriggers = 5;
+    private final Value.DoubleValue value  = Value.DoubleValue.create(42);
 
     @Mock
     private Metric metric;
@@ -110,7 +111,7 @@ public class BatchingPluginSinkTest {
         log = LoggerFactory.getLogger(getClass());
         sink = createBatchingPluginSink();
         when(future.onFinished(any())).thenReturn(null);
-        metric = new Metric("KEY", 42.0, new Date(), ImmutableSet.of(), Map.of("tag", "value"), ImmutableMap.of(), null);
+        metric = new Metric("KEY", value, System.currentTimeMillis(), Map.of("tag", "value"), ImmutableMap.of());
     }
 
     public BatchingPluginSink createBatchingPluginSink() {
@@ -201,10 +202,11 @@ public class BatchingPluginSinkTest {
         sink.sendMetric(metric);
 
         for (int i = 0; i < 1000; i++) {
-            Metric tMetric = new Metric("KEY", 42.0 + i, new Date(), ImmutableSet.of(), Map
-              .of("tag1", "value1", "what", "fun"), ImmutableMap.of(), null);
-            sink.sendMetric(tMetric);
+            Metric metric = createMetric("KEY", value.getValue() + i);
+            sink.sendMetric(metric);
         }
+
+
 
         assertEquals(1, sink.nextBatch.size());
         verify(sink).checkBatch(sink.nextBatch);
@@ -225,6 +227,12 @@ public class BatchingPluginSinkTest {
         assertEquals(400, sum);
     }
 
+    private Metric createMetric(final String key, final double val) {
+        Value value = Value.DoubleValue.create(val);
+        return new Metric(key, value, System.currentTimeMillis(), Map
+                .of("tag1", "value1", "what", "fun"), ImmutableMap.of());
+    }
+
     @Test
     public void testSendMetricRandomHighFrequency() throws InterruptedException{
         //Sends the different metric with different data points
@@ -235,8 +243,7 @@ public class BatchingPluginSinkTest {
         sink.sendMetric(metric);
 
         for (int i = 0; i < 1000; i++) {
-            Metric tMetric = new Metric("KEY"+i, 42.0 + i, new Date(), ImmutableSet.of(), Map
-              .of("tag1", "value1"), ImmutableMap.of(), null);
+            Metric tMetric = createMetric("KEY" + i,value.getValue() +i);
             sink.sendMetric(tMetric);
         }
 
@@ -272,9 +279,8 @@ public class BatchingPluginSinkTest {
         for (int x = 0; x < 10; x++){
             for (int i = 0; i < 100; i++) {
                 String key = "KEY" + (i < 5 ? "" : i);
-                Metric tMetric = new Metric(key, 42.0 + i, new Date(), ImmutableSet.of(), Map
-                  .of("tag1", "value1"), ImmutableMap.of(), null);
-                sink.sendMetric(tMetric);
+                Metric metric = createMetric(key, value.getValue() +i);
+                sink.sendMetric(metric);
             }
         }
 

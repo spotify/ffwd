@@ -25,10 +25,8 @@ message Metric {
      Value distribution_type_value = 6;
 }
 
-message Message {
-    Metric metric = 1;
-}
-
+// Collection of metric. This is used to serialize metrics
+// in batch before sending it to heroic consumers.
 message Batch {
     repeated Metric metric = 1;
 }

@@ -28,13 +28,12 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.spotify.ffwd.filter.MatchKey;
 import com.spotify.ffwd.filter.NotFilter;
 import com.spotify.ffwd.filter.TrueFilter;
-import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Metric;
-import java.util.Date;
+import com.spotify.ffwd.model.v2.Batch;
+import com.spotify.ffwd.model.v2.Metric;
+import com.spotify.ffwd.model.v2.Value;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,8 +55,8 @@ public class FilteringPluginSinkTest {
     public void setup() {
         sink = spy(new FilteringPluginSink(new TrueFilter()));
         sink.sink = childSink;
-        metric = new Metric("test_metric", 1278, new Date(), ImmutableSet.of(),
-            ImmutableMap.of("what", "stats", "pod", "gew1"), ImmutableMap.of(), "test_proc");
+        metric = new Metric("test_metric", Value.DoubleValue.create(1278), System.currentTimeMillis(),
+            ImmutableMap.of("what", "stats", "pod", "gew1"), ImmutableMap.of());
         batch = new Batch(ImmutableMap.of("what", "stats", "pod", "gew1"), ImmutableMap.of(),
             ImmutableList.of());
     }

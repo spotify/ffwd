@@ -29,7 +29,8 @@ import com.google.common.collect.Sets;
 import com.signalfx.metrics.flush.AggregateMetricSender;
 import com.signalfx.metrics.protobuf.SignalFxProtocolBuffers.DataPoint;
 import com.signalfx.metrics.protobuf.SignalFxProtocolBuffers.Dimension;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Metric;
+import com.spotify.ffwd.model.v2.Value;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.TinyAsync;
 import java.util.Collections;
@@ -90,9 +91,9 @@ public class SignalFxPluginSinkTest {
     @Test
     public void sendMetricNotExceedCharLim() throws ExecutionException, InterruptedException {
         Metric metric =
-            new Metric(METRIC_KEY_NOT_EXCEEDING, 1278, new Date(), Sets.newHashSet(),
+            new Metric(METRIC_KEY_NOT_EXCEEDING, Value.DoubleValue.create(1278), System.currentTimeMillis(),
                 ImmutableMap.of("what", WHAT, "pod", TAG_VAL_NOT_EXCEEDING),
-                new HashMap<>(), "test_proc");
+                new HashMap<>());
         final List<Metric> metricsList = Collections.singletonList(metric);
 
         ArgumentCaptor<DataPoint> captor = ArgumentCaptor.forClass(DataPoint.class);
@@ -116,9 +117,9 @@ public class SignalFxPluginSinkTest {
 
     @Test
     public void sendMetricExceedCharLim() throws InterruptedException, ExecutionException {
-        Metric metric = new Metric(METRIC_KEY_EXCEEDING, 1278, new Date(), Sets.newHashSet(),
+        Metric metric = new Metric(METRIC_KEY_EXCEEDING, Value.DoubleValue.create(1278), System.currentTimeMillis(),
             ImmutableMap.of("what", WHAT, "pod", TAG_VAL_EXCEEDING),
-            new HashMap<>(), "test_proc");
+            new HashMap<>());
         final List<Metric> metricsList = Collections.singletonList(metric);
 
         ArgumentCaptor<DataPoint> captor = ArgumentCaptor.forClass(DataPoint.class);

@@ -26,14 +26,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.spotify.ffwd.cache.WriteCache;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Metric;
+import com.spotify.ffwd.model.v2.Value;
 import java.util.Collection;
 import java.util.Map;
 import lombok.Data;
 
 @JsonTypeName("spotify100")
 public class Spotify100Serializer implements Serializer {
-    public static final String SCHEMA_VERSION = "1.1.0";
+    public static final String SCHEMA_VERSION = "2.0.0";
 
     @Inject
     @Named("application/json")
@@ -46,7 +47,7 @@ public class Spotify100Serializer implements Serializer {
         private final Long time;
         private final Map<String, String> attributes;
         private final Map<String, String> resource;
-        private final Double value;
+        private final Value value;
     }
 
     @Data
@@ -66,10 +67,12 @@ public class Spotify100Serializer implements Serializer {
     @Override
     public byte[] serialize(Metric source) throws Exception {
         final Spotify100Metric m =
-            new Spotify100Metric(source.getKey(), source.getTime().getTime(),
+            new Spotify100Metric(source.getKey(), source.getTime(),
                 source.getTags(), source.getResource(), source.getValue());
         return mapper.writeValueAsBytes(m);
     }
+
+
 
     @Override
     public byte[] serialize(Collection<Metric> metrics, WriteCache writeCache) {

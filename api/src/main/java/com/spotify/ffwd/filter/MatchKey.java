@@ -23,7 +23,7 @@ package com.spotify.ffwd.filter;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Metric;
 import java.io.IOException;
 import lombok.Data;
 
@@ -35,6 +35,7 @@ public class MatchKey implements Filter {
     public boolean matchesMetric(Metric metric) {
         return metric.getKey().equals(value);
     }
+
 
     public static class Deserializer implements FilterDeserializer.PartialDeserializer {
         @Override

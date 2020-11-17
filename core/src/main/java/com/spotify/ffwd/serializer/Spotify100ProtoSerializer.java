@@ -21,7 +21,7 @@
 package com.spotify.ffwd.serializer;
 
 import com.spotify.ffwd.cache.WriteCache;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.model.v2.Value;
 import com.spotify.proto.Spotify100;
 import java.util.Collection;
@@ -54,28 +54,8 @@ public class Spotify100ProtoSerializer implements Serializer {
     }
 
     private Spotify100.Metric serializeMetric(final Metric metric) {
-        return Spotify100.Metric.newBuilder()
-            .setKey(metric.getKey())
-            .setTime(metric.getTime().getTime())
-            .setValue(metric.getValue())
-            .putAllTags(metric.getTags())
-            .putAllResource(metric.getResource())
-            .build();
+        return convertToSpotify100Metric(metric);
     }
-
-    @Override
-    public byte[] serializeMetrics(final Collection<com.spotify.ffwd.model.v2.Metric> metrics,
-                                 WriteCache writeCache) throws Exception {
-        final Spotify100.Batch.Builder batch = Spotify100.Batch.newBuilder();
-
-        for (com.spotify.ffwd.model.v2.Metric metric : metrics) {
-            if (!writeCache.checkCacheOrSet(metric)) {
-                batch.addMetric(convertToSpotify100Metric(metric));
-            }
-        }
-        return Snappy.compress(batch.build().toByteArray());
-    }
-
 
     private Spotify100.Metric convertToSpotify100Metric(
             final com.spotify.ffwd.model.v2.Metric metric) {

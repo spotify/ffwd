@@ -21,19 +21,17 @@
 package com.spotify.ffwd.kafka;
 
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
-import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Batch;
+import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.output.BatchablePluginSink;
 import com.spotify.ffwd.serializer.Serializer;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -109,8 +107,8 @@ public class KafkaPluginSink implements BatchablePluginSink {
 
         // TODO: support serialization of batches more... immediately.
         return metricConverter.toMessage(
-            new Metric(point.getKey(), point.getValue(), new Date(point.getTimestamp()),
-                ImmutableSet.of(), allTags, allResource, null));
+            new Metric(point.getKey(), point.getValue(),
+                    point.getTimestamp(), allTags, allResource));
     }
 
     private AsyncFuture<Void> send(final Iterator<List<KeyedMessage<Integer, byte[]>>> batches) {

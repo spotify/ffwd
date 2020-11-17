@@ -20,22 +20,9 @@
 
 package com.spotify.ffwd.cache;
 
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Metric;
 
 public interface WriteCache {
-
   // Check to see if a metric is cached locally. If not present, set it.
   boolean checkCacheOrSet(final Metric metric);
-
-  /**
-   * This method doesn't have a default behavior it was added to maintain compatibility,
-   * please provide an implementation that fit your use case.
-   *
-   * @param metric
-   * @return
-   */
-  default boolean checkCacheOrSet(final com.spotify.ffwd.model.v2.Metric metric) {
-    throw new UnsupportedOperationException("Please provide an implementation that" +
-            " fit your use case");
-  }
 }

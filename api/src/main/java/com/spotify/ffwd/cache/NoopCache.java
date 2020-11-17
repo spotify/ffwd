@@ -20,20 +20,14 @@
 
 package com.spotify.ffwd.cache;
 
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Metric;
 
 /**
  * Noop implementation of a WriteCache for when its disabled.
  */
 public class NoopCache implements WriteCache {
-
     @Override
     public boolean checkCacheOrSet(final Metric metric) {
-        return false;
-    }
-
-    @Override
-    public boolean checkCacheOrSet(final com.spotify.ffwd.model.v2.Metric metric) {
         return false;
     }
 }

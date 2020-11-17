@@ -22,7 +22,7 @@ package com.spotify.ffwd.http;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.spotify.ffwd.model.Batch;
+import com.spotify.ffwd.model.v2.Batch;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.ResolvableFuture;
@@ -36,7 +36,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class HttpClient {
-    private static final String V1_BATCH_ENDPOINT = "v1/batch";
+    private static final String V2_BATCH_ENDPOINT = "v2/batch";
     private static final String PING_ENDPOINT = "ping";
 
     private final AsyncFramework async;
@@ -63,7 +63,7 @@ public class HttpClient {
 
         final Request.Builder request = new Request.Builder();
 
-        request.url(baseUrl + "/" + V1_BATCH_ENDPOINT);
+        request.url(baseUrl + "/" + V2_BATCH_ENDPOINT);
         request.post(RequestBody.create(MediaType.parse("application/json"), body));
 
         return execute(request);

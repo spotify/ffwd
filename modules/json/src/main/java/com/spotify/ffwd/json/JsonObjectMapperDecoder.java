@@ -28,7 +28,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Metric;
+import com.spotify.ffwd.model.v2.Value;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -36,7 +37,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -105,27 +105,24 @@ public class JsonObjectMapperDecoder extends MessageToMessageDecoder<ByteBuf> {
     private Object decodeMetric(JsonNode tree, List<Object> out) {
         final String key = decodeString(tree, "key");
         final double value = decodeDouble(tree, "value");
-        final Date time = decodeTime(tree, "time");
+        final long time = decodeTime(tree, "time");
         final Optional<String> host = Optional.ofNullable(decodeString(tree, HOST));
-        final Set<String> riemannTags = decodeTags(tree, "tags");
         final Map<String, String> tags = decodeAttributes(tree, "attributes");
         final Map<String, String> resource = decodeResources(tree, "resource");
-        final String proc = decodeString(tree, "proc");
 
         host.ifPresent(h -> tags.put(HOST, h));
 
-        return new Metric(key, value, time, riemannTags, tags, resource, proc);
+        return new Metric(key, Value.DoubleValue.create(value), time, tags, resource);
     }
 
-    private Date decodeTime(JsonNode tree, String name) {
+    private long decodeTime(JsonNode tree, String name) {
         final JsonNode n = tree.get(name);
 
         if (n == null) {
-            return null;
+            return 0;
         }
 
-        final long time = n.asLong();
-        return new Date(time);
+        return n.asLong();
     }
 
     private double decodeDouble(JsonNode tree, String name) {

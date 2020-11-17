@@ -22,7 +22,7 @@ package com.spotify.ffwd.util;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.statistics.HighFrequencyDetectorStatistics;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -128,8 +128,8 @@ public class HighFrequencyDetector {
         .map(
             x ->
                 (int)
-                    (list.get(size - x).getTime().getTime()
-                        - list.get(size - x - 1).getTime().getTime()))
+                    (list.get(size - x).getTime()
+                        - list.get(size - x - 1).getTime()))
         .filter(d -> (d >= 0 && d < minFrequencyMillisAllowed))
         .summaryStatistics();
 

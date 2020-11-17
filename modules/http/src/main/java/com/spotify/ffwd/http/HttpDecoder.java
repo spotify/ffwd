@@ -23,8 +23,10 @@ package com.spotify.ffwd.http;
 import static io.netty.handler.codec.http.HttpMethod.GET;
 import static io.netty.handler.codec.http.HttpMethod.POST;
 
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.spotify.ffwd.model.Batch;
+import com.spotify.ffwd.model.v2.Batch;
+import com.spotify.ffwd.model.v2.Value;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -37,6 +39,7 @@ import io.netty.handler.codec.http.HttpVersion;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.slf4j.Logger;
@@ -61,7 +64,7 @@ public class HttpDecoder extends MessageToMessageDecoder<FullHttpRequest> {
                 }
 
                 throw new HttpException(HttpResponseStatus.METHOD_NOT_ALLOWED);
-            case "/v1/batch":
+            case "/v1/batch": case "/v2/batch":
                 if (in.method() == POST) {
                     if (matchContentType(in, "application/json")) {
                         postBatch(ctx, in, out);
@@ -88,21 +91,40 @@ public class HttpDecoder extends MessageToMessageDecoder<FullHttpRequest> {
     private void postBatch(
         final ChannelHandlerContext ctx, final FullHttpRequest in, final List<Object> out
     ) {
-        final Batch batch;
-        try (final InputStream inputStream = new ByteBufInputStream(in.content())) {
-            batch = mapper.readValue(inputStream, Batch.class);
-        } catch (final IOException e) {
-            log.error("HTTP Bad Request", e);
-            throw new HttpException(HttpResponseStatus.BAD_REQUEST);
-        }
-
+        final Object batch = convertToBatch(in);
         out.add(batch);
-
         ctx
             .channel()
             .writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK))
             .addListener((ChannelFutureListener) future -> future.channel().close());
     }
+
+    private Object convertToBatch(final FullHttpRequest in) {
+        final String endPoint = in.uri();
+        try (final InputStream inputStream = new ByteBufInputStream(in.content())) {
+            if ("v1/batch".equals(endPoint)) {
+                com.spotify.ffwd.model.Batch batch =
+                        mapper.readValue(inputStream, com.spotify.ffwd.model.Batch.class);
+                return convert(batch);
+            } else {
+                return mapper.readValue(inputStream, Batch.class);
+            }
+        } catch (final IOException e) {
+            log.error("HTTP Bad Request", e);
+            throw new HttpException(HttpResponseStatus.BAD_REQUEST);
+        }
+    }
+
+    private Batch convert(final com.spotify.ffwd.model.Batch batch) {
+        List<com.spotify.ffwd.model.Batch.Point> v1Point = batch.getPoints();
+        final List<Batch.Point> v2Point =
+                v1Point.stream().map(p -> new Batch.Point(p.getKey(),
+                        p.getTags(), p.getResource(),
+                        Value.DoubleValue.create(p.getValue()),
+                              p.getTimestamp())).collect(Collectors.toList());
+        return new Batch(batch.getCommonTags(), batch.getCommonResource(), v2Point);
+    }
+
 
     private void getPing(
         final ChannelHandlerContext ctx, final FullHttpRequest in, final List<Object> out

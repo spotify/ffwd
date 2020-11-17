@@ -22,7 +22,7 @@ package com.spotify.ffwd.serializer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.spotify.ffwd.cache.WriteCache;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Metric;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -24,8 +24,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Batch;
+import com.spotify.ffwd.model.v2.Metric;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.ResolvableFuture;
@@ -78,6 +78,7 @@ public class NettyDebugServer implements DebugServer {
         this.localAddress = localAddress;
     }
 
+    @Override
     public void inspectMetric(final String id, Metric metric) {
         if (connected.isEmpty()) {
             return;
@@ -102,6 +103,8 @@ public class NettyDebugServer implements DebugServer {
             log.error("Failed to inspect batch {}", batch, e);
         }
     }
+
+
 
     private void sendInspectPacket(Object event) throws Exception {
         final byte[] buf = (mapper.writeValueAsString(event) + LINE_ENDING).getBytes(UTF8);

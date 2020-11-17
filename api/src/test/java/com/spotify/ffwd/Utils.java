@@ -20,19 +20,17 @@
 package com.spotify.ffwd;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.ByteString;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.model.v2.Value;
-import java.util.Date;
+
 
 public class Utils {
 
   public static Metric makeMetric() {
-    return new Metric("key1", 1278, new Date(), ImmutableSet.of(),
-      ImmutableMap.of("what", "test"), ImmutableMap.of(), null);
+    return makeDistributionMetric(1278);
   }
-  public static com.spotify.ffwd.model.v2.Metric makeDistributionMetric(double val) {
+  public static Metric makeDistributionMetric(double val) {
     return new com.spotify.ffwd.model.v2.Metric("key1", create(val), System.currentTimeMillis(),
             ImmutableMap.of("what", "test"), ImmutableMap.of());
   }

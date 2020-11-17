@@ -35,7 +35,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.name.Names;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Metric;
+import com.spotify.ffwd.model.v2.Value;
 import com.spotify.ffwd.noop.NoopPluginSink;
 import com.spotify.ffwd.statistics.BatchingStatistics;
 import com.spotify.ffwd.statistics.HighFrequencyDetectorStatistics;
@@ -106,7 +107,7 @@ public class BatchingPluginSinkIntegrationTest {
         doReturn(async.resolved()).when(childSink).start();
         doReturn(async.resolved()).when(childSink).stop();
 
-        metric = new Metric("KEY", 42.0, new Date(), ImmutableSet.of(), Map.of("tag1", "value1"), ImmutableMap.of(), null);
+        metric = new Metric("KEY", Value.DoubleValue.create(42.0), System.currentTimeMillis(), Map.of("tag1", "value1"), ImmutableMap.of());
 
         sink.sink = childSink;
         sink.log = log;

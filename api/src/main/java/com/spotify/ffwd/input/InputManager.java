@@ -21,8 +21,9 @@
 package com.spotify.ffwd.input;
 
 import com.spotify.ffwd.Initializable;
-import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Metric;
+
+import com.spotify.ffwd.model.v2.Batch;
+import com.spotify.ffwd.model.v2.Metric;
 import eu.toolchain.async.AsyncFuture;
 
 public interface InputManager extends Initializable {
@@ -34,6 +35,5 @@ public interface InputManager extends Initializable {
     void receiveBatch(Batch batch);
 
     AsyncFuture<Void> start();
-
     AsyncFuture<Void> stop();
 }

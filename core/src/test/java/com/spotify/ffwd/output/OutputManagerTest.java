@@ -41,14 +41,14 @@ import com.google.inject.name.Names;
 import com.google.inject.util.Providers;
 import com.spotify.ffwd.debug.DebugServer;
 import com.spotify.ffwd.filter.Filter;
-import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Batch.Point;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Batch;
+import com.spotify.ffwd.model.v2.Batch.Point;
+import com.spotify.ffwd.model.v2.Metric;
+import com.spotify.ffwd.model.v2.Value;
 import com.spotify.ffwd.statistics.OutputManagerStatistics;
 import eu.toolchain.async.AsyncFramework;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -108,7 +108,7 @@ public class OutputManagerTest {
         Map<String, String> testTags = new HashMap<>();
         testTags.put("tag1", "value1");
         m1 =
-            new Metric(KEY, 42.0, new Date(), ImmutableSet.of(), testTags, ImmutableMap.of(), null);
+            new Metric(KEY, Value.DoubleValue.create(42.0), System.currentTimeMillis(), testTags, ImmutableMap.of());
     }
 
     public OutputManager createOutputManager() {
@@ -161,8 +161,8 @@ public class OutputManagerTest {
         expectedTags.put("host", host);
 
         assertEquals(
-            new Metric(m1.getKey(), m1.getValue(), m1.getTime(), m1.getRiemannTags(), expectedTags,
-                m1.getResource(), m1.getProc()), sendAndCaptureMetric(m1));
+            new Metric(m1.getKey(), m1.getValue(), m1.getTime(), expectedTags,
+                m1.getResource()), sendAndCaptureMetric(m1));
     }
 
     @Test
@@ -173,8 +173,8 @@ public class OutputManagerTest {
         expectedTags.putAll(tags);
 
         assertEquals(
-            new Metric(m1.getKey(), m1.getValue(), m1.getTime(), m1.getRiemannTags(), expectedTags,
-                m1.getResource(), m1.getProc()), sendAndCaptureMetric(m1));
+            new Metric(m1.getKey(), m1.getValue(), m1.getTime(), expectedTags,
+                m1.getResource()), sendAndCaptureMetric(m1));
     }
 
     @Test
@@ -182,8 +182,8 @@ public class OutputManagerTest {
         skipTagsForKeys = ImmutableSet.of(KEY);
 
         assertEquals(
-            new Metric(m1.getKey(), m1.getValue(), m1.getTime(), m1.getRiemannTags(), m1.getTags(),
-                m1.getResource(), m1.getProc()), sendAndCaptureMetric(m1));
+            new Metric(m1.getKey(), m1.getValue(), m1.getTime(), m1.getTags(),
+                m1.getResource()), sendAndCaptureMetric(m1));
     }
 
     @Test
@@ -191,12 +191,12 @@ public class OutputManagerTest {
         Map<String, String> m2Tags = new HashMap<>();
         m2Tags.put("role", "abc");
         m2Tags.put("foo", "fooval");
-        Metric m2 = new Metric(m1.getKey(), m1.getValue(), m1.getTime(), m1.getRiemannTags(), m2Tags,
-        m1.getResource(), m1.getProc());
+        Metric m2 = new Metric(m1.getKey(), m1.getValue(), m1.getTime(), m2Tags,
+        m1.getResource());
 
         assertEquals(
-            new Metric(m1.getKey(), m1.getValue(), m1.getTime(), m1.getRiemannTags(), ImmutableMap.of("host","thehost","role","abc"),
-                ImmutableMap.of("bar","fooval","gke_pod","123"), m1.getProc()), sendAndCaptureMetric(m2));
+            new Metric(m1.getKey(), m1.getValue(), m1.getTime(), ImmutableMap.of("host","thehost","role","abc"),
+                ImmutableMap.of("bar","fooval","gke_pod","123")), sendAndCaptureMetric(m2));
     }
 
     @Test
@@ -205,11 +205,11 @@ public class OutputManagerTest {
         m2Tags.put("role", "abc");
         m2Tags.put("foo", "fooval");
 
-        final Batch.Point point = new Batch.Point(m1.getKey(), m2Tags, m1.getResource(), m1.getValue(), m1.getTime().getTime());
+        final Batch.Point point = new Batch.Point(m1.getKey(), m2Tags, m1.getResource(), m1.getValue(), m1.getTime());
         final Batch batch = new Batch(Maps.newHashMap(), Maps.newHashMap(), Collections.singletonList(point));
 
         final Batch.Point expected = new Batch.Point(m1.getKey(), ImmutableMap.of("role","abc"),
-            ImmutableMap.of("bar","fooval"), m1.getValue(), m1.getTime().getTime());
+            ImmutableMap.of("bar","fooval"), m1.getValue(), m1.getTime());
 
         assertEquals(expected, sendAndCaptureBatch(batch).getPoints().get(0));
     }
@@ -237,13 +237,13 @@ public class OutputManagerTest {
             outputManager.sendMetric(m1);
         }
         // Next metric is expected to be dropped
-        Metric mTest = new Metric(null, 42.0, new Date(), ImmutableSet.of(), ImmutableMap.of(), ImmutableMap.of(), null);
+        Metric mTest = new Metric(null, Value.DoubleValue.create(42.0), System.currentTimeMillis(), ImmutableMap.of(), ImmutableMap.of());
         outputManager.sendMetric(mTest);
 
         verify(sink, times(rateLimit)).sendMetric(captor.capture());
 
         // Next metric shouldn't be dropped
-        Metric mKey = new Metric("ffwd-java", 42.0, new Date(), ImmutableSet.of(), ImmutableMap.of(), ImmutableMap.of(), null);
+        Metric mKey = new Metric("ffwd-java", Value.DoubleValue.create(42.0), System.currentTimeMillis(), ImmutableMap.of(), ImmutableMap.of());
         outputManager.sendMetric(mKey);
 
         verify(sink, times(rateLimit+1)).sendMetric(captor.capture());
@@ -256,11 +256,11 @@ public class OutputManagerTest {
         m2Tags.put("role", "abc");
         m2Tags.put("foo", "fooval");
 
-        final Batch.Point point = new Batch.Point(null, m2Tags, m1.getResource(), m1.getValue(), m1.getTime().getTime());
+        final Batch.Point point = new Batch.Point(null, m2Tags, m1.getResource(), m1.getValue(), m1.getTime());
         final Batch batch = new Batch(Maps.newHashMap(), Maps.newHashMap(), Collections.singletonList(point));
 
         final Batch.Point expected = new Batch.Point(null, ImmutableMap.of("role","abc"),
-            ImmutableMap.of("bar","fooval"), m1.getValue(), m1.getTime().getTime());
+            ImmutableMap.of("bar","fooval"), m1.getValue(), m1.getTime());
         assertEquals(expected, sendAndCaptureBatch(batch).getPoints().get(0));
     }
 
@@ -271,11 +271,11 @@ public class OutputManagerTest {
         m2Tags.put("role", "abc");
         m2Tags.put("foo", "fooval");
 
-        final Batch.Point point = new Batch.Point(null, m2Tags, m1.getResource(), m1.getValue(), m1.getTime().getTime());
+        final Batch.Point point = new Batch.Point(null, m2Tags, m1.getResource(), m1.getValue(), m1.getTime());
         final Batch batch = new Batch(Maps.newHashMap(), Maps.newHashMap(), Collections.singletonList(point));
 
         final Batch.Point expected = new Batch.Point(null, ImmutableMap.of("role","abc"),
-            ImmutableMap.of("bar","fooval"), m1.getValue(), m1.getTime().getTime());
+            ImmutableMap.of("bar","fooval"), m1.getValue(), m1.getTime());
         assertEquals(expected, sendAndCaptureBatch(batch).getPoints().get(0));
     }
 
@@ -288,14 +288,15 @@ public class OutputManagerTest {
 
         // Send a burst of metrics, all should be accepted
         for (int i = 0; i < sendNum; i++) {
-            outputManager.sendMetric(new Metric("main-key"+i, 42.0, new Date(), ImmutableSet.of(), Map.of("key"+i,"value"+i), ImmutableMap.of(), null));
+            outputManager.sendMetric(new Metric("main-key"+i, Value.DoubleValue.create(42.0),
+                    System.currentTimeMillis(), Map.of("key"+i,"value"+i), ImmutableMap.of()));
         }
 
         // sent 18 as cardinality limit is 19
         verify(sink, times(sendNum-2)).sendMetric(captor.capture());
 
         // Next metric shouldn't be dropped as it uses special key
-        Metric mKey = new Metric("ffwd-java", 42.0, new Date(), ImmutableSet.of(), ImmutableMap.of(), ImmutableMap.of(), null);
+        Metric mKey = new Metric("ffwd-java", Value.DoubleValue.create(42.0), System.currentTimeMillis(), ImmutableMap.of(), ImmutableMap.of());
         outputManager.sendMetric(mKey);
 
         verify(sink, times(sendNum-1)).sendMetric(captor.capture());
@@ -311,11 +312,14 @@ public class OutputManagerTest {
 
         // Send a burst of metrics, all should be accepted
         for (int i = 0; i < sendNum; i++) {
-            outputManager.sendMetric(new Metric("main-key"+i, 42.0, new Date(), ImmutableSet.of(), Map.of("key"+i,"value"+i), ImmutableMap.of(), null));
+            outputManager.sendMetric(new Metric("main-key"+i,
+                    Value.DoubleValue.create(42.0), System.currentTimeMillis()
+                    ,  Map.of("key"+i,"value"+i), ImmutableMap.of()));
         }
 
         // Next metric shouldn't be dropped as it uses special key
-        Metric mKey = new Metric("ffwd-java", 42.0, new Date(), ImmutableSet.of(), ImmutableMap.of(), ImmutableMap.of(), null);
+        Metric mKey = new Metric("ffwd-java", Value.DoubleValue.create(42.0),
+                System.currentTimeMillis(), ImmutableMap.of(), ImmutableMap.of());
         outputManager.sendMetric(mKey);
 
         // This should give enough time to reset HLL++ in the next .sendMetric(..)
@@ -323,7 +327,8 @@ public class OutputManagerTest {
 
         // This should allow most of the metrics to be sent even though the cardinality is high
         for (int i = 0; i < sendNum; i++) {
-            outputManager.sendMetric(new Metric("main-key"+i, 42.0, new Date(), ImmutableSet.of(), Map.of("key"+i,"value"+i), ImmutableMap.of(), null));
+            outputManager.sendMetric(new Metric("main-key"+i, Value.DoubleValue.create(42.0),
+                    System.currentTimeMillis(), Map.of("key"+i,"value"+i), ImmutableMap.of()));
         }
 
         verify(sink, times(38)).sendMetric(captor.capture());
@@ -342,8 +347,10 @@ public class OutputManagerTest {
 
         // Send a burst of metrics, all should be accepted
         for (int i = 0; i < sendNum; i++) {
+            double val = (double)m1.getValue().getValue();
             points.add(
-                new Batch.Point("main-key"+i, Map.of("key"+i,"value"+i), m1.getResource(), m1.getValue()+i, m1.getTime().getTime()));
+                new Batch.Point("main-key"+i, Map.of("key"+i,"value"+i),
+                        m1.getResource(), Value.DoubleValue.create(val+i), m1.getTime()));
         }
 
         final Batch batch = new Batch(Maps.newHashMap(), Maps.newHashMap(), points);
@@ -353,7 +360,8 @@ public class OutputManagerTest {
         verify(sink, times(0)).sendBatch(captorBatch.capture());
 
         // Next metric shouldn't be dropped as it uses special key
-        Metric mKey = new Metric("ffwd-java", 42.0, new Date(), ImmutableSet.of(), ImmutableMap.of(), ImmutableMap.of(), null);
+        Metric mKey = new Metric("ffwd-java", Value.DoubleValue.create(42.0),
+                System.currentTimeMillis(), ImmutableMap.of(), ImmutableMap.of());
         outputManager.sendMetric(mKey);
 
         verify(sink, times(1)).sendMetric(captor.capture());
@@ -372,8 +380,10 @@ public class OutputManagerTest {
 
         // Send a burst of metrics, all should be accepted
         for (int i = 0; i < sendNum; i++) {
+            double val = (double)m1.getValue().getValue();
             points.add(
-                new Batch.Point("main-key"+i, Map.of("key"+i,"value"+i), m1.getResource(), m1.getValue()+i, m1.getTime().getTime()));
+                new Batch.Point("main-key"+i, Map.of("key"+i,"value"+i),
+                        m1.getResource(), Value.DoubleValue.create(val+i), m1.getTime()));
         }
 
         final Batch batch = new Batch(Maps.newHashMap(), Maps.newHashMap(), points);
@@ -381,7 +391,8 @@ public class OutputManagerTest {
         verify(sink, times(0)).sendBatch(captorBatch.capture());
 
         // Next metric shouldn't be dropped as it uses special key
-        Metric mKey = new Metric("ffwd-java", 42.0, new Date(), ImmutableSet.of(), ImmutableMap.of(), ImmutableMap.of(), null);
+        Metric mKey = new Metric("ffwd-java", Value.DoubleValue.create(42.0),
+                System.currentTimeMillis(), ImmutableMap.of(), ImmutableMap.of());
         outputManager.sendMetric(mKey);
 
         // This should give enough time to reset HLL++ in the next .sendMetric(..)
@@ -389,7 +400,8 @@ public class OutputManagerTest {
 
         // This should allow most of the metrics to be sent even though the cardinality is high
         for (int i = 0; i < sendNum; i++) {
-            outputManager.sendMetric(new Metric("main-key"+i, 42.0, new Date(), ImmutableSet.of(), Map.of("key"+i,"value"+i), ImmutableMap.of(), null));
+            outputManager.sendMetric(new Metric("main-key"+i, Value.DoubleValue.create(42.0), System.currentTimeMillis(),
+                    Map.of("key"+i,"value"+i), ImmutableMap.of()));
         }
 
         verify(sink, times(19)).sendMetric(captor.capture());

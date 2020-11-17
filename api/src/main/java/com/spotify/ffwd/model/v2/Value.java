@@ -38,20 +38,26 @@ public  abstract class Value {
     @JsonProperty("value")
     public abstract Object getValue();
 
+    abstract boolean isValid();
+
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class DoubleValue extends Value {
         private final Double value;
 
+        public static com.spotify.ffwd.model.v2.Value.DoubleValue create(
+                final double value) {
+            return new com.spotify.ffwd.model.v2.Value.DoubleValue(value);
+        }
+
+        @Override
+        public boolean isValid() {
+            return (getValue() > 0); //TODO NaN ??
+        }
 
         @Override
         public Double getValue() {
             return value;
-        }
-
-        public static com.spotify.ffwd.model.v2.Value.DoubleValue create(
-                final double value) {
-            return new com.spotify.ffwd.model.v2.Value.DoubleValue(value);
         }
     }
 
@@ -66,11 +72,15 @@ public  abstract class Value {
             return value;
         }
 
+        @Override
+        public boolean isValid() {
+            return (getValue() != null &&
+                    !getValue().isEmpty()); //TODO NaN ??
+        }
 
         public static com.spotify.ffwd.model.v2.Value.DistributionValue create(
                 final ByteString value) {
             return new com.spotify.ffwd.model.v2.Value.DistributionValue(value);
         }
     }
-
 }

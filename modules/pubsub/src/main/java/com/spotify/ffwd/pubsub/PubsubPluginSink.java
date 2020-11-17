@@ -32,8 +32,8 @@ import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.ProjectTopicName;
 import com.google.pubsub.v1.PubsubMessage;
 import com.spotify.ffwd.cache.WriteCache;
-import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Batch;
+import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.output.BatchablePluginSink;
 import com.spotify.ffwd.serializer.Serializer;
 import com.spotify.ffwd.statistics.OutputPluginStatistics;
@@ -57,34 +57,25 @@ import org.slf4j.Logger;
  * `collectAndDiscard` on the futures anyway.
  */
 public class PubsubPluginSink implements BatchablePluginSink {
+  private final Executor executorService = MoreExecutors.directExecutor();
   @Inject
   AsyncFramework async;
-
   @Inject
   Publisher publisher;
-
   @Inject
   Serializer serializer;
-
   @Inject
   TopicAdmin topicAdmin;
-
   @Inject
   ProjectTopicName topicName;
-
   @Inject
   WriteCache writeCache;
-
   @Inject
   Logger logger;
-
   @Inject
   OutputPluginStatistics statistics;
-
   @Inject
   Optional<Cache<String, Boolean>> cache;
-
-  private final Executor executorService = MoreExecutors.directExecutor();
 
   @Override
   public boolean isReady() {
@@ -92,7 +83,8 @@ public class PubsubPluginSink implements BatchablePluginSink {
   }
 
   @Override
-  public void init() { }
+  public void init() {
+  }
 
   private void publishPubSub(final ByteString bytes) {
     // don't publish "\000" - indicates all the metrics are in the writeCache
@@ -101,7 +93,7 @@ public class PubsubPluginSink implements BatchablePluginSink {
     }
 
     final ApiFuture<String> publish =
-        publisher.publish(PubsubMessage.newBuilder().setData(bytes).build());
+            publisher.publish(PubsubMessage.newBuilder().setData(bytes).build());
 
 
     ApiFutures.addCallback(publish, new ApiFutureCallback<String>() {
@@ -111,7 +103,8 @@ public class PubsubPluginSink implements BatchablePluginSink {
       }
 
       @Override
-      public void onSuccess(String messageId) { }
+      public void onSuccess(String messageId) {
+      }
 
     }, executorService);
   }

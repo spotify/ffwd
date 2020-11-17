@@ -24,9 +24,10 @@ import static org.junit.Assert.assertEquals;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Batch.Point;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Batch;
+import com.spotify.ffwd.model.v2.Batch.Point;
+import com.spotify.ffwd.model.v2.Metric;
+import com.spotify.ffwd.model.v2.Value;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,7 +48,7 @@ public class BatchMetricConverterTest {
         baseResources = ImmutableMap.of("resource1", "v1", "resource2", "v2");
         commonTags = ImmutableMap.of("ctag1", "1", "ctag2", "2", "ctag3", "3");
         commonResources = ImmutableMap.of("cResource1", "1", "cResource2", "2");
-        point1 = Batch.Point.create("test", Optional.of(baseTags), Optional.of(baseResources), 5, 0);
+        point1 = Batch.Point.create("test", Optional.of(baseTags), Optional.of(baseResources), Value.DoubleValue.create(5), 0);
 
     }
 

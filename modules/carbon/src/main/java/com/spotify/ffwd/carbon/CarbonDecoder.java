@@ -21,23 +21,20 @@
 package com.spotify.ffwd.carbon;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Metric;
+import com.spotify.ffwd.model.v2.Value;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.CorruptedFrameException;
 import io.netty.handler.codec.MessageToMessageDecoder;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 @Sharable
 public class CarbonDecoder extends MessageToMessageDecoder<String> {
-    private static final Set<String> EMPTY_TAGS = Sets.newHashSet();
     private static final Map<String, String> EMPTY_RESOURCE = ImmutableMap.of();
     private static final Pattern WHITE_SPACE_PATTERN = Pattern.compile("\\s+");
 
@@ -79,7 +76,6 @@ public class CarbonDecoder extends MessageToMessageDecoder<String> {
         final Map<String, String> tags = new HashMap<>();
         tags.put("what", tokens[0]);
 
-        out.add(new Metric(key, value, new Date(timestamp), EMPTY_TAGS, tags, EMPTY_RESOURCE,
-            null));
+        out.add(new Metric(key, Value.DoubleValue.create(value), timestamp, tags, EMPTY_RESOURCE));
     }
 }

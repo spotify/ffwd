@@ -22,8 +22,8 @@ package com.spotify.ffwd.output;
 
 import com.google.inject.Inject;
 import com.spotify.ffwd.filter.Filter;
-import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Batch;
+import com.spotify.ffwd.model.v2.Metric;
 import eu.toolchain.async.AsyncFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

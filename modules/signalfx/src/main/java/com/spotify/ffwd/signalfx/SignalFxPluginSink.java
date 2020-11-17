@@ -25,8 +25,9 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.signalfx.metrics.flush.AggregateMetricSender;
 import com.signalfx.metrics.protobuf.SignalFxProtocolBuffers;
-import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Batch;
+import com.spotify.ffwd.model.v2.Metric;
+import com.spotify.ffwd.model.v2.Value;
 import com.spotify.ffwd.output.BatchablePluginSink;
 import com.spotify.ffwd.util.BatchMetricConverter;
 import eu.toolchain.async.AsyncFramework;
@@ -85,6 +86,9 @@ public class SignalFxPluginSink implements BatchablePluginSink {
         final AsyncFuture<Void> future = async.call(() -> {
             try (AggregateMetricSender.Session i = senderSupplier.get().createSession()) {
                 for (Metric metric : metrics) {
+                    if (metric.hasDistribution()) {
+                        continue;
+                    }
                     final SignalFxProtocolBuffers.DataPoint.Builder datapointBuilder =
                         SignalFxProtocolBuffers.DataPoint
                             .newBuilder()
@@ -92,8 +96,8 @@ public class SignalFxPluginSink implements BatchablePluginSink {
                             .setMetricType(getMetricType(metric))
                             .setValue(SignalFxProtocolBuffers.Datum
                                 .newBuilder()
-                                .setDoubleValue(metric.getValue()))
-                            .setTimestamp(metric.getTime().getTime());
+                                .setDoubleValue(getDoubleDataPoint(metric)))
+                            .setTimestamp(metric.getTime());
 
                     metric
                         .getTags()
@@ -139,6 +143,13 @@ public class SignalFxPluginSink implements BatchablePluginSink {
 
         return future;
     }
+
+
+    private double getDoubleDataPoint(final Metric metric) {
+        Value.DoubleValue value = (Value.DoubleValue) metric.getValue();
+        return value.getValue();
+    }
+
 
     /**
      * Get the appropriate SignalFx metric type

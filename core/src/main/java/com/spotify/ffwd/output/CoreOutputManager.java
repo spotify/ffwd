@@ -23,14 +23,13 @@ package com.spotify.ffwd.output;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.spotify.ffwd.debug.DebugServer;
 import com.spotify.ffwd.filter.Filter;
-import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Batch;
+import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.statistics.OutputManagerStatistics;
 import com.spotify.ffwd.util.BatchMetricConverter;
 import eu.toolchain.async.AsyncFramework;
@@ -42,7 +41,6 @@ import java.nio.file.Path;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,10 +99,6 @@ public class CoreOutputManager implements OutputManager {
     @Inject
     @Named("resource")
     private Map<String, String> resource;
-
-    @Inject
-    @Named("riemannTags")
-    private Set<String> riemannTags;
 
     @Inject
     @Named("skipTagsForKeys")
@@ -369,7 +363,8 @@ public class CoreOutputManager implements OutputManager {
      * Filter the provided Metric and complete fields.
      */
     private Metric filter(final Metric metric) {
-        final Date time = metric.getTime() != null ? metric.getTime() : new Date();
+        final long time = metric.getTime() != 0 ?
+                metric.getTime() : System.currentTimeMillis();
 
         final Map<String, String> tags = selectTags(metric);
         final Map<String, String> commonResource = Maps.newHashMap(resource);
@@ -380,11 +375,8 @@ public class CoreOutputManager implements OutputManager {
         final Map<String, String> mergedTags = tagsAndResources.getKey();
         final Map<String, String> mergedResource = tagsAndResources.getValue();
 
-        final Set<String> mergedRiemannTags = Sets.newHashSet(riemannTags);
-        mergedRiemannTags.addAll(metric.getRiemannTags());
-
-        return new Metric(metric.getKey(), metric.getValue(), time, mergedRiemannTags,
-            mergedTags, mergedResource, metric.getProc());
+        return new Metric(metric.getKey(), metric.getValue(), time,
+            mergedTags, mergedResource);
     }
 
     /**

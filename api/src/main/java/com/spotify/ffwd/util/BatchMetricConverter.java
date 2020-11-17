@@ -20,12 +20,11 @@
 
 package com.spotify.ffwd.util;
 
-import com.google.common.collect.ImmutableSet;
-import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Metric;
+
+import com.spotify.ffwd.model.v2.Batch;
+import com.spotify.ffwd.model.v2.Metric;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,8 +37,8 @@ public class BatchMetricConverter {
         final Map<String, String> allResource = new HashMap<>(batch.getCommonResource());
         allResource.putAll(point.getResource());
 
-        return new Metric(point.getKey(), point.getValue(), new Date(point.getTimestamp()),
-            ImmutableSet.of(), allTags, allResource, null);
+        return new Metric(point.getKey(), point.getValue(), point.getTimestamp(),
+            allTags, allResource);
     }
 
     public static List<Metric> convertBatchesToMetrics(final Collection<Batch> batches) {

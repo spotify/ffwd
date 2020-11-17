@@ -52,6 +52,13 @@ public class Metric implements Metrics {
         return new Batch.Point(key, tags, resource, value, time);
     }
 
+    public boolean hasDistribution() {
+        if (value != null && value.isValid()) {
+            return value instanceof Value.DistributionValue;
+        }
+        return false;
+    }
+
     @Override
     public String generateHash() {
         final Hasher hasher = HASH_FUNCTION.newHasher();
@@ -75,5 +82,4 @@ public class Metric implements Metrics {
 
         return hasher.hash().toString();
     }
-
 }

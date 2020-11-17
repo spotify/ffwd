@@ -30,7 +30,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.name.Names;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Metric;
+import com.spotify.ffwd.model.v2.Value;
 import com.spotify.ffwd.statistics.HighFrequencyDetectorStatistics;
 import java.util.ArrayList;
 import java.util.Date;
@@ -102,21 +103,19 @@ public class HighFrequencyDetectorTest {
       for (int x = 0; x < 3; x++) {
         List<Metric> list = new ArrayList<>();
         for (int i = 0; i < 30; i++) {
-          list.add(
-              new Metric(
-                  "KEY" + y,
-                  42.0 + i,
-                  new Date(),
-                  ImmutableSet.of(),
-                  Map.of("tag1", "value1", "what", "fun"),
-                  ImmutableMap.of(),
-                  null));
+          list.add(createMetric("KEY" + y, 42.0 + i));
         }
 
         finalList.addAll(detector.detect(list));
       }
     }
     assertEquals(90, finalList.size());
+  }
+
+  private Metric createMetric(final String key, final double val) {
+    Value value = Value.DoubleValue.create(val);
+    return new Metric(key, value, System.currentTimeMillis(), Map
+            .of("tag1", "value1", "what", "fun"), ImmutableMap.of());
   }
 
   @Test
@@ -127,15 +126,7 @@ public class HighFrequencyDetectorTest {
       for (int x = 0; x < 3; x++) { // <-- making sure it will kick in the detection
         List<Metric> list = new ArrayList<>();
         for (int i = 0; i < 20; i++) { // <--- reasonable batches
-          list.add(
-              new Metric(
-                  "KEY" + y,
-                  42.0 + i,
-                  new Date(),
-                  ImmutableSet.of(),
-                  Map.of("tag1", "value1", "what", "fun"),
-                  ImmutableMap.of(),
-                  null));
+          list.add(createMetric("KEY" + y, 42.0 + i));
         }
 
         finalList.addAll(detector.detect(list));
@@ -154,15 +145,7 @@ public class HighFrequencyDetectorTest {
       for (int x = 0; x < 3; x++) { // <-- making sure it will kick in the detection
         List<Metric> list = new ArrayList<>();
         for (int i = 0; i < 20; i++) { // <--- reasonable batches
-          list.add(
-              new Metric(
-                  "KEY" + y,
-                  42.0 + i,
-                  new Date(),
-                  ImmutableSet.of(),
-                  Map.of("tag1", "value1", "what", "fun"),
-                  ImmutableMap.of(),
-                  null));
+          list.add(createMetric("KEY" + y, 42.0 + i));
         }
 
         finalList.addAll(shortSwapDetector.detect(list));

@@ -20,10 +20,11 @@
 
 package com.spotify.ffwd.protobuf;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.spotify.ffwd.FastForward;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.model.v2.Value;
 import com.spotify.ffwd.protocol0.Protocol0;
 import com.spotify.ffwd.protocol1.Protocol1;
@@ -33,12 +34,9 @@ import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import java.io.InputStream;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,47 +120,60 @@ public class ProtobufDecoder extends MessageToMessageDecoder<ByteBuf> {
         return null;
     }
 
-    private Object decodeMetric0(final Protocol0.Message message) {
+    /**
+     * Convert {@link com.spotify.ffwd.protocol0.Protocol0.Metric}
+     * into {@link com.spotify.ffwd.model.v2.Metric}
+     * The object is then passed to the inputChannel.
+     *
+     * @param message, Metric wrapper
+     * @return Object, {@link com.spotify.ffwd.model.v2.Metric} as an Object
+     */
+    @VisibleForTesting
+    Object decodeMetric0(final Protocol0.Message message) {
         if (!message.hasMetric()) {
             return null;
         }
         Protocol0.Metric metric = message.getMetric();
         final String key = metric.hasKey() ? metric.getKey() : null;
-        final double value = metric.hasValue() ? metric.getValue() : Double.NaN;
-        final Date time = metric.hasTime() ? new Date(metric.getTime()) : null;
+        final double dval = metric.hasValue() ? metric.getValue() : Double.NaN;
+        final Value value = Value.DoubleValue.create(dval);
         final String host = metric.hasHost() ? metric.getHost() : null;
-        final Set<String> riemannTags = new HashSet<>(metric.getTagsList());
         final Map<String, String> tags = convertAttributes0(metric.getAttributesList());
-        // TODO: support resource identifiers.
-        final Map<String, String> resource = ImmutableMap.of();
-        final String proc = metric.hasProc() ? metric.getProc() : null;
-
+        final Map<String, String> resource = ImmutableMap.of(); //Not supported yet
         if (host != null) {
             tags.put("host", host);
         }
-
-        return new Metric(key, value, time, riemannTags, tags, resource, proc);
+        //TODO check how time set to default value is handled
+        return new Metric(key, value, metric.getTime(), tags, resource);
     }
 
-    private Object decodeMetric1(final Protocol1.Message message) {
+    /**
+     * Convert {@link com.spotify.ffwd.protocol1.Protocol1.Metric}
+     * into {@link com.spotify.ffwd.model.v2.Metric}.
+     * The object is then passed to the inputChannel.
+     *
+     * @param message, Metric wrapper
+     * @return  Object, {@link com.spotify.ffwd.model.v2.Metric} as an Object
+     */
+    @VisibleForTesting
+    Object decodeMetric1(final Protocol1.Message message) {
         if (!message.hasMetric()) {
             return null;
         }
         com.spotify.ffwd.protocol1.Protocol1.Metric metric = message.getMetric();
-        final String key =  metric.getKey();
+        final String key =  (metric.getKey() == null ||
+                metric.getKey().isEmpty()) ? null : metric.getKey();
         final com.spotify.ffwd.model.v2.Value value = extractPointValue(metric);
-        final String host =  metric.getHost();
-
+        final String host = metric.getHost();
         final Map<String, String> tags = convertAttributes1(metric.getAttributesList());
-        // TODO: support resource identifiers.
-        final Map<String, String> resource = ImmutableMap.of();
 
+        final Map<String, String> resource = ImmutableMap.of(); //Not supported yet
 
-        if (host != null) {
+        if (host != null && !host.isEmpty()) {
             tags.put("host", host);
         }
 
-        return new com.spotify.ffwd.model.v2.Metric(key, value, metric.getTime(), tags, resource);
+        return new Metric(key, value, metric.getTime(), tags, resource);
     }
 
     private com.spotify.ffwd.model.v2.Value extractPointValue(
@@ -173,6 +184,7 @@ public class ProtobufDecoder extends MessageToMessageDecoder<ByteBuf> {
         }
 
         com.spotify.ffwd.protocol1.Protocol1.Value value = metric.getValue();
+
 
         if (value.getDistributionValue() == null) {
             return Value.DoubleValue.create(value.getDoubleValue());

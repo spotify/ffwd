@@ -22,8 +22,8 @@
 package com.spotify.ffwd.opencensus;
 
 import com.google.inject.Inject;
-import com.spotify.ffwd.model.Batch;
-import com.spotify.ffwd.model.Metric;
+import com.spotify.ffwd.model.v2.Batch;
+import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.output.PluginSink;
 import com.spotify.ffwd.util.BatchMetricConverter;
 import eu.toolchain.async.AsyncFramework;
@@ -92,6 +92,9 @@ public class OpenCensusPluginSink implements PluginSink  {
   }
 
   public void sendMetric(Metric metric) {
+    if (metric.hasDistribution()) {
+      return;
+    }
     try {
       String metricName = getOutputMetricName(metric);
       MeasureDouble measure = measures.get(metricName);
@@ -129,7 +132,8 @@ public class OpenCensusPluginSink implements PluginSink  {
       });
       final TagContext context = builder.build();
 
-      statsRecorder.newMeasureMap().put(measure, metric.getValue()).record(context);
+      statsRecorder.newMeasureMap().put(measure,
+              (Double) metric.getValue().getValue()).record(context);
     } catch (Exception ex) {
       log.error("Couldn't send metric %s", ex);
       throw ex;
