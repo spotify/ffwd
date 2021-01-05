@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,6 +27,7 @@ import static io.netty.handler.codec.http.HttpMethod.POST;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spotify.ffwd.model.v2.Batch;
 import com.spotify.ffwd.model.v2.Value;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -38,6 +39,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -101,16 +103,21 @@ public class HttpDecoder extends MessageToMessageDecoder<FullHttpRequest> {
 
     private Object convertToBatch(final FullHttpRequest in) {
         final String endPoint = in.uri();
-        try (final InputStream inputStream = new ByteBufInputStream(in.content())) {
-            if ("v1/batch".equals(endPoint)) {
-                com.spotify.ffwd.model.Batch batch =
-                        mapper.readValue(inputStream, com.spotify.ffwd.model.Batch.class);
-                return convert(batch);
-            } else {
+        final ByteBuf content = in.content();
+        try (final InputStream inputStream = new ByteBufInputStream(content.copy())) {
+            if ("/v2/batch".equals(endPoint)) {
                 return mapper.readValue(inputStream, Batch.class);
+            } else {
+                com.spotify.ffwd.model.Batch batch =
+                    mapper.readValue(inputStream, com.spotify.ffwd.model.Batch.class);
+                return convert(batch);
             }
         } catch (final IOException e) {
-            log.error("HTTP Bad Request", e);
+            log.error(
+              "HTTP Bad Request. uri: {}, content: {}",
+              endPoint,
+              content.toString(StandardCharsets.UTF_8),
+              e);
             throw new HttpException(HttpResponseStatus.BAD_REQUEST);
         }
     }
