@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,22 +25,19 @@ import com.spotify.ffwd.output.OutputPlugin;
 import com.spotify.ffwd.serializer.Serializer;
 
 public interface PluginContext {
-    /**
-     * Register an input plugin.
-     *
-     * @param input
-     */
-    public void registerInput(String name, Class<? extends InputPlugin> input);
 
-    /**
-     * Register an output plugin.
-     *
-     * @param output
-     */
-    public void registerOutput(String name, Class<? extends OutputPlugin> output);
+  /**
+   * Register an input plugin.
+   */
+  public void registerInput(String name, Class<? extends InputPlugin> input);
 
-    /**
-     * Register a serializer implementation.
-     */
-    public void registerSerializer(String name, Class<? extends Serializer> serializer);
+  /**
+   * Register an output plugin.
+   */
+  public void registerOutput(String name, Class<? extends OutputPlugin> output);
+
+  /**
+   * Register a serializer implementation.
+   */
+  public void registerSerializer(String name, Class<? extends Serializer> serializer);
 }

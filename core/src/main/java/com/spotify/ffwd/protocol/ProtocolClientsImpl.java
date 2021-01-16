@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,64 +33,65 @@ import io.netty.util.Timer;
 import org.slf4j.Logger;
 
 public class ProtocolClientsImpl implements ProtocolClients {
-    @Inject
-    private AsyncFramework async;
 
-    @Inject
-    @Named("worker")
-    private EventLoopGroup worker;
+  @Inject
+  private AsyncFramework async;
 
-    @Inject
-    private Timer timer;
+  @Inject
+  @Named("worker")
+  private EventLoopGroup worker;
 
-    @Override
-    public AsyncFuture<ProtocolConnection> connect(
-        Logger log, Protocol protocol, ProtocolClient client, RetryPolicy policy
-    ) {
-        if (protocol.getType() == ProtocolType.UDP) {
-            return connectUDP(protocol, client, policy);
-        }
+  @Inject
+  private Timer timer;
 
-        if (protocol.getType() == ProtocolType.TCP) {
-            return connectTCP(log, protocol, client, policy);
-        }
-
-        throw new IllegalArgumentException("Unsupported protocol: " + protocol);
+  @Override
+  public AsyncFuture<ProtocolConnection> connect(
+      Logger log, Protocol protocol, ProtocolClient client, RetryPolicy policy
+  ) {
+    if (protocol.getType() == ProtocolType.UDP) {
+      return connectUDP(protocol, client, policy);
     }
 
-    private AsyncFuture<ProtocolConnection> connectTCP(
-        Logger log, Protocol protocol, ProtocolClient client, RetryPolicy policy
-    ) {
-        final Bootstrap b = new Bootstrap();
-
-        b.group(worker);
-        b.channel(NioSocketChannel.class);
-        b.handler(client.initializer());
-
-        b.option(ChannelOption.SO_KEEPALIVE, true);
-
-        final String host = protocol.getAddress().getHostString();
-        final int port = protocol.getAddress().getPort();
-
-        final ProtocolConnection connection =
-            new RetryingProtocolConnection(async, timer, log, policy, new ProtocolChannelSetup() {
-                @Override
-                public ChannelFuture setup() {
-                    return b.connect(host, port);
-                }
-
-                @Override
-                public String toString() {
-                    return String.format("connect tcp://%s:%d", host, port);
-                }
-            });
-
-        return async.resolved(connection);
+    if (protocol.getType() == ProtocolType.TCP) {
+      return connectTCP(log, protocol, client, policy);
     }
 
-    private AsyncFuture<ProtocolConnection> connectUDP(
-        Protocol protocol, ProtocolClient client, RetryPolicy policy
-    ) {
-        return async.failed(new RuntimeException("not implemented"));
-    }
+    throw new IllegalArgumentException("Unsupported protocol: " + protocol);
+  }
+
+  private AsyncFuture<ProtocolConnection> connectTCP(
+      Logger log, Protocol protocol, ProtocolClient client, RetryPolicy policy
+  ) {
+    final Bootstrap b = new Bootstrap();
+
+    b.group(worker);
+    b.channel(NioSocketChannel.class);
+    b.handler(client.initializer());
+
+    b.option(ChannelOption.SO_KEEPALIVE, true);
+
+    final String host = protocol.getAddress().getHostString();
+    final int port = protocol.getAddress().getPort();
+
+    final ProtocolConnection connection =
+        new RetryingProtocolConnection(async, timer, log, policy, new ProtocolChannelSetup() {
+          @Override
+          public ChannelFuture setup() {
+            return b.connect(host, port);
+          }
+
+          @Override
+          public String toString() {
+            return String.format("connect tcp://%s:%d", host, port);
+          }
+        });
+
+    return async.resolved(connection);
+  }
+
+  private AsyncFuture<ProtocolConnection> connectUDP(
+      Protocol protocol, ProtocolClient client, RetryPolicy policy
+  ) {
+    return async.failed(new RuntimeException("not implemented"));
+  }
 }

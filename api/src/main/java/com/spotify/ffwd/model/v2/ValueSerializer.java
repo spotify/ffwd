@@ -32,38 +32,37 @@ import java.io.IOException;
  */
 public class ValueSerializer extends StdSerializer<Value> {
 
-    private static final long serialVersionUID = 6300597228325654588L;
+  private static final long serialVersionUID = 6300597228325654588L;
 
-    public ValueSerializer() {
-        this(Value.class);
+  public ValueSerializer() {
+    this(Value.class);
+  }
+
+
+  public ValueSerializer(Class<Value> t) {
+    super(t);
+  }
+
+
+  @Override
+  public void serialize(Value value, JsonGenerator jsonGenerator,
+                        SerializerProvider serializerProvider) throws IOException {
+
+    if (value instanceof Value.DistributionValue) {
+      Value.DistributionValue distributionValue = (Value.DistributionValue) value;
+      jsonGenerator.writeStartObject();
+      jsonGenerator.writeObjectField("distributionValue",
+          distributionValue.getValue().toByteArray());
+      jsonGenerator.writeEndObject();
+    } else if (value instanceof Value.DoubleValue) {
+      Value.DoubleValue doubleValue = (Value.DoubleValue) value;
+      jsonGenerator.writeStartObject();
+      jsonGenerator.writeNumberField("doubleValue", doubleValue.getValue());
+      jsonGenerator.writeEndObject();
+    } else {
+      throw new RuntimeException("Failed to serialize. Value type is not supported " + value);
     }
 
-
-
-    public ValueSerializer(Class<Value> t) {
-        super(t);
-    }
-
-
-    @Override
-    public void serialize(Value value, JsonGenerator jsonGenerator,
-                          SerializerProvider serializerProvider) throws IOException {
-
-        if (value instanceof  Value.DistributionValue) {
-            Value.DistributionValue distributionValue = (Value.DistributionValue) value;
-            jsonGenerator.writeStartObject();
-            jsonGenerator.writeObjectField("distributionValue",
-                    distributionValue.getValue().toByteArray());
-            jsonGenerator.writeEndObject();
-        } else if (value instanceof  Value.DoubleValue) {
-            Value.DoubleValue doubleValue = (Value.DoubleValue) value;
-            jsonGenerator.writeStartObject();
-            jsonGenerator.writeNumberField("doubleValue", doubleValue.getValue());
-            jsonGenerator.writeEndObject();
-        } else {
-            throw new RuntimeException("Failed to serialize. Value type is not supported " + value);
-        }
-
-    }
+  }
 }
 

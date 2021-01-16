@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,18 +28,19 @@ import javax.inject.Named;
 import okhttp3.OkHttpClient;
 
 public class HttpClientFactory {
-    @Inject
-    private AsyncFramework async;
 
-    @Inject
-    @Named("application/json")
-    private ObjectMapper mapper;
+  @Inject
+  private AsyncFramework async;
 
-    @Inject
-    private OkHttpClient httpClient;
+  @Inject
+  @Named("application/json")
+  private ObjectMapper mapper;
 
-    public HttpClient newClient(final Server server) {
-        final String baseUrl = "http://" + server.getHost() + ":" + server.getPort();
-        return new HttpClient(async, mapper, httpClient, baseUrl);
-    }
+  @Inject
+  private OkHttpClient httpClient;
+
+  public HttpClient newClient(final Server server) {
+    final String baseUrl = "http://" + server.getHost() + ":" + server.getPort();
+    return new HttpClient(async, mapper, httpClient, baseUrl);
+  }
 }

@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,36 +35,37 @@ import java.util.List;
  * @author udoprog
  */
 public class RiemannUDPProtocolServer implements ProtocolServer {
-    @Inject
-    private ChannelInboundHandler handler;
 
-    @Inject
-    private RiemannMessageDecoder messageDecoder;
+  @Inject
+  private ChannelInboundHandler handler;
 
-    @Inject
-    private RiemannDatagramDecoder datagramDecoder;
+  @Inject
+  private RiemannMessageDecoder messageDecoder;
 
-    private final MessageToMessageDecoder<List<Object>> unpacker =
-        new MessageToMessageDecoder<List<Object>>() {
-            @Override
-            protected void decode(
-                final ChannelHandlerContext ctx, final List<Object> messages, final List<Object> out
-            ) throws Exception {
-                out.addAll(messages);
-            }
+  @Inject
+  private RiemannDatagramDecoder datagramDecoder;
 
-            public boolean isSharable() {
-                return true;
-            }
-        };
+  private final MessageToMessageDecoder<List<Object>> unpacker =
+      new MessageToMessageDecoder<List<Object>>() {
+        @Override
+        protected void decode(
+            final ChannelHandlerContext ctx, final List<Object> messages, final List<Object> out
+        ) throws Exception {
+          out.addAll(messages);
+        }
 
-    @Override
-    public final ChannelInitializer<Channel> initializer() {
-        return new ChannelInitializer<Channel>() {
-            @Override
-            protected void initChannel(Channel ch) throws Exception {
-                ch.pipeline().addLast(datagramDecoder, messageDecoder, unpacker, handler);
-            }
-        };
-    }
+        public boolean isSharable() {
+          return true;
+        }
+      };
+
+  @Override
+  public final ChannelInitializer<Channel> initializer() {
+    return new ChannelInitializer<Channel>() {
+      @Override
+      protected void initChannel(Channel ch) throws Exception {
+        ch.pipeline().addLast(datagramDecoder, messageDecoder, unpacker, handler);
+      }
+    };
+  }
 }

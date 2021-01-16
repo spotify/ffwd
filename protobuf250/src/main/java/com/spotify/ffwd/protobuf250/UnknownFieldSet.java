@@ -57,6 +57,7 @@ import java.util.TreeMap;
  * @author kenton@google.com Kenton Varda
  */
 public final class UnknownFieldSet implements MessageLite {
+
   private UnknownFieldSet() {}
 
   /** Create a new {@link Builder}. */
@@ -76,11 +77,13 @@ public final class UnknownFieldSet implements MessageLite {
   public static UnknownFieldSet getDefaultInstance() {
     return defaultInstance;
   }
+
   public UnknownFieldSet getDefaultInstanceForType() {
     return defaultInstance;
   }
+
   private static final UnknownFieldSet defaultInstance =
-    new UnknownFieldSet(Collections.<Integer, Field>emptyMap());
+      new UnknownFieldSet(Collections.<Integer, Field>emptyMap());
 
   /**
    * Construct an {@code UnknownFieldSet} around the given map.  The map is
@@ -89,6 +92,7 @@ public final class UnknownFieldSet implements MessageLite {
   private UnknownFieldSet(final Map<Integer, Field> fields) {
     this.fields = fields;
   }
+
   private Map<Integer, Field> fields;
 
   @Override
@@ -148,13 +152,13 @@ public final class UnknownFieldSet implements MessageLite {
   public ByteString toByteString() {
     try {
       final ByteString.CodedBuilder out =
-        ByteString.newCodedBuilder(getSerializedSize());
+          ByteString.newCodedBuilder(getSerializedSize());
       writeTo(out.getCodedOutput());
       return out.build();
     } catch (final IOException e) {
       throw new RuntimeException(
-        "Serializing to a ByteString threw an IOException (should " +
-        "never happen).", e);
+          "Serializing to a ByteString threw an IOException (should " +
+          "never happen).", e);
     }
   }
 
@@ -171,8 +175,8 @@ public final class UnknownFieldSet implements MessageLite {
       return result;
     } catch (final IOException e) {
       throw new RuntimeException(
-        "Serializing to a byte array threw an IOException " +
-        "(should never happen).", e);
+          "Serializing to a byte array threw an IOException " +
+          "(should never happen).", e);
     }
   }
 
@@ -210,7 +214,7 @@ public final class UnknownFieldSet implements MessageLite {
       throws IOException {
     for (final Map.Entry<Integer, Field> entry : fields.entrySet()) {
       entry.getValue().writeAsMessageSetExtensionTo(
-        entry.getKey(), output);
+          entry.getKey(), output);
     }
   }
 
@@ -222,7 +226,7 @@ public final class UnknownFieldSet implements MessageLite {
     int result = 0;
     for (final Map.Entry<Integer, Field> entry : fields.entrySet()) {
       result += entry.getValue().getSerializedSizeAsMessageSetExtension(
-        entry.getKey());
+          entry.getKey());
     }
     return result;
   }
@@ -235,7 +239,7 @@ public final class UnknownFieldSet implements MessageLite {
 
   /** Parse an {@code UnknownFieldSet} from the given input stream. */
   public static UnknownFieldSet parseFrom(final CodedInputStream input)
-                                          throws IOException {
+      throws IOException {
     return newBuilder().mergeFrom(input).build();
   }
 
@@ -253,7 +257,7 @@ public final class UnknownFieldSet implements MessageLite {
 
   /** Parse an {@code UnknownFieldSet} from {@code input} and return it. */
   public static UnknownFieldSet parseFrom(final InputStream input)
-                                          throws IOException {
+      throws IOException {
     return newBuilder().mergeFrom(input).build();
   }
 
@@ -278,6 +282,7 @@ public final class UnknownFieldSet implements MessageLite {
    * <p>Use {@link UnknownFieldSet#newBuilder()} to construct a {@code Builder}.
    */
   public static final class Builder implements MessageLite.Builder {
+
     // This constructor should never be called directly (except from 'create').
     private Builder() {}
 
@@ -436,7 +441,7 @@ public final class UnknownFieldSet implements MessageLite {
         lastFieldNumber = 0;
       }
       if (fields.isEmpty()) {
-        fields = new TreeMap<Integer,Field>();
+        fields = new TreeMap<Integer, Field>();
       }
       fields.put(number, field);
       return this;
@@ -467,11 +472,13 @@ public final class UnknownFieldSet implements MessageLite {
 
     /**
      * Parse a single field from {@code input} and merge it into this set.
+     *
      * @param tag The field's tag number, which was already parsed.
+     *
      * @return {@code false} if the tag is an end group tag.
      */
     public boolean mergeFieldFrom(final int tag, final CodedInputStream input)
-                                  throws IOException {
+        throws IOException {
       final int number = WireFormat.getTagFieldNumber(tag);
       switch (WireFormat.getTagWireType(tag)) {
         case WireFormat.WIRETYPE_VARINT:
@@ -486,7 +493,7 @@ public final class UnknownFieldSet implements MessageLite {
         case WireFormat.WIRETYPE_START_GROUP:
           final Builder subBuilder = newBuilder();
           input.readGroup(number, subBuilder,
-                          ExtensionRegistry.getEmptyRegistry());
+              ExtensionRegistry.getEmptyRegistry());
           getFieldBuilder(number).addGroup(subBuilder.build());
           return true;
         case WireFormat.WIRETYPE_END_GROUP:
@@ -515,8 +522,8 @@ public final class UnknownFieldSet implements MessageLite {
         throw e;
       } catch (final IOException e) {
         throw new RuntimeException(
-          "Reading from a ByteString threw an IOException (should " +
-          "never happen).", e);
+            "Reading from a ByteString threw an IOException (should " +
+            "never happen).", e);
       }
     }
 
@@ -536,8 +543,8 @@ public final class UnknownFieldSet implements MessageLite {
         throw e;
       } catch (final IOException e) {
         throw new RuntimeException(
-          "Reading from a byte array threw an IOException (should " +
-          "never happen).", e);
+            "Reading from a byte array threw an IOException (should " +
+            "never happen).", e);
       }
     }
 
@@ -599,8 +606,8 @@ public final class UnknownFieldSet implements MessageLite {
         throw e;
       } catch (IOException e) {
         throw new RuntimeException(
-          "Reading from a byte array threw an IOException (should " +
-          "never happen).", e);
+            "Reading from a byte array threw an IOException (should " +
+            "never happen).", e);
       }
     }
 
@@ -654,6 +661,7 @@ public final class UnknownFieldSet implements MessageLite {
    * @see UnknownFieldSet
    */
   public static final class Field {
+
     private Field() {}
 
     /** Construct a new {@link Builder}. */
@@ -673,16 +681,17 @@ public final class UnknownFieldSet implements MessageLite {
     public static Field getDefaultInstance() {
       return fieldDefaultInstance;
     }
+
     private static final Field fieldDefaultInstance = newBuilder().build();
 
     /** Get the list of varint values for this field. */
-    public List<Long> getVarintList()               { return varint;          }
+    public List<Long> getVarintList() { return varint; }
 
     /** Get the list of fixed32 values for this field. */
-    public List<Integer> getFixed32List()           { return fixed32;         }
+    public List<Integer> getFixed32List() { return fixed32; }
 
     /** Get the list of fixed64 values for this field. */
-    public List<Long> getFixed64List()              { return fixed64;         }
+    public List<Long> getFixed64List() { return fixed64; }
 
     /** Get the list of length-delimited values for this field. */
     public List<ByteString> getLengthDelimitedList() { return lengthDelimited; }
@@ -692,7 +701,7 @@ public final class UnknownFieldSet implements MessageLite {
      * represented using {@link UnknownFieldSet}s rather than {@link Message}s
      * since the group's type is presumably unknown.
      */
-    public List<UnknownFieldSet> getGroupList()      { return group;           }
+    public List<UnknownFieldSet> getGroupList() { return group; }
 
     @Override
     public boolean equals(final Object other) {
@@ -716,12 +725,12 @@ public final class UnknownFieldSet implements MessageLite {
      * {@link Field} instance.
      */
     private Object[] getIdentityArray() {
-      return new Object[] {
+      return new Object[]{
           varint,
           fixed32,
           fixed64,
           lengthDelimited,
-          group};
+          group };
     }
 
     /**
@@ -729,7 +738,7 @@ public final class UnknownFieldSet implements MessageLite {
      * {@code output}.
      */
     public void writeTo(final int fieldNumber, final CodedOutputStream output)
-                        throws IOException {
+        throws IOException {
       for (final long value : varint) {
         output.writeUInt64(fieldNumber, value);
       }
@@ -792,7 +801,7 @@ public final class UnknownFieldSet implements MessageLite {
       int result = 0;
       for (final ByteString value : lengthDelimited) {
         result += CodedOutputStream.computeRawMessageSetExtensionSize(
-          fieldNumber, value);
+            fieldNumber, value);
       }
       return result;
     }
@@ -809,6 +818,7 @@ public final class UnknownFieldSet implements MessageLite {
      * <p>Use {@link Field#newBuilder()} to construct a {@code Builder}.
      */
     public static final class Builder {
+
       // This constructor should never be called directly (except from 'create').
       private Builder() {}
 
@@ -846,7 +856,7 @@ public final class UnknownFieldSet implements MessageLite {
           result.lengthDelimited = Collections.emptyList();
         } else {
           result.lengthDelimited =
-            Collections.unmodifiableList(result.lengthDelimited);
+              Collections.unmodifiableList(result.lengthDelimited);
         }
         if (result.group == null) {
           result.group = Collections.emptyList();
@@ -955,6 +965,7 @@ public final class UnknownFieldSet implements MessageLite {
    * Parser to implement MessageLite interface.
    */
   public static final class Parser extends AbstractParser<UnknownFieldSet> {
+
     public UnknownFieldSet parsePartialFrom(
         CodedInputStream input, ExtensionRegistryLite extensionRegistry)
         throws InvalidProtocolBufferException {
@@ -972,6 +983,7 @@ public final class UnknownFieldSet implements MessageLite {
   }
 
   private static final Parser PARSER = new Parser();
+
   public final Parser getParserForType() {
     return PARSER;
   }

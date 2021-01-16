@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,28 +29,30 @@ import lombok.Data;
 
 @Data
 public class NotFilter implements Filter {
-    final Filter filter;
+
+  final Filter filter;
+
+  @Override
+  public boolean matchesMetric(Metric metric) {
+    return !filter.matchesMetric(metric);
+  }
+
+
+  public static class Deserializer implements FilterDeserializer.PartialDeserializer {
 
     @Override
-    public boolean matchesMetric(Metric metric) {
-        return !filter.matchesMetric(metric);
+    public Filter deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
+      if (p.nextToken() != JsonToken.START_ARRAY) {
+        throw ctx.wrongTokenException(p, JsonToken.START_ARRAY, null);
+      }
+
+      final Filter filter = p.readValueAs(Filter.class);
+
+      if (p.nextToken() != JsonToken.END_ARRAY) {
+        throw ctx.wrongTokenException(p, JsonToken.END_ARRAY, null);
+      }
+
+      return new NotFilter(filter);
     }
-
-
-    public static class Deserializer implements FilterDeserializer.PartialDeserializer {
-        @Override
-        public Filter deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
-            if (p.nextToken() != JsonToken.START_ARRAY) {
-                throw ctx.wrongTokenException(p, JsonToken.START_ARRAY, null);
-            }
-
-            final Filter filter = p.readValueAs(Filter.class);
-
-            if (p.nextToken() != JsonToken.END_ARRAY) {
-                throw ctx.wrongTokenException(p, JsonToken.END_ARRAY, null);
-            }
-
-            return new NotFilter(filter);
-        }
-    }
+  }
 }

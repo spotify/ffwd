@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,82 +37,83 @@ import com.spotify.ffwd.protocol.RetryPolicy;
 import java.util.Optional;
 
 public class JsonInputPlugin implements InputPlugin {
-    private static final ProtocolType DEFAULT_PROTOCOL = ProtocolType.UDP;
-    private static final int DEFAULT_PORT = 19000;
 
-    private static final String FRAME = "frame";
-    private static final String LINE = "line";
+  private static final ProtocolType DEFAULT_PROTOCOL = ProtocolType.UDP;
+  private static final int DEFAULT_PORT = 19000;
 
-    public static final String DEFAULT_DELIMITER = FRAME;
+  private static final String FRAME = "frame";
+  private static final String LINE = "line";
 
-    private final Protocol protocol;
-    private final Class<? extends ProtocolServer> protocolServer;
-    private final RetryPolicy retry;
+  public static final String DEFAULT_DELIMITER = FRAME;
 
-    @JsonCreator
-    public JsonInputPlugin(
-        @JsonProperty("protocol") ProtocolFactory protocol,
-        @JsonProperty("delimiter") String delimiter, @JsonProperty("retry") RetryPolicy retry,
-        @JsonProperty("filter") Optional<Filter> filter
-    ) {
-        this.protocol = Optional
-            .ofNullable(protocol)
-            .orElseGet(ProtocolFactory.defaultFor())
-            .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
-        this.protocolServer =
-            parseProtocolServer(Optional.ofNullable(delimiter).orElseGet(this::defaultDelimiter));
-        this.retry = Optional.ofNullable(retry).orElseGet(RetryPolicy.Exponential::new);
+  private final Protocol protocol;
+  private final Class<? extends ProtocolServer> protocolServer;
+  private final RetryPolicy retry;
+
+  @JsonCreator
+  public JsonInputPlugin(
+      @JsonProperty("protocol") ProtocolFactory protocol,
+      @JsonProperty("delimiter") String delimiter, @JsonProperty("retry") RetryPolicy retry,
+      @JsonProperty("filter") Optional<Filter> filter
+  ) {
+    this.protocol = Optional
+        .ofNullable(protocol)
+        .orElseGet(ProtocolFactory.defaultFor())
+        .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
+    this.protocolServer =
+        parseProtocolServer(Optional.ofNullable(delimiter).orElseGet(this::defaultDelimiter));
+    this.retry = Optional.ofNullable(retry).orElseGet(RetryPolicy.Exponential::new);
+  }
+
+  private String defaultDelimiter() {
+    if (protocol.getType() == ProtocolType.TCP) {
+      return LINE;
     }
 
-    private String defaultDelimiter() {
-        if (protocol.getType() == ProtocolType.TCP) {
-            return LINE;
-        }
-
-        if (protocol.getType() == ProtocolType.UDP) {
-            return FRAME;
-        }
-
-        return FRAME;
+    if (protocol.getType() == ProtocolType.UDP) {
+      return FRAME;
     }
 
-    private Class<? extends ProtocolServer> parseProtocolServer(String delimiter) {
-        if (FRAME.equals(delimiter)) {
-            if (protocol.getType() == ProtocolType.TCP) {
-                throw new IllegalArgumentException("frame-based decoding is not suitable for TCP");
-            }
+    return FRAME;
+  }
 
-            return JsonFrameProtocolServer.class;
-        }
+  private Class<? extends ProtocolServer> parseProtocolServer(String delimiter) {
+    if (FRAME.equals(delimiter)) {
+      if (protocol.getType() == ProtocolType.TCP) {
+        throw new IllegalArgumentException("frame-based decoding is not suitable for TCP");
+      }
 
-        if (LINE.equals(delimiter)) {
-            return JsonLineProtocolServer.class;
-        }
-
-        return defaultProtocolServer();
+      return JsonFrameProtocolServer.class;
     }
 
-    private Class<? extends ProtocolServer> defaultProtocolServer() {
-        if (protocol.getType() == ProtocolType.TCP) {
-            return JsonLineProtocolServer.class;
-        }
-
-        return JsonFrameProtocolServer.class;
+    if (LINE.equals(delimiter)) {
+      return JsonLineProtocolServer.class;
     }
 
-    @Override
-    public Module module(final Key<PluginSource> key, final String id) {
-        return new PrivateModule() {
-            @Override
-            protected void configure() {
-                bind(JsonObjectMapperDecoder.class).in(Scopes.SINGLETON);
-                bind(Protocol.class).toInstance(protocol);
-                bind(ProtocolServer.class).to(protocolServer).in(Scopes.SINGLETON);
-                bind(RetryPolicy.class).toInstance(retry);
+    return defaultProtocolServer();
+  }
 
-                bind(key).to(JsonPluginSource.class).in(Scopes.SINGLETON);
-                expose(key);
-            }
-        };
+  private Class<? extends ProtocolServer> defaultProtocolServer() {
+    if (protocol.getType() == ProtocolType.TCP) {
+      return JsonLineProtocolServer.class;
     }
+
+    return JsonFrameProtocolServer.class;
+  }
+
+  @Override
+  public Module module(final Key<PluginSource> key, final String id) {
+    return new PrivateModule() {
+      @Override
+      protected void configure() {
+        bind(JsonObjectMapperDecoder.class).in(Scopes.SINGLETON);
+        bind(Protocol.class).toInstance(protocol);
+        bind(ProtocolServer.class).to(protocolServer).in(Scopes.SINGLETON);
+        bind(RetryPolicy.class).toInstance(retry);
+
+        bind(key).to(JsonPluginSource.class).in(Scopes.SINGLETON);
+        expose(key);
+      }
+    };
+  }
 }

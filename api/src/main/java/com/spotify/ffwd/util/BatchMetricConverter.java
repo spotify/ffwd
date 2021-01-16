@@ -30,23 +30,24 @@ import java.util.List;
 import java.util.Map;
 
 public class BatchMetricConverter {
-    public static Metric convertBatchMetric(final Batch batch, final Batch.Point point) {
-        final Map<String, String> allTags = new HashMap<>(batch.getCommonTags());
-        allTags.putAll(point.getTags());
 
-        final Map<String, String> allResource = new HashMap<>(batch.getCommonResource());
-        allResource.putAll(point.getResource());
+  public static Metric convertBatchMetric(final Batch batch, final Batch.Point point) {
+    final Map<String, String> allTags = new HashMap<>(batch.getCommonTags());
+    allTags.putAll(point.getTags());
 
-        return new Metric(point.getKey(), point.getValue(), point.getTimestamp(),
-            allTags, allResource);
-    }
+    final Map<String, String> allResource = new HashMap<>(batch.getCommonResource());
+    allResource.putAll(point.getResource());
 
-    public static List<Metric> convertBatchesToMetrics(final Collection<Batch> batches) {
-        final List<Metric> metrics = new ArrayList<>();
+    return new Metric(point.getKey(), point.getValue(), point.getTimestamp(),
+        allTags, allResource);
+  }
 
-        batches.forEach(batch -> batch.getPoints().forEach(point -> {
-            metrics.add(convertBatchMetric(batch, point));
-        }));
-        return metrics;
-    }
+  public static List<Metric> convertBatchesToMetrics(final Collection<Batch> batches) {
+    final List<Metric> metrics = new ArrayList<>();
+
+    batches.forEach(batch -> batch.getPoints().forEach(point -> {
+      metrics.add(convertBatchMetric(batch, point));
+    }));
+    return metrics;
+  }
 }

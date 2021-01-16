@@ -37,6 +37,7 @@ package com.spotify.ffwd.protobuf250;
  * @author cpovirk@google.com Chris Povirk
  */
 public interface BlockingService {
+
   /**
    * Equivalent to {@link Service#getDescriptorForType}.
    */

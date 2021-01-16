@@ -36,6 +36,7 @@ package com.spotify.ffwd.protobuf250;
  * @author cpovirk@google.com (Chris Povirk)
  */
 public class ServiceException extends Exception {
+
   private static final long serialVersionUID = -1219262335729891920L;
 
   public ServiceException(final String message) {

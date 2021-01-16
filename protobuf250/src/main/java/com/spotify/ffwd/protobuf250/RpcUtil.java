@@ -36,6 +36,7 @@ package com.spotify.ffwd.protobuf250;
  * @author kenton@google.com Kenton Varda
  */
 public final class RpcUtil {
+
   private RpcUtil() {}
 
   /**
@@ -46,7 +47,7 @@ public final class RpcUtil {
   @SuppressWarnings("unchecked")
   public static <Type extends Message> RpcCallback<Type>
   specializeCallback(final RpcCallback<Message> originalCallback) {
-    return (RpcCallback<Type>)originalCallback;
+    return (RpcCallback<Type>) originalCallback;
     // The above cast works, but only due to technical details of the Java
     // implementation.  A more theoretically correct -- but less efficient --
     // implementation would be as follows:
@@ -91,9 +92,9 @@ public final class RpcUtil {
   @SuppressWarnings("unchecked")
   private static <Type extends Message> Type copyAsType(
       final Type typeDefaultInstance, final Message source) {
-    return (Type)typeDefaultInstance.newBuilderForType()
-                                    .mergeFrom(source)
-                                    .build();
+    return (Type) typeDefaultInstance.newBuilderForType()
+        .mergeFrom(source)
+        .build();
   }
 
   /**
@@ -103,13 +104,13 @@ public final class RpcUtil {
    * is not prevented.
    */
   public static <ParameterType>
-    RpcCallback<ParameterType> newOneTimeCallback(
+  RpcCallback<ParameterType> newOneTimeCallback(
       final RpcCallback<ParameterType> originalCallback) {
     return new RpcCallback<ParameterType>() {
       private boolean alreadyCalled = false;
 
       public void run(final ParameterType parameter) {
-        synchronized(this) {
+        synchronized (this) {
           if (alreadyCalled) {
             throw new AlreadyCalledException();
           }
@@ -125,6 +126,7 @@ public final class RpcUtil {
    * Exception thrown when a one-time callback is called more than once.
    */
   public static final class AlreadyCalledException extends RuntimeException {
+
     private static final long serialVersionUID = 5469741279507848266L;
 
     public AlreadyCalledException() {

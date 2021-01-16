@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -42,65 +42,66 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 public class InputManagerModule {
-    private static final List<InputPlugin> DEFAULT_PLUGINS = Lists.newArrayList();
 
-    private final List<InputPlugin> plugins;
-    private final Filter filter;
+  private static final List<InputPlugin> DEFAULT_PLUGINS = Lists.newArrayList();
 
-    @JsonCreator
-    public InputManagerModule(
-        @JsonProperty("plugins") List<InputPlugin> plugins, @JsonProperty("filter") Filter filter
-    ) {
-        this.plugins = Optional.ofNullable(plugins).orElse(DEFAULT_PLUGINS);
-        this.filter = Optional.ofNullable(filter).orElseGet(TrueFilter::new);
-    }
+  private final List<InputPlugin> plugins;
+  private final Filter filter;
 
-    public Module module() {
-        return new PrivateModule() {
-            @Provides
-            @Singleton
-            public InputManagerStatistics statistics(CoreStatistics statistics) {
-                return statistics.newInputManager();
-            }
+  @JsonCreator
+  public InputManagerModule(
+      @JsonProperty("plugins") List<InputPlugin> plugins, @JsonProperty("filter") Filter filter
+  ) {
+    this.plugins = Optional.ofNullable(plugins).orElse(DEFAULT_PLUGINS);
+    this.filter = Optional.ofNullable(filter).orElseGet(TrueFilter::new);
+  }
 
-            @Provides
-            @Singleton
-            public List<PluginSource> sources(final Set<PluginSource> sources) {
-                return Lists.newArrayList(sources);
-            }
+  public Module module() {
+    return new PrivateModule() {
+      @Provides
+      @Singleton
+      public InputManagerStatistics statistics(CoreStatistics statistics) {
+        return statistics.newInputManager();
+      }
 
-            @Provides
-            @Singleton
-            public Filter filter() {
-                return filter;
-            }
+      @Provides
+      @Singleton
+      public List<PluginSource> sources(final Set<PluginSource> sources) {
+        return Lists.newArrayList(sources);
+      }
 
-            @Override
-            protected void configure() {
-                bind(ChannelInboundHandler.class).to(InputChannelInboundHandler.class);
+      @Provides
+      @Singleton
+      public Filter filter() {
+        return filter;
+      }
 
-                bind(InputManager.class).to(CoreInputManager.class).in(Scopes.SINGLETON);
-                expose(InputManager.class);
+      @Override
+      protected void configure() {
+        bind(ChannelInboundHandler.class).to(InputChannelInboundHandler.class);
 
-                bindPlugins();
-            }
+        bind(InputManager.class).to(CoreInputManager.class).in(Scopes.SINGLETON);
+        expose(InputManager.class);
 
-            private void bindPlugins() {
-                final Multibinder<PluginSource> sources =
-                    Multibinder.newSetBinder(binder(), PluginSource.class);
+        bindPlugins();
+      }
 
-                int i = 0;
-                for (final InputPlugin p : plugins) {
-                    final String id = String.valueOf(++i);
-                    final Key<PluginSource> k = Key.get(PluginSource.class, Names.named(id));
-                    install(p.module(k, String.valueOf(id)));
-                    sources.addBinding().to(k);
-                }
-            }
-        };
-    }
+      private void bindPlugins() {
+        final Multibinder<PluginSource> sources =
+            Multibinder.newSetBinder(binder(), PluginSource.class);
 
-    public static Supplier<InputManagerModule> supplyDefault() {
-        return () -> new InputManagerModule(null, null);
-    }
+        int i = 0;
+        for (final InputPlugin p : plugins) {
+          final String id = String.valueOf(++i);
+          final Key<PluginSource> k = Key.get(PluginSource.class, Names.named(id));
+          install(p.module(k, String.valueOf(id)));
+          sources.addBinding().to(k);
+        }
+      }
+    };
+  }
+
+  public static Supplier<InputManagerModule> supplyDefault() {
+    return () -> new InputManagerModule(null, null);
+  }
 }

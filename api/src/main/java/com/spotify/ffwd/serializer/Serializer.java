@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,22 +27,14 @@ import java.util.Collection;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface Serializer {
-    /**
-     * Serialize {@link Metric}
-     *
-     * @param metric
-     * @return
-     * @throws Exception
-     */
-    byte[] serialize(Metric metric) throws Exception;
 
-    /**
-     * Serialize a batch of {@link Metric}
-     *
-     * @param metrics
-     * @param writeCache
-     * @return
-     * @throws Exception
-     */
-    byte[] serialize(Collection<Metric> metrics, WriteCache writeCache) throws Exception;
+  /**
+   * Serialize {@link Metric}
+   */
+  byte[] serialize(Metric metric) throws Exception;
+
+  /**
+   * Serialize a batch of {@link Metric}
+   */
+  byte[] serialize(Collection<Metric> metrics, WriteCache writeCache) throws Exception;
 }

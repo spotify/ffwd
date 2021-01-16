@@ -57,7 +57,7 @@ class LazyField {
   private volatile boolean isDirty = false;
 
   public LazyField(MessageLite defaultInstance,
-      ExtensionRegistryLite extensionRegistry, ByteString bytes) {
+                   ExtensionRegistryLite extensionRegistry, ByteString bytes) {
     this.defaultInstance = defaultInstance;
     this.extensionRegistry = extensionRegistry;
     this.bytes = bytes;
@@ -151,6 +151,7 @@ class LazyField {
    * users iterate all fields from FieldSet.
    */
   static class LazyEntry<K> implements Entry<K, Object> {
+
     private Entry<K, LazyField> entry;
 
     private LazyEntry(Entry<K, LazyField> entry) {
@@ -184,6 +185,7 @@ class LazyField {
   }
 
   static class LazyIterator<K> implements Iterator<Entry<K, Object>> {
+
     private Iterator<Entry<K, Object>> iterator;
 
     public LazyIterator(Iterator<Entry<K, Object>> iterator) {

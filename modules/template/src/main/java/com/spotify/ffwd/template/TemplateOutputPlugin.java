@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -41,41 +41,42 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TemplateOutputPlugin extends OutputPlugin {
-    private static final ProtocolType DEFAULT_PROTOCOL = ProtocolType.TCP;
-    private static final int DEFAULT_PORT = 8910;
 
-    private final Protocol protocol;
-    private final RetryPolicy retry;
+  private static final ProtocolType DEFAULT_PROTOCOL = ProtocolType.TCP;
+  private static final int DEFAULT_PORT = 8910;
 
-    @JsonCreator
-    public TemplateOutputPlugin(
-        @JsonProperty("protocol") final ProtocolFactory protocol,
-        @JsonProperty("retry") final RetryPolicy retry,
-        @JsonProperty("filter") Optional<Filter> filter,
-        @JsonProperty("flushInterval") @Nullable Long flushInterval,
-        @JsonProperty("batching") Optional<Batching> batching
-    ) {
-        super(filter, Batching.from(flushInterval, batching));
-        this.protocol = Optional
-            .ofNullable(protocol)
-            .orElseGet(ProtocolFactory.defaultFor())
-            .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
-        this.retry = Optional.ofNullable(retry).orElseGet(RetryPolicy.Exponential::new);
-    }
+  private final Protocol protocol;
+  private final RetryPolicy retry;
 
-    @Override
-    public Module module(final Key<PluginSink> key, final String id) {
-        return new PrivateModule() {
-            @Override
-            protected void configure() {
-                bind(Logger.class).toInstance(LoggerFactory.getLogger(id));
-                bind(TemplateOutputEncoder.class).toInstance(new TemplateOutputEncoder());
-                bind(Protocol.class).toInstance(protocol);
-                bind(ProtocolClient.class).toInstance(new TemplateOutputProtocolClient());
+  @JsonCreator
+  public TemplateOutputPlugin(
+      @JsonProperty("protocol") final ProtocolFactory protocol,
+      @JsonProperty("retry") final RetryPolicy retry,
+      @JsonProperty("filter") Optional<Filter> filter,
+      @JsonProperty("flushInterval") @Nullable Long flushInterval,
+      @JsonProperty("batching") Optional<Batching> batching
+  ) {
+    super(filter, Batching.from(flushInterval, batching));
+    this.protocol = Optional
+        .ofNullable(protocol)
+        .orElseGet(ProtocolFactory.defaultFor())
+        .protocol(DEFAULT_PROTOCOL, DEFAULT_PORT);
+    this.retry = Optional.ofNullable(retry).orElseGet(RetryPolicy.Exponential::new);
+  }
 
-                bind(key).toInstance(new ProtocolPluginSink(retry));
-                expose(key);
-            }
-        };
-    }
+  @Override
+  public Module module(final Key<PluginSink> key, final String id) {
+    return new PrivateModule() {
+      @Override
+      protected void configure() {
+        bind(Logger.class).toInstance(LoggerFactory.getLogger(id));
+        bind(TemplateOutputEncoder.class).toInstance(new TemplateOutputEncoder());
+        bind(Protocol.class).toInstance(protocol);
+        bind(ProtocolClient.class).toInstance(new TemplateOutputProtocolClient());
+
+        bind(key).toInstance(new ProtocolPluginSink(retry));
+        expose(key);
+      }
+    };
+  }
 }

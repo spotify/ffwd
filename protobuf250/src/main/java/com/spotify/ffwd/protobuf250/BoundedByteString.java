@@ -56,6 +56,7 @@ class BoundedByteString extends LiteralByteString {
    * @param bytes  array to wrap
    * @param offset index to first byte to use in bytes
    * @param length number of bytes to use from bytes
+   *
    * @throws IllegalArgumentException if {@code offset < 0}, {@code length < 0},
    *                                  or if {@code offset + length >
    *                                  bytes.length}.
@@ -84,7 +85,9 @@ class BoundedByteString extends LiteralByteString {
    * {@link IndexOutOfBoundsException}.
    *
    * @param index index of byte
+   *
    * @return the value
+   *
    * @throws ArrayIndexOutOfBoundsException {@code index} is < 0 or >= size
    */
   @Override
@@ -116,8 +119,8 @@ class BoundedByteString extends LiteralByteString {
   // ByteString -> byte[]
 
   @Override
-  protected void copyToInternal(byte[] target, int sourceOffset, 
-      int targetOffset, int numberToCopy) {
+  protected void copyToInternal(byte[] target, int sourceOffset,
+                                int targetOffset, int numberToCopy) {
     System.arraycopy(bytes, getOffsetIntoBytes() + sourceOffset, target,
         targetOffset, numberToCopy);
   }

@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -38,92 +38,93 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class GeneratedPluginSource implements PluginSource {
-    @Inject
-    private AsyncFramework async;
 
-    @Inject
-    private InputManager input;
-    @Inject
-    private OutputManager output;
+  @Inject
+  private AsyncFramework async;
 
-    private final int count = 10000;
+  @Inject
+  private InputManager input;
+  @Inject
+  private OutputManager output;
 
-    private volatile AsyncFuture<Void> task;
-    private volatile List<Metric> metrics;
-    private volatile boolean stopped = false;
+  private final int count = 10000;
 
-    private final Random random = new Random();
-    private final ExecutorService single = Executors.newSingleThreadExecutor();
+  private volatile AsyncFuture<Void> task;
+  private volatile List<Metric> metrics;
+  private volatile boolean stopped = false;
 
-    private final boolean sameHost;
+  private final Random random = new Random();
+  private final ExecutorService single = Executors.newSingleThreadExecutor();
 
-    public GeneratedPluginSource(boolean sameHost) {
-        this.sameHost = sameHost;
+  private final boolean sameHost;
+
+  public GeneratedPluginSource(boolean sameHost) {
+    this.sameHost = sameHost;
+  }
+
+  @Override
+  public void init() {
+    task = async.call(new Callable<Void>() {
+      @Override
+      public Void call() throws Exception {
+        generate();
+        return null;
+      }
+    }, single);
+  }
+
+  @Override
+  public AsyncFuture<Void> start() {
+    return async.call(new Callable<Void>() {
+      @Override
+      public Void call() throws Exception {
+        metrics = generateMetrics();
+        return null;
+      }
+    });
+  }
+
+  private List<Metric> generateMetrics() {
+    final List<Metric> metrics = new ArrayList<>(count);
+
+    for (int i = 0; i < count; i++) {
+      final String key = "generated";
+      final Value value = Value.DoubleValue.create(0.42 * i);
+      final String host = generateHost(i);
+      final Map<String, String> tags = ImmutableMap.of(
+          "what", "metric-" + i,
+          "host", host
+      );
+      final Map<String, String> resource = ImmutableMap.of();
+
+      metrics.add(new Metric(key, value, System.currentTimeMillis(), tags, resource));
     }
 
-    @Override
-    public void init() {
-        task = async.call(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                generate();
-                return null;
-            }
-        }, single);
+    return metrics;
+  }
+
+  private String generateHost(int i) {
+    if (sameHost) {
+      return "host";
     }
 
-    @Override
-    public AsyncFuture<Void> start() {
-        return async.call(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                metrics = generateMetrics();
-                return null;
-            }
-        });
+    return "host" + i;
+  }
+
+  @Override
+  public AsyncFuture<Void> stop() {
+    stopped = true;
+    return task;
+  }
+
+  private void generate() throws InterruptedException {
+    while (!stopped) {
+      input.receiveMetric(randomMetric());
+      Thread.sleep(10);
     }
+  }
 
-    private List<Metric> generateMetrics() {
-        final List<Metric> metrics = new ArrayList<>(count);
-
-        for (int i = 0; i < count; i++) {
-            final String key = "generated";
-            final Value value = Value.DoubleValue.create(0.42 * i);
-            final String host = generateHost(i);
-            final Map<String, String> tags = ImmutableMap.of(
-                    "what", "metric-" + i,
-                    "host", host
-            );
-            final Map<String, String> resource = ImmutableMap.of();
-
-            metrics.add(new Metric(key, value, System.currentTimeMillis(), tags, resource));
-        }
-
-        return metrics;
-    }
-
-    private String generateHost(int i) {
-        if (sameHost) {
-            return "host";
-        }
-
-        return "host" + i;
-    }
-
-    @Override
-    public AsyncFuture<Void> stop() {
-        stopped = true;
-        return task;
-    }
-
-    private void generate() throws InterruptedException {
-        while (!stopped) {
-            input.receiveMetric(randomMetric());
-            Thread.sleep(10);
-        }
-    }
-
-    private Metric randomMetric() {
-        return metrics.get(random.nextInt(metrics.size()));
-    }
+  private Metric randomMetric() {
+    return metrics.get(random.nextInt(metrics.size()));
+  }
 }

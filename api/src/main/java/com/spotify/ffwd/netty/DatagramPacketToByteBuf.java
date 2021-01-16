@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,16 +27,17 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import java.util.List;
 
 public class DatagramPacketToByteBuf extends MessageToMessageDecoder<DatagramPacket> {
-    @Override
-    protected void decode(ChannelHandlerContext ctx, DatagramPacket packet, List<Object> out)
-        throws Exception {
-        final ByteBuf buf = packet.content();
-        buf.retain();
-        out.add(buf);
-    }
 
-    @Override
-    public boolean isSharable() {
-        return true;
-    }
+  @Override
+  protected void decode(ChannelHandlerContext ctx, DatagramPacket packet, List<Object> out)
+      throws Exception {
+    final ByteBuf buf = packet.content();
+    buf.retain();
+    out.add(buf);
+  }
+
+  @Override
+  public boolean isSharable() {
+    return true;
+  }
 }

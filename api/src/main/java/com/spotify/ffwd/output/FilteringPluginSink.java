@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,54 +29,55 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FilteringPluginSink implements PluginSink {
-    private static final Logger log = LoggerFactory.getLogger(FilteringPluginSink.class);
 
-    @Inject
-    @FilteringDelegate
-    protected PluginSink sink;
+  private static final Logger log = LoggerFactory.getLogger(FilteringPluginSink.class);
 
-    protected Filter filter;
+  @Inject
+  @FilteringDelegate
+  protected PluginSink sink;
 
-    public FilteringPluginSink(final Filter filter) {
-        this.filter = filter;
+  protected Filter filter;
+
+  public FilteringPluginSink(final Filter filter) {
+    this.filter = filter;
+  }
+
+  @Override
+  public void init() {
+    sink.init();
+  }
+
+  @Override
+  public void sendMetric(final Metric metric) {
+    if (filter.matchesMetric(metric)) {
+      sink.sendMetric(metric);
     }
+  }
 
-    @Override
-    public void init() {
-        sink.init();
+  @Override
+  public void sendBatch(final Batch batch) {
+    if (filter.matchesBatch(batch)) {
+      sink.sendBatch(batch);
     }
+  }
 
-    @Override
-    public void sendMetric(final Metric metric) {
-        if (filter.matchesMetric(metric)) {
-            sink.sendMetric(metric);
-        }
-    }
+  @Override
+  public AsyncFuture<Void> start() {
+    log.info("Starting filtering sink {}", filter);
+    return sink.start();
+  }
 
-    @Override
-    public void sendBatch(final Batch batch) {
-        if (filter.matchesBatch(batch)) {
-            sink.sendBatch(batch);
-        }
-    }
+  @Override
+  public AsyncFuture<Void> stop() {
+    return sink.stop();
+  }
 
-    @Override
-    public AsyncFuture<Void> start() {
-        log.info("Starting filtering sink {}", filter);
-        return sink.start();
-    }
+  @Override
+  public boolean isReady() {
+    return sink.isReady();
+  }
 
-    @Override
-    public AsyncFuture<Void> stop() {
-        return sink.stop();
-    }
-
-    @Override
-    public boolean isReady() {
-        return sink.isReady();
-    }
-
-    public PluginSink getSink() {
-        return this.sink;
-    }
+  public PluginSink getSink() {
+    return this.sink;
+  }
 }

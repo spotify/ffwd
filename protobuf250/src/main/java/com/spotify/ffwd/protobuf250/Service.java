@@ -46,6 +46,7 @@ package com.spotify.ffwd.protobuf250;
  * @author kenton@google.com Kenton Varda
  */
 public interface Service {
+
   /**
    * Get the {@code ServiceDescriptor} describing this service and its methods.
    */
@@ -58,27 +59,27 @@ public interface Service {
    *
    * <p>Preconditions:
    * <ul>
-   *   <li>{@code method.getService() == getDescriptorForType()}
-   *   <li>{@code request} is of the exact same class as the object returned by
-   *       {@code getRequestPrototype(method)}.
-   *   <li>{@code controller} is of the correct type for the RPC implementation
-   *       being used by this Service.  For stubs, the "correct type" depends
-   *       on the RpcChannel which the stub is using.  Server-side Service
-   *       implementations are expected to accept whatever type of
-   *       {@code RpcController} the server-side RPC implementation uses.
+   * <li>{@code method.getService() == getDescriptorForType()}
+   * <li>{@code request} is of the exact same class as the object returned by
+   * {@code getRequestPrototype(method)}.
+   * <li>{@code controller} is of the correct type for the RPC implementation
+   * being used by this Service.  For stubs, the "correct type" depends
+   * on the RpcChannel which the stub is using.  Server-side Service
+   * implementations are expected to accept whatever type of
+   * {@code RpcController} the server-side RPC implementation uses.
    * </ul>
    *
    * <p>Postconditions:
    * <ul>
-   *   <li>{@code done} will be called when the method is complete.  This may be
-   *       before {@code callMethod()} returns or it may be at some point in
-   *       the future.
-   *   <li>The parameter to {@code done} is the response.  It must be of the
-   *       exact same type as would be returned by
-   *       {@code getResponsePrototype(method)}.
-   *   <li>If the RPC failed, the parameter to {@code done} will be
-   *       {@code null}.  Further details about the failure can be found by
-   *       querying {@code controller}.
+   * <li>{@code done} will be called when the method is complete.  This may be
+   * before {@code callMethod()} returns or it may be at some point in
+   * the future.
+   * <li>The parameter to {@code done} is the response.  It must be of the
+   * exact same type as would be returned by
+   * {@code getResponsePrototype(method)}.
+   * <li>If the RPC failed, the parameter to {@code done} will be
+   * {@code null}.  Further details about the failure can be found by
+   * querying {@code controller}.
    * </ul>
    */
   void callMethod(Descriptors.MethodDescriptor method,

@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -81,20 +81,20 @@ public class PubsubOutputPlugin extends OutputPlugin {
 
   @JsonCreator
   public PubsubOutputPlugin(
-    @JsonProperty("filter") Optional<Filter> filter,
-    @JsonProperty("flushInterval") @Nullable Long flushInterval,
-    @JsonProperty("batching") Optional<Batching> batching,
-    @JsonProperty("serializer") Serializer serializer,
+      @JsonProperty("filter") Optional<Filter> filter,
+      @JsonProperty("flushInterval") @Nullable Long flushInterval,
+      @JsonProperty("batching") Optional<Batching> batching,
+      @JsonProperty("serializer") Serializer serializer,
 
-    @JsonProperty("project") String project,
-    @JsonProperty("topic") String topic,
+      @JsonProperty("project") String project,
+      @JsonProperty("topic") String topic,
 
-    @JsonProperty("writeCacheDurationMinutes") Long writeCacheDurationMinutes,
-    @JsonProperty("writeCacheMaxSize") Long writeCacheMaxSize,
+      @JsonProperty("writeCacheDurationMinutes") Long writeCacheDurationMinutes,
+      @JsonProperty("writeCacheMaxSize") Long writeCacheMaxSize,
 
-    @JsonProperty("requestBytesThreshold") Long requestBytesThreshold,
-    @JsonProperty("messageCountBatchSize") Long messageCountBatchSize,
-    @JsonProperty("publishDelayThresholdMs") Long publishDelayThresholdMs
+      @JsonProperty("requestBytesThreshold") Long requestBytesThreshold,
+      @JsonProperty("messageCountBatchSize") Long messageCountBatchSize,
+      @JsonProperty("publishDelayThresholdMs") Long publishDelayThresholdMs
   ) {
     super(filter, Batching.from(flushInterval, batching));
     this.serializer = ofNullable(serializer);
@@ -109,7 +109,7 @@ public class PubsubOutputPlugin extends OutputPlugin {
     this.requestBytesThreshold = ofNullable(requestBytesThreshold).orElse(DEFAULT_BYTES_THRESHOLD);
     this.messageCountBatchSize = ofNullable(messageCountBatchSize).orElse(DEFAULT_COUNT_THRESHOLD);
     this.publishDelayThreshold = Duration.ofMillis(
-      ofNullable(publishDelayThresholdMs).orElse(DEFAULT_DELAY_THRESHOLD));
+        ofNullable(publishDelayThresholdMs).orElse(DEFAULT_DELAY_THRESHOLD));
   }
 
   @Override

@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -39,74 +39,75 @@ import lombok.ToString;
  *
  * @author udoprog
  */
-@ToString(of = {"sources"})
+@ToString(of = { "sources" })
 public class CoreInputManager implements InputManager {
-    private static final String DEBUG_ID = "core.input";
 
-    @Inject
-    private List<PluginSource> sources;
+  private static final String DEBUG_ID = "core.input";
 
-    @Inject
-    private AsyncFramework async;
+  @Inject
+  private List<PluginSource> sources;
 
-    @Inject
-    private OutputManager output;
+  @Inject
+  private AsyncFramework async;
 
-    @Inject
-    private DebugServer debug;
+  @Inject
+  private OutputManager output;
 
-    @Inject
-    private InputManagerStatistics statistics;
+  @Inject
+  private DebugServer debug;
 
-    @Inject
-    private Filter filter;
+  @Inject
+  private InputManagerStatistics statistics;
 
-    @Override
-    public void init() {
-        for (final PluginSource s : sources) {
-            s.init();
-        }
+  @Inject
+  private Filter filter;
+
+  @Override
+  public void init() {
+    for (final PluginSource s : sources) {
+      s.init();
+    }
+  }
+
+  @Override
+  public void receiveMetric(Metric metric) {
+    if (!filter.matchesMetric(metric)) {
+      statistics.reportMetricsDroppedByFilter(1);
+      return;
     }
 
-    @Override
-    public void receiveMetric(Metric metric) {
-        if (!filter.matchesMetric(metric)) {
-            statistics.reportMetricsDroppedByFilter(1);
-            return;
-        }
+    statistics.reportReceivedMetrics(1);
+    debug.inspectMetric(DEBUG_ID, metric);
+    output.sendMetric(metric);
+  }
 
-        statistics.reportReceivedMetrics(1);
-        debug.inspectMetric(DEBUG_ID, metric);
-        output.sendMetric(metric);
+  @Override
+  public void receiveBatch(Batch batch) {
+    // TODO: consider filtering
+    statistics.reportReceivedMetrics(batch.getPoints().size());
+    debug.inspectBatch(DEBUG_ID, batch);
+    output.sendBatch(batch);
+  }
+
+  @Override
+  public AsyncFuture<Void> start() {
+    final ArrayList<AsyncFuture<Void>> futures = Lists.newArrayList();
+
+    for (final PluginSource s : sources) {
+      futures.add(s.start());
     }
 
-    @Override
-    public void receiveBatch(Batch batch) {
-        // TODO: consider filtering
-        statistics.reportReceivedMetrics(batch.getPoints().size());
-        debug.inspectBatch(DEBUG_ID, batch);
-        output.sendBatch(batch);
+    return async.collectAndDiscard(futures);
+  }
+
+  @Override
+  public AsyncFuture<Void> stop() {
+    final ArrayList<AsyncFuture<Void>> futures = Lists.newArrayList();
+
+    for (final PluginSource s : sources) {
+      futures.add(s.stop());
     }
 
-    @Override
-    public AsyncFuture<Void> start() {
-        final ArrayList<AsyncFuture<Void>> futures = Lists.newArrayList();
-
-        for (final PluginSource s : sources) {
-            futures.add(s.start());
-        }
-
-        return async.collectAndDiscard(futures);
-    }
-
-    @Override
-    public AsyncFuture<Void> stop() {
-        final ArrayList<AsyncFuture<Void>> futures = Lists.newArrayList();
-
-        for (final PluginSource s : sources) {
-            futures.add(s.stop());
-        }
-
-        return async.collectAndDiscard(futures);
-    }
+    return async.collectAndDiscard(futures);
+  }
 }

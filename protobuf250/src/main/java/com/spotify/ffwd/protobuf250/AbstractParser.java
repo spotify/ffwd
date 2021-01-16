@@ -48,11 +48,12 @@ import java.io.InputStream;
  */
 public abstract class AbstractParser<MessageType extends MessageLite>
     implements Parser<MessageType> {
+
   /**
    * Creates an UninitializedMessageException for MessageType.
    */
   private UninitializedMessageException
-      newUninitializedMessageException(MessageType message) {
+  newUninitializedMessageException(MessageType message) {
     if (message instanceof AbstractMessageLite) {
       return ((AbstractMessageLite) message).newUninitializedMessageException();
     }
@@ -62,8 +63,9 @@ public abstract class AbstractParser<MessageType extends MessageLite>
   /**
    * Helper method to check if message is initialized.
    *
-   * @throws InvalidProtocolBufferException if it is not initialized.
    * @return The message to check.
+   *
+   * @throws InvalidProtocolBufferException if it is not initialized.
    */
   private MessageType checkMessageInitialized(MessageType message)
       throws InvalidProtocolBufferException {
@@ -97,7 +99,7 @@ public abstract class AbstractParser<MessageType extends MessageLite>
 
   public MessageType parsePartialFrom(ByteString data,
                                       ExtensionRegistryLite extensionRegistry)
-    throws InvalidProtocolBufferException {
+      throws InvalidProtocolBufferException {
     MessageType message;
     try {
       CodedInputStream input = data.newCodedInput();

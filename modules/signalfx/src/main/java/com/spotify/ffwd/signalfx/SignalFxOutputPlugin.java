@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -50,70 +50,71 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class SignalFxOutputPlugin extends OutputPlugin {
-    public static final String DEFAULT_SOURCE_NAME = "ffwd/java";
-    public static final Long DEFAULT_FLUSH_INTERVAL = 500L;
-    public static final int DEFAULT_SO_TIMEOUT = 10000;
 
-    private final String sourceName;
-    private final String authToken;
-    private final int soTimeout;
+  public static final String DEFAULT_SOURCE_NAME = "ffwd/java";
+  public static final Long DEFAULT_FLUSH_INTERVAL = 500L;
+  public static final int DEFAULT_SO_TIMEOUT = 10000;
 
-    @JsonCreator
-    public SignalFxOutputPlugin(
-        @JsonProperty("sourceName") String sourceName,
-        @JsonProperty("authToken") String authToken,
-        @JsonProperty("flushInterval") Optional<Long> flushInterval,
-        @JsonProperty("batching") Optional<Batching> batching,
-        @JsonProperty("soTimeout") Integer soTimeout,
-        @JsonProperty("filter") Optional<Filter> filter) {
-        super(filter, Batching.from(flushInterval.orElse(DEFAULT_FLUSH_INTERVAL), batching));
-        this.sourceName = Optional.ofNullable(sourceName).orElse(DEFAULT_SOURCE_NAME);
-        this.authToken = Optional
-            .ofNullable(authToken)
-            .orElseThrow(() -> new IllegalArgumentException("authToken: must be defined"));
-        this.soTimeout = Optional.ofNullable(soTimeout).orElse(DEFAULT_SO_TIMEOUT);
-    }
+  private final String sourceName;
+  private final String authToken;
+  private final int soTimeout;
 
-    @Override
-    public Module module(final Key<PluginSink> key, final String id) {
-        return new OutputPluginModule(id) {
-            @Provides
-            Supplier<AggregateMetricSender> sender() {
-                final Collection<OnSendErrorHandler> handlers = ImmutableList.of(metricError -> {
-                    log.error(metricError.toString());
-                });
+  @JsonCreator
+  public SignalFxOutputPlugin(
+      @JsonProperty("sourceName") String sourceName,
+      @JsonProperty("authToken") String authToken,
+      @JsonProperty("flushInterval") Optional<Long> flushInterval,
+      @JsonProperty("batching") Optional<Batching> batching,
+      @JsonProperty("soTimeout") Integer soTimeout,
+      @JsonProperty("filter") Optional<Filter> filter) {
+    super(filter, Batching.from(flushInterval.orElse(DEFAULT_FLUSH_INTERVAL), batching));
+    this.sourceName = Optional.ofNullable(sourceName).orElse(DEFAULT_SOURCE_NAME);
+    this.authToken = Optional
+        .ofNullable(authToken)
+        .orElseThrow(() -> new IllegalArgumentException("authToken: must be defined"));
+    this.soTimeout = Optional.ofNullable(soTimeout).orElse(DEFAULT_SO_TIMEOUT);
+  }
 
-                return () -> {
-                    final SignalFxEndpoint endpoint = new SignalFxEndpoint();
-                    final HttpDataPointProtobufReceiverFactory dataPoints =
-                        new HttpDataPointProtobufReceiverFactory(endpoint).setVersion(2);
+  @Override
+  public Module module(final Key<PluginSink> key, final String id) {
+    return new OutputPluginModule(id) {
+      @Provides
+      Supplier<AggregateMetricSender> sender() {
+        final Collection<OnSendErrorHandler> handlers = ImmutableList.of(metricError -> {
+          log.error(metricError.toString());
+        });
 
-                    BasicHttpClientConnectionManager connectionManager =
-                        new BasicHttpClientConnectionManager();
-                    SocketConfig socketConfigWithSoTimeout = SocketConfig
-                        .copy(connectionManager.getSocketConfig())
-                        .setSoTimeout(soTimeout)
-                        .build();
-                    connectionManager.setSocketConfig(socketConfigWithSoTimeout);
-                    dataPoints.setHttpClientConnectionManager(connectionManager);
+        return () -> {
+          final SignalFxEndpoint endpoint = new SignalFxEndpoint();
+          final HttpDataPointProtobufReceiverFactory dataPoints =
+              new HttpDataPointProtobufReceiverFactory(endpoint).setVersion(2);
 
-                    final EventReceiverFactory events =
-                        new HttpEventProtobufReceiverFactory(endpoint);
-                    final AuthToken auth = new StaticAuthToken(authToken);
+          BasicHttpClientConnectionManager connectionManager =
+              new BasicHttpClientConnectionManager();
+          SocketConfig socketConfigWithSoTimeout = SocketConfig
+              .copy(connectionManager.getSocketConfig())
+              .setSoTimeout(soTimeout)
+              .build();
+          connectionManager.setSocketConfig(socketConfigWithSoTimeout);
+          dataPoints.setHttpClientConnectionManager(connectionManager);
 
-                    return new AggregateMetricSender(sourceName, dataPoints, events, auth,
-                        handlers);
-                };
-            }
+          final EventReceiverFactory events =
+              new HttpEventProtobufReceiverFactory(endpoint);
+          final AuthToken auth = new StaticAuthToken(authToken);
 
-            @Override
-            protected void configure() {
-                final Key<SignalFxPluginSink> sinkKey =
-                    Key.get(SignalFxPluginSink.class, Names.named("signalfxSink"));
-                bind(sinkKey).to(SignalFxPluginSink.class).in(Scopes.SINGLETON);
-                install(wrapPluginSink(sinkKey, key));
-                expose(key);
-            }
+          return new AggregateMetricSender(sourceName, dataPoints, events, auth,
+              handlers);
         };
-    }
+      }
+
+      @Override
+      protected void configure() {
+        final Key<SignalFxPluginSink> sinkKey =
+            Key.get(SignalFxPluginSink.class, Names.named("signalfxSink"));
+        bind(sinkKey).to(SignalFxPluginSink.class).in(Scopes.SINGLETON);
+        install(wrapPluginSink(sinkKey, key));
+        expose(key);
+      }
+    };
+  }
 }

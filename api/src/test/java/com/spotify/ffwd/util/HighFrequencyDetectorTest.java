@@ -115,7 +115,7 @@ public class HighFrequencyDetectorTest {
   private Metric createMetric(final String key, final double val) {
     Value value = Value.DoubleValue.create(val);
     return new Metric(key, value, System.currentTimeMillis(), Map
-            .of("tag1", "value1", "what", "fun"), ImmutableMap.of());
+        .of("tag1", "value1", "what", "fun"), ImmutableMap.of());
   }
 
   @Test

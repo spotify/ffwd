@@ -1,1 +1,35 @@
-{"commonTags":{"host":"host1"},"points":[{"key":"distribution-test","tags":{"what":"cpu-used-percentage","units":"%"},"resource":{"instance":"instance_point1"},"value":{"distributionValue":"YWRkZGRlc2dlYWd0ZXB0"},"timestamp":1600616105259},{"key":"distribution-test","tags":{"what":"cpu-used-percentage","units":"%"},"resource":{"instance":"instance_point1"},"value":{"doubleValue":600.56},"timestamp":1600616105264}]}
+{
+  "commonTags": {
+    "host": "host1"
+  },
+  "points": [
+    {
+      "key": "distribution-test",
+      "tags": {
+        "what": "cpu-used-percentage",
+        "units": "%"
+      },
+      "resource": {
+        "instance": "instance_point1"
+      },
+      "value": {
+        "distributionValue": "YWRkZGRlc2dlYWd0ZXB0"
+      },
+      "timestamp": 1600616105259
+    },
+    {
+      "key": "distribution-test",
+      "tags": {
+        "what": "cpu-used-percentage",
+        "units": "%"
+      },
+      "resource": {
+        "instance": "instance_point1"
+      },
+      "value": {
+        "doubleValue": 600.56
+      },
+      "timestamp": 1600616105264
+    }
+  ]
+}

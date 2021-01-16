@@ -48,6 +48,7 @@ import java.util.List;
  * @author kenton@google.com Kenton Varda
  */
 public final class CodedInputStream {
+
   /**
    * Create a new CodedInputStream wrapping the given InputStream.
    */
@@ -119,7 +120,7 @@ public final class CodedInputStream {
    *                                        last tag.
    */
   public void checkLastTagWas(final int value)
-                              throws InvalidProtocolBufferException {
+      throws InvalidProtocolBufferException {
     if (lastTag != value) {
       throw InvalidProtocolBufferException.invalidEndTag();
     }
@@ -129,7 +130,7 @@ public final class CodedInputStream {
    * Reads and discards a single field, given its tag value.
    *
    * @return {@code false} if the tag is an endgroup tag, in which case
-   *         nothing is skipped.  Otherwise, returns {@code true}.
+   *     nothing is skipped.  Otherwise, returns {@code true}.
    */
   public boolean skipField(final int tag) throws IOException {
     switch (WireFormat.getTagWireType(tag)) {
@@ -145,8 +146,8 @@ public final class CodedInputStream {
       case WireFormat.WIRETYPE_START_GROUP:
         skipMessage();
         checkLastTagWas(
-          WireFormat.makeTag(WireFormat.getTagFieldNumber(tag),
-                             WireFormat.WIRETYPE_END_GROUP));
+            WireFormat.makeTag(WireFormat.getTagFieldNumber(tag),
+                WireFormat.WIRETYPE_END_GROUP));
         return true;
       case WireFormat.WIRETYPE_END_GROUP:
         return false;
@@ -239,7 +240,7 @@ public final class CodedInputStream {
     ++recursionDepth;
     builder.mergeFrom(this, extensionRegistry);
     checkLastTagWas(
-      WireFormat.makeTag(fieldNumber, WireFormat.WIRETYPE_END_GROUP));
+        WireFormat.makeTag(fieldNumber, WireFormat.WIRETYPE_END_GROUP));
     --recursionDepth;
   }
 
@@ -255,7 +256,7 @@ public final class CodedInputStream {
     ++recursionDepth;
     T result = parser.parsePartialFrom(this, extensionRegistry);
     checkLastTagWas(
-      WireFormat.makeTag(fieldNumber, WireFormat.WIRETYPE_END_GROUP));
+        WireFormat.makeTag(fieldNumber, WireFormat.WIRETYPE_END_GROUP));
     --recursionDepth;
     return result;
   }
@@ -265,7 +266,7 @@ public final class CodedInputStream {
    * given {@link UnknownFieldSet}.
    *
    * @deprecated UnknownFieldSet.Builder now implements MessageLite.Builder, so
-   *             you can just call {@link #readGroup}.
+   *     you can just call {@link #readGroup}.
    */
   @Deprecated
   public void readUnknownGroup(final int fieldNumber,
@@ -460,7 +461,7 @@ public final class CodedInputStream {
     long result = 0;
     while (shift < 64) {
       final byte b = readRawByte();
-      result |= (long)(b & 0x7F) << shift;
+      result |= (long) (b & 0x7F) << shift;
       if ((b & 0x80) == 0) {
         return result;
       }
@@ -475,10 +476,10 @@ public final class CodedInputStream {
     final byte b2 = readRawByte();
     final byte b3 = readRawByte();
     final byte b4 = readRawByte();
-    return (((int)b1 & 0xff)      ) |
-           (((int)b2 & 0xff) <<  8) |
-           (((int)b3 & 0xff) << 16) |
-           (((int)b4 & 0xff) << 24);
+    return (((int) b1 & 0xff)) |
+           (((int) b2 & 0xff) << 8) |
+           (((int) b3 & 0xff) << 16) |
+           (((int) b4 & 0xff) << 24);
   }
 
   /** Read a 64-bit little-endian integer from the stream. */
@@ -491,14 +492,14 @@ public final class CodedInputStream {
     final byte b6 = readRawByte();
     final byte b7 = readRawByte();
     final byte b8 = readRawByte();
-    return (((long)b1 & 0xff)      ) |
-           (((long)b2 & 0xff) <<  8) |
-           (((long)b3 & 0xff) << 16) |
-           (((long)b4 & 0xff) << 24) |
-           (((long)b5 & 0xff) << 32) |
-           (((long)b6 & 0xff) << 40) |
-           (((long)b7 & 0xff) << 48) |
-           (((long)b8 & 0xff) << 56);
+    return (((long) b1 & 0xff)) |
+           (((long) b2 & 0xff) << 8) |
+           (((long) b3 & 0xff) << 16) |
+           (((long) b4 & 0xff) << 24) |
+           (((long) b5 & 0xff) << 32) |
+           (((long) b6 & 0xff) << 40) |
+           (((long) b7 & 0xff) << 48) |
+           (((long) b8 & 0xff) << 56);
   }
 
   /**
@@ -509,6 +510,7 @@ public final class CodedInputStream {
    *
    * @param n An unsigned 32-bit integer, stored in a signed int because
    *          Java has no explicit unsigned support.
+   *
    * @return A signed 32-bit integer.
    */
   public static int decodeZigZag32(final int n) {
@@ -523,6 +525,7 @@ public final class CodedInputStream {
    *
    * @param n An unsigned 64-bit integer, stored in a signed int because
    *          Java has no explicit unsigned support.
+   *
    * @return A signed 64-bit integer.
    */
   public static long decodeZigZag64(final long n) {
@@ -587,7 +590,7 @@ public final class CodedInputStream {
   public int setRecursionLimit(final int limit) {
     if (limit < 0) {
       throw new IllegalArgumentException(
-        "Recursion limit cannot be negative: " + limit);
+          "Recursion limit cannot be negative: " + limit);
     }
     final int oldLimit = recursionLimit;
     recursionLimit = limit;
@@ -613,7 +616,7 @@ public final class CodedInputStream {
   public int setSizeLimit(final int limit) {
     if (limit < 0) {
       throw new IllegalArgumentException(
-        "Size limit cannot be negative: " + limit);
+          "Size limit cannot be negative: " + limit);
     }
     final int oldLimit = sizeLimit;
     sizeLimit = limit;
@@ -706,7 +709,7 @@ public final class CodedInputStream {
    * {@link #resetSizeCounter()} resets this value to zero.
    */
   public int getTotalBytesRead() {
-      return totalBytesRetired + bufferPos;
+    return totalBytesRetired + bufferPos;
   }
 
   /**
@@ -719,7 +722,7 @@ public final class CodedInputStream {
   private boolean refillBuffer(final boolean mustSucceed) throws IOException {
     if (bufferPos < bufferSize) {
       throw new IllegalStateException(
-        "refillBuffer() called when buffer wasn't empty.");
+          "refillBuffer() called when buffer wasn't empty.");
     }
 
     if (totalBytesRetired + bufferSize == currentLimit) {
@@ -750,7 +753,7 @@ public final class CodedInputStream {
     } else {
       recomputeBufferSizeAfterLimit();
       final int totalBytesRead =
-        totalBytesRetired + bufferSize + bufferSizeAfterLimit;
+          totalBytesRetired + bufferSize + bufferSizeAfterLimit;
       if (totalBytesRead > sizeLimit || totalBytesRead < 0) {
         throw InvalidProtocolBufferException.sizeLimitExceeded();
       }
@@ -849,7 +852,7 @@ public final class CodedInputStream {
         int pos = 0;
         while (pos < chunk.length) {
           final int n = (input == null) ? -1 :
-            input.read(chunk, pos, chunk.length - pos);
+                        input.read(chunk, pos, chunk.length - pos);
           if (n == -1) {
             throw InvalidProtocolBufferException.truncatedMessage();
           }

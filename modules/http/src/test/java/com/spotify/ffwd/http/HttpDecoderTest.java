@@ -54,6 +54,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HttpDecoderTest {
+
   private HttpDecoder httpDecoder;
   @Mock private ChannelHandlerContext mockCtx;
   @Mock private Channel mockChannel;
@@ -133,18 +134,18 @@ public class HttpDecoderTest {
   public void testV1Batch() throws Exception {
     String v1SchemaContent =
         "{\n"
-            + "  \"commonTags\": {},\n"
-            + "  \"commonResource\": {},\n"
-            + "  \"points\": [\n"
-            + "    {\n"
-            + "      \"key\":  \"pointKey\",\n"
-            + "      \"tags\": {},\n"
-            + "      \"resource\": {},\n"
-            + "      \"value\": 1.0,\n"
-            + "      \"timestamp\": 1608650674\n"
-            + "    }\n"
-            + "  ]\n"
-            + "}";
+        + "  \"commonTags\": {},\n"
+        + "  \"commonResource\": {},\n"
+        + "  \"points\": [\n"
+        + "    {\n"
+        + "      \"key\":  \"pointKey\",\n"
+        + "      \"tags\": {},\n"
+        + "      \"resource\": {},\n"
+        + "      \"value\": 1.0,\n"
+        + "      \"timestamp\": 1608650674\n"
+        + "    }\n"
+        + "  ]\n"
+        + "}";
     DefaultHttpHeaders httpHeaders = new DefaultHttpHeaders();
     httpHeaders.add("Content-Type", "application/json");
     FullHttpRequest httpRequest =
@@ -158,20 +159,20 @@ public class HttpDecoderTest {
   public void testV1BatchBadContent() throws Exception {
     String v2SchemaContent =
         "{\n"
-            + "  \"commonTags\": {},\n"
-            + "  \"commonResource\": {},\n"
-            + "  \"points\": [\n"
-            + "    {\n"
-            + "      \"key\":  \"pointKey\",\n"
-            + "      \"tags\": {},\n"
-            + "      \"resource\": {},\n"
-            + "      \"value\": {\n"
-            + "        \"doubleValue\": 1.0\n"
-            + "      },\n"
-            + "      \"timestamp\": 1608650674\n"
-            + "    }\n"
-            + "  ]\n"
-            + "}";
+        + "  \"commonTags\": {},\n"
+        + "  \"commonResource\": {},\n"
+        + "  \"points\": [\n"
+        + "    {\n"
+        + "      \"key\":  \"pointKey\",\n"
+        + "      \"tags\": {},\n"
+        + "      \"resource\": {},\n"
+        + "      \"value\": {\n"
+        + "        \"doubleValue\": 1.0\n"
+        + "      },\n"
+        + "      \"timestamp\": 1608650674\n"
+        + "    }\n"
+        + "  ]\n"
+        + "}";
     DefaultHttpHeaders httpHeaders = new DefaultHttpHeaders();
     httpHeaders.add("Content-Type", "application/json");
     FullHttpRequest httpRequest =
@@ -183,20 +184,20 @@ public class HttpDecoderTest {
   public void testV2Batch() throws Exception {
     String v2SchemaContent =
         "{\n"
-            + "  \"commonTags\": {},\n"
-            + "  \"commonResource\": {},\n"
-            + "  \"points\": [\n"
-            + "    {\n"
-            + "      \"key\":  \"pointKey\",\n"
-            + "      \"tags\": {},\n"
-            + "      \"resource\": {},\n"
-            + "      \"value\": {\n"
-            + "        \"doubleValue\": 1.0\n"
-            + "      },\n"
-            + "      \"timestamp\": 1608650674\n"
-            + "    }\n"
-            + "  ]\n"
-            + "}";
+        + "  \"commonTags\": {},\n"
+        + "  \"commonResource\": {},\n"
+        + "  \"points\": [\n"
+        + "    {\n"
+        + "      \"key\":  \"pointKey\",\n"
+        + "      \"tags\": {},\n"
+        + "      \"resource\": {},\n"
+        + "      \"value\": {\n"
+        + "        \"doubleValue\": 1.0\n"
+        + "      },\n"
+        + "      \"timestamp\": 1608650674\n"
+        + "    }\n"
+        + "  ]\n"
+        + "}";
     DefaultHttpHeaders httpHeaders = new DefaultHttpHeaders();
     httpHeaders.add("Content-Type", "application/json");
     FullHttpRequest httpRequest =

@@ -45,6 +45,7 @@ import java.util.Map;
  * @author kenton@google.com Kenton Varda
  */
 public final class DynamicMessage extends AbstractMessage {
+
   private final Descriptor type;
   private final FieldSet<FieldDescriptor> fields;
   private final UnknownFieldSet unknownFields;
@@ -66,13 +67,13 @@ public final class DynamicMessage extends AbstractMessage {
    */
   public static DynamicMessage getDefaultInstance(Descriptor type) {
     return new DynamicMessage(type, FieldSet.<FieldDescriptor>emptySet(),
-                              UnknownFieldSet.getDefaultInstance());
+        UnknownFieldSet.getDefaultInstance());
   }
 
   /** Parse a message of the given type from the given input stream. */
   public static DynamicMessage parseFrom(Descriptor type,
                                          CodedInputStream input)
-                                         throws IOException {
+      throws IOException {
     return newBuilder(type).mergeFrom(input).buildParsed();
   }
 
@@ -87,40 +88,40 @@ public final class DynamicMessage extends AbstractMessage {
 
   /** Parse {@code data} as a message of the given type and return it. */
   public static DynamicMessage parseFrom(Descriptor type, ByteString data)
-                                         throws InvalidProtocolBufferException {
+      throws InvalidProtocolBufferException {
     return newBuilder(type).mergeFrom(data).buildParsed();
   }
 
   /** Parse {@code data} as a message of the given type and return it. */
   public static DynamicMessage parseFrom(Descriptor type, ByteString data,
                                          ExtensionRegistry extensionRegistry)
-                                         throws InvalidProtocolBufferException {
+      throws InvalidProtocolBufferException {
     return newBuilder(type).mergeFrom(data, extensionRegistry).buildParsed();
   }
 
   /** Parse {@code data} as a message of the given type and return it. */
   public static DynamicMessage parseFrom(Descriptor type, byte[] data)
-                                         throws InvalidProtocolBufferException {
+      throws InvalidProtocolBufferException {
     return newBuilder(type).mergeFrom(data).buildParsed();
   }
 
   /** Parse {@code data} as a message of the given type and return it. */
   public static DynamicMessage parseFrom(Descriptor type, byte[] data,
                                          ExtensionRegistry extensionRegistry)
-                                         throws InvalidProtocolBufferException {
+      throws InvalidProtocolBufferException {
     return newBuilder(type).mergeFrom(data, extensionRegistry).buildParsed();
   }
 
   /** Parse a message of the given type from {@code input} and return it. */
   public static DynamicMessage parseFrom(Descriptor type, InputStream input)
-                                         throws IOException {
+      throws IOException {
     return newBuilder(type).mergeFrom(input).buildParsed();
   }
 
   /** Parse a message of the given type from {@code input} and return it. */
   public static DynamicMessage parseFrom(Descriptor type, InputStream input,
                                          ExtensionRegistry extensionRegistry)
-                                         throws IOException {
+      throws IOException {
     return newBuilder(type).mergeFrom(input, extensionRegistry).buildParsed();
   }
 
@@ -220,7 +221,9 @@ public final class DynamicMessage extends AbstractMessage {
   @Override
   public int getSerializedSize() {
     int size = memoizedSize;
-    if (size != -1) return size;
+    if (size != -1) {
+      return size;
+    }
 
     if (type.getOptions().getMessageSetWireFormat()) {
       size = fields.getMessageSetSerializedSize();
@@ -266,7 +269,7 @@ public final class DynamicMessage extends AbstractMessage {
   private void verifyContainingType(FieldDescriptor field) {
     if (field.getContainingType() != type) {
       throw new IllegalArgumentException(
-        "FieldDescriptor does not match message type.");
+          "FieldDescriptor does not match message type.");
     }
   }
 
@@ -276,6 +279,7 @@ public final class DynamicMessage extends AbstractMessage {
    * Builder for {@link DynamicMessage}s.
    */
   public static final class Builder extends AbstractMessage.Builder<Builder> {
+
     private final Descriptor type;
     private FieldSet<FieldDescriptor> fields;
     private UnknownFieldSet unknownFields;
@@ -308,7 +312,7 @@ public final class DynamicMessage extends AbstractMessage {
         DynamicMessage otherDynamicMessage = (DynamicMessage) other;
         if (otherDynamicMessage.type != type) {
           throw new IllegalArgumentException(
-            "mergeFrom(Message) can only merge messages of the same type.");
+              "mergeFrom(Message) can only merge messages of the same type.");
         }
         ensureIsMutable();
         fields.mergeFrom(otherDynamicMessage.fields);
@@ -322,7 +326,7 @@ public final class DynamicMessage extends AbstractMessage {
     public DynamicMessage build() {
       if (!isInitialized()) {
         throw newUninitializedMessageException(
-          new DynamicMessage(type, fields, unknownFields));
+            new DynamicMessage(type, fields, unknownFields));
       }
       return buildPartial();
     }
@@ -336,7 +340,7 @@ public final class DynamicMessage extends AbstractMessage {
       if (!isInitialized()) {
         throw newUninitializedMessageException(
             new DynamicMessage(type, fields, unknownFields))
-          .asInvalidProtocolBufferException();
+            .asInvalidProtocolBufferException();
       }
       return buildPartial();
     }
@@ -344,7 +348,7 @@ public final class DynamicMessage extends AbstractMessage {
     public DynamicMessage buildPartial() {
       fields.makeImmutable();
       DynamicMessage result =
-        new DynamicMessage(type, fields, unknownFields);
+          new DynamicMessage(type, fields, unknownFields);
       return result;
     }
 
@@ -377,7 +381,7 @@ public final class DynamicMessage extends AbstractMessage {
 
       if (field.getJavaType() != FieldDescriptor.JavaType.MESSAGE) {
         throw new IllegalArgumentException(
-          "newBuilderForField is only valid for fields with message type.");
+            "newBuilderForField is only valid for fields with message type.");
       }
 
       return new Builder(field.getMessageType());
@@ -452,9 +456,9 @@ public final class DynamicMessage extends AbstractMessage {
     @Override
     public Builder mergeUnknownFields(UnknownFieldSet unknownFields) {
       this.unknownFields =
-        UnknownFieldSet.newBuilder(this.unknownFields)
-                       .mergeFrom(unknownFields)
-                       .build();
+          UnknownFieldSet.newBuilder(this.unknownFields)
+              .mergeFrom(unknownFields)
+              .build();
       return this;
     }
 
@@ -462,7 +466,7 @@ public final class DynamicMessage extends AbstractMessage {
     private void verifyContainingType(FieldDescriptor field) {
       if (field.getContainingType() != type) {
         throw new IllegalArgumentException(
-          "FieldDescriptor does not match message type.");
+            "FieldDescriptor does not match message type.");
       }
     }
 
@@ -476,7 +480,7 @@ public final class DynamicMessage extends AbstractMessage {
     public com.spotify.ffwd.protobuf250.Message.Builder getFieldBuilder(FieldDescriptor field) {
       // TODO(xiangl): need implementation for dynamic message
       throw new UnsupportedOperationException(
-        "getFieldBuilder() called on a dynamic message type.");
+          "getFieldBuilder() called on a dynamic message type.");
     }
   }
 }

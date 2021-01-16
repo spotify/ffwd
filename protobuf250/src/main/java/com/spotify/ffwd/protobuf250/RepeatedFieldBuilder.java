@@ -65,8 +65,8 @@ import java.util.List;
  */
 public class RepeatedFieldBuilder
     <MType extends GeneratedMessage,
-     BType extends GeneratedMessage.Builder,
-     IType extends MessageOrBuilder>
+        BType extends GeneratedMessage.Builder,
+        IType extends MessageOrBuilder>
     implements GeneratedMessage.BuilderParent {
 
   // Parent to send changes to.
@@ -124,10 +124,10 @@ public class RepeatedFieldBuilder
   /**
    * Constructs a new builder with an empty list of messages.
    *
-   * @param messages the current list of messages
+   * @param messages              the current list of messages
    * @param isMessagesListMutable Whether the messages list is mutable
-   * @param parent a listener to notify of changes
-   * @param isClean whether the builder is initially marked clean
+   * @param parent                a listener to notify of changes
+   * @param isClean               whether the builder is initially marked clean
    */
   public RepeatedFieldBuilder(
       List<MType> messages,
@@ -196,6 +196,7 @@ public class RepeatedFieldBuilder
    * calling {@link Message.Builder#buildPartial} on it.
    *
    * @param index the index of the message to get
+   *
    * @return the message for the specified index
    */
   public MType getMessage(int index) {
@@ -207,9 +208,10 @@ public class RepeatedFieldBuilder
    * as a {@code Builder}, it is converted to a {@code Message} by
    * calling {@link Message.Builder#buildPartial} on it.
    *
-   * @param index the index of the message to get
+   * @param index    the index of the message to get
    * @param forBuild this is being called for build so we want to make sure
-   *     we SingleFieldBuilder.build to send dirty invalidations
+   *                 we SingleFieldBuilder.build to send dirty invalidations
+   *
    * @return the message for the specified index
    */
   private MType getMessage(int index, boolean forBuild) {
@@ -238,6 +240,7 @@ public class RepeatedFieldBuilder
    * {@link Message#toBuilder}.
    *
    * @param index the index of the message to get
+   *
    * @return The builder for that index
    */
   public BType getBuilder(int index) {
@@ -257,6 +260,7 @@ public class RepeatedFieldBuilder
    * a builder or a message. It will return whatever is more efficient.
    *
    * @param index the index of the message to get
+   *
    * @return the message or builder for the index as the base class interface
    */
   @SuppressWarnings("unchecked")
@@ -284,8 +288,9 @@ public class RepeatedFieldBuilder
    * Sets a  message at the specified index replacing the existing item at
    * that index.
    *
-   * @param index the index to set.
+   * @param index   the index to set.
    * @param message the message to set
+   *
    * @return the builder
    */
   public RepeatedFieldBuilder<MType, BType, IType> setMessage(
@@ -311,6 +316,7 @@ public class RepeatedFieldBuilder
    * Appends the specified element to the end of this list.
    *
    * @param message the message to add
+   *
    * @return the builder
    */
   public RepeatedFieldBuilder<MType, BType, IType> addMessage(
@@ -333,8 +339,9 @@ public class RepeatedFieldBuilder
    * Shifts the element currently at that position (if any) and any subsequent
    * elements to the right (adds one to their indices).
    *
-   * @param index the index at which to insert the message
+   * @param index   the index at which to insert the message
    * @param message the message to add
+   *
    * @return the builder
    */
   public RepeatedFieldBuilder<MType, BType, IType> addMessage(
@@ -358,6 +365,7 @@ public class RepeatedFieldBuilder
    * collection's iterator.
    *
    * @param values the messages to add
+   *
    * @return the builder
    */
   public RepeatedFieldBuilder<MType, BType, IType> addAllMessages(
@@ -368,8 +376,8 @@ public class RepeatedFieldBuilder
       }
     }
     if (values instanceof Collection) {
-      @SuppressWarnings("unchecked") final
-      Collection<MType> collection = (Collection<MType>) values;
+      @SuppressWarnings("unchecked") final Collection<MType> collection =
+          (Collection<MType>) values;
       if (collection.size() == 0) {
         return this;
       }
@@ -392,6 +400,7 @@ public class RepeatedFieldBuilder
    * Appends a new builder to the end of this list and returns the builder.
    *
    * @param message the message to add which is the basis of the builder
+   *
    * @return the new builder
    */
   public BType addBuilder(MType message) {
@@ -412,8 +421,9 @@ public class RepeatedFieldBuilder
    * Shifts the element currently at that position (if any) and any subsequent
    * elements to the right (adds one to their indices).
    *
-   * @param index the index at which to insert the builder
+   * @param index   the index at which to insert the builder
    * @param message the message to add which is the basis of the builder
+   *
    * @return the builder
    */
   public BType addBuilder(int index, MType message) {

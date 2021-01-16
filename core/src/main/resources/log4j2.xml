@@ -4,19 +4,19 @@
     <Console name="primary" target="SYSTEM_OUT">
       <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
     </Console>
-  </Appenders> 
+  </Appenders>
   <Loggers>
     <Logger name="kafka.consumer" level="INFO" additivity="false">
-      <AppenderRef ref="primary" />
+      <AppenderRef ref="primary"/>
     </Logger>
     <Logger name="com.spotify.ffwd" level="WARN" additivity="false">
-      <AppenderRef ref="primary" />
+      <AppenderRef ref="primary"/>
     </Logger>
     <Logger name="io.netty" level="WARN" additivity="false">
-      <AppenderRef ref="primary" />
+      <AppenderRef ref="primary"/>
     </Logger>
     <Root level="WARN">
-      <AppenderRef ref="primary" />
+      <AppenderRef ref="primary"/>
     </Root>
   </Loggers>
 </Configuration>

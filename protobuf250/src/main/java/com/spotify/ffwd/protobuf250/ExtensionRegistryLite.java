@@ -106,26 +106,26 @@ public class ExtensionRegistryLite {
    * Find an extension by containing type and field number.
    *
    * @return Information about the extension if found, or {@code null}
-   *         otherwise.
+   *     otherwise.
    */
   @SuppressWarnings("unchecked")
   public <ContainingType extends MessageLite>
-      GeneratedMessageLite.GeneratedExtension<ContainingType, ?>
-        findLiteExtensionByNumber(
-          final ContainingType containingTypeDefaultInstance,
-          final int fieldNumber) {
+  GeneratedMessageLite.GeneratedExtension<ContainingType, ?>
+  findLiteExtensionByNumber(
+      final ContainingType containingTypeDefaultInstance,
+      final int fieldNumber) {
     return (GeneratedMessageLite.GeneratedExtension<ContainingType, ?>)
-      extensionsByNumber.get(
-        new ObjectIntPair(containingTypeDefaultInstance, fieldNumber));
+        extensionsByNumber.get(
+            new ObjectIntPair(containingTypeDefaultInstance, fieldNumber));
   }
 
   /** Add an extension from a lite generated file to the registry. */
   public final void add(
       final GeneratedMessageLite.GeneratedExtension<?, ?> extension) {
     extensionsByNumber.put(
-      new ObjectIntPair(extension.getContainingTypeDefaultInstance(),
-                        extension.getNumber()),
-      extension);
+        new ObjectIntPair(extension.getContainingTypeDefaultInstance(),
+            extension.getNumber()),
+        extension);
   }
 
   // =================================================================
@@ -137,7 +137,7 @@ public class ExtensionRegistryLite {
   ExtensionRegistryLite() {
     this.extensionsByNumber =
         new HashMap<ObjectIntPair,
-                    GeneratedMessageLite.GeneratedExtension<?, ?>>();
+            GeneratedMessageLite.GeneratedExtension<?, ?>>();
   }
 
   ExtensionRegistryLite(ExtensionRegistryLite other) {
@@ -145,22 +145,24 @@ public class ExtensionRegistryLite {
       this.extensionsByNumber = Collections.emptyMap();
     } else {
       this.extensionsByNumber =
-        Collections.unmodifiableMap(other.extensionsByNumber);
+          Collections.unmodifiableMap(other.extensionsByNumber);
     }
   }
 
   private final Map<ObjectIntPair,
-                    GeneratedMessageLite.GeneratedExtension<?, ?>>
+      GeneratedMessageLite.GeneratedExtension<?, ?>>
       extensionsByNumber;
 
   private ExtensionRegistryLite(boolean empty) {
     this.extensionsByNumber = Collections.emptyMap();
   }
+
   private static final ExtensionRegistryLite EMPTY =
-    new ExtensionRegistryLite(true);
+      new ExtensionRegistryLite(true);
 
   /** A (Object, int) pair, used as a map key. */
   private static final class ObjectIntPair {
+
     private final Object object;
     private final int number;
 
@@ -173,12 +175,13 @@ public class ExtensionRegistryLite {
     public int hashCode() {
       return System.identityHashCode(object) * ((1 << 16) - 1) + number;
     }
+
     @Override
     public boolean equals(final Object obj) {
       if (!(obj instanceof ObjectIntPair)) {
         return false;
       }
-      final ObjectIntPair other = (ObjectIntPair)obj;
+      final ObjectIntPair other = (ObjectIntPair) obj;
       return object == other.object && number == other.number;
     }
   }

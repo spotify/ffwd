@@ -58,8 +58,8 @@ package com.spotify.ffwd.protobuf250;
  */
 public class SingleFieldBuilder
     <MType extends GeneratedMessage,
-     BType extends GeneratedMessage.Builder,
-     IType extends MessageOrBuilder>
+        BType extends GeneratedMessage.Builder,
+        IType extends MessageOrBuilder>
     implements GeneratedMessage.BuilderParent {
 
   // Parent to send changes to.
@@ -155,7 +155,7 @@ public class SingleFieldBuilder
   @SuppressWarnings("unchecked")
   public IType getMessageOrBuilder() {
     if (builder != null) {
-      return  (IType) builder;
+      return (IType) builder;
     } else {
       return (IType) message;
     }
@@ -165,6 +165,7 @@ public class SingleFieldBuilder
    * Sets a  message for the field replacing any existing value.
    *
    * @param message the message to set
+   *
    * @return the builder
    */
   public SingleFieldBuilder<MType, BType, IType> setMessage(
@@ -185,6 +186,7 @@ public class SingleFieldBuilder
    * Merges the field from another field.
    *
    * @param value the value to merge from
+   *
    * @return the builder
    */
   public SingleFieldBuilder<MType, BType, IType> mergeFrom(
@@ -206,8 +208,8 @@ public class SingleFieldBuilder
   @SuppressWarnings("unchecked")
   public SingleFieldBuilder<MType, BType, IType> clear() {
     message = (MType) (message != null ?
-        message.getDefaultInstanceForType() :
-        builder.getDefaultInstanceForType());
+                       message.getDefaultInstanceForType() :
+                       builder.getDefaultInstanceForType());
     if (builder != null) {
       builder.dispose();
       builder = null;

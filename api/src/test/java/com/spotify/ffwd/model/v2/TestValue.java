@@ -28,21 +28,23 @@ import org.junit.Test;
 
 
 public class TestValue {
-      @Test
-      public void doNothingYet(){}
 
-    private final static double DOUBLE_VAL = 0.022;
-    private final static ByteString BYTE_STRING =
-            ByteString.copyFromUtf8("0s0s0s0s0s0s0s0s");
-    @Test
-    public void testCreateDoubleValue(){
-        Value.DoubleValue val = Value.DoubleValue.create(DOUBLE_VAL);
-        assertEquals(DOUBLE_VAL,val.getValue());
-    }
+  @Test
+  public void doNothingYet() {}
 
-    @Test
-   public void testCreateDistributionValue() {
-        Value.DistributionValue val = Value.DistributionValue.create(BYTE_STRING);
-        assertEquals(BYTE_STRING, val.getValue());
-    }
+  private final static double DOUBLE_VAL = 0.022;
+  private final static ByteString BYTE_STRING =
+      ByteString.copyFromUtf8("0s0s0s0s0s0s0s0s");
+
+  @Test
+  public void testCreateDoubleValue() {
+    Value.DoubleValue val = Value.DoubleValue.create(DOUBLE_VAL);
+    assertEquals(DOUBLE_VAL, val.getValue());
+  }
+
+  @Test
+  public void testCreateDistributionValue() {
+    Value.DistributionValue val = Value.DistributionValue.create(BYTE_STRING);
+    assertEquals(BYTE_STRING, val.getValue());
+  }
 }

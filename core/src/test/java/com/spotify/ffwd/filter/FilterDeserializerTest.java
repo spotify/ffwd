@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,29 +30,30 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class FilterDeserializerTest {
-    ObjectMapper mapper;
 
-    @Before
-    public void setup() {
-        final SimpleModule m = new SimpleModule();
+  ObjectMapper mapper;
 
-        final Map<String, FilterDeserializer.PartialDeserializer> filters = new HashMap<>();
-        filters.put("and", new AndFilter.Deserializer());
-        filters.put("or", new OrFilter.Deserializer());
-        filters.put("key", new MatchKey.Deserializer());
-        filters.put("not", new NotFilter.Deserializer());
+  @Before
+  public void setup() {
+    final SimpleModule m = new SimpleModule();
 
-        m.addDeserializer(Filter.class, new FilterDeserializer(filters));
+    final Map<String, FilterDeserializer.PartialDeserializer> filters = new HashMap<>();
+    filters.put("and", new AndFilter.Deserializer());
+    filters.put("or", new OrFilter.Deserializer());
+    filters.put("key", new MatchKey.Deserializer());
+    filters.put("not", new NotFilter.Deserializer());
 
-        mapper = new ObjectMapper();
-        mapper.registerModule(m);
-    }
+    m.addDeserializer(Filter.class, new FilterDeserializer(filters));
 
-    @Test
-    public void testArray() throws Exception {
-        assertEquals(new MatchKey("value"), mapper.readValue("[\"key\", \"value\"]", Filter.class));
-        assertEquals(new FalseFilter(), mapper.readValue("[\"or\"]", Filter.class));
-        assertEquals(new MatchKey("value"),
-            mapper.readValue("[\"or\", [\"key\", \"value\"]]", Filter.class));
-    }
+    mapper = new ObjectMapper();
+    mapper.registerModule(m);
+  }
+
+  @Test
+  public void testArray() throws Exception {
+    assertEquals(new MatchKey("value"), mapper.readValue("[\"key\", \"value\"]", Filter.class));
+    assertEquals(new FalseFilter(), mapper.readValue("[\"or\"]", Filter.class));
+    assertEquals(new MatchKey("value"),
+        mapper.readValue("[\"or\", [\"key\", \"value\"]]", Filter.class));
+  }
 }

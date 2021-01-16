@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,47 +35,48 @@ import org.apache.commons.lang3.StringEscapeUtils;
 
 @Sharable
 public class CarbonDecoder extends MessageToMessageDecoder<String> {
-    private static final Map<String, String> EMPTY_RESOURCE = ImmutableMap.of();
-    private static final Pattern WHITE_SPACE_PATTERN = Pattern.compile("\\s+");
 
-    private final String key;
+  private static final Map<String, String> EMPTY_RESOURCE = ImmutableMap.of();
+  private static final Pattern WHITE_SPACE_PATTERN = Pattern.compile("\\s+");
 
-    public CarbonDecoder(final String key) {
-        this.key = key;
+  private final String key;
+
+  public CarbonDecoder(final String key) {
+    this.key = key;
+  }
+
+  @Override
+  protected void decode(
+      final ChannelHandlerContext arg0, final String in, final List<Object> out
+  ) throws Exception {
+
+    final String[] tokens = WHITE_SPACE_PATTERN.split(in);
+
+    if (tokens.length != 3) {
+      throw new CorruptedFrameException(String.format("malformed carbon frame (%s)", in));
     }
 
-    @Override
-    protected void decode(
-        final ChannelHandlerContext arg0, final String in, final List<Object> out
-    ) throws Exception {
-
-        final String[] tokens = WHITE_SPACE_PATTERN.split(in);
-
-        if (tokens.length != 3) {
-            throw new CorruptedFrameException(String.format("malformed carbon frame (%s)", in));
-        }
-
-        final double value;
-        try {
-            value = Double.valueOf(tokens[1]);
-        } catch (final NumberFormatException e) {
-            throw new CorruptedFrameException(
-                String.format("malformed carbon frame (%s), (%s) is an invalid value", in,
-                    StringEscapeUtils.escapeJava(tokens[1])));
-        }
-
-        final long timestamp;
-        try {
-            timestamp = Long.valueOf(tokens[2]);
-        } catch (final NumberFormatException e) {
-            throw new CorruptedFrameException(
-                String.format("malformed carbon frame (%s), (%s) is an invalid timestamp", in,
-                    StringEscapeUtils.escapeJava(tokens[2])));
-        }
-
-        final Map<String, String> tags = new HashMap<>();
-        tags.put("what", tokens[0]);
-
-        out.add(new Metric(key, Value.DoubleValue.create(value), timestamp, tags, EMPTY_RESOURCE));
+    final double value;
+    try {
+      value = Double.valueOf(tokens[1]);
+    } catch (final NumberFormatException e) {
+      throw new CorruptedFrameException(
+          String.format("malformed carbon frame (%s), (%s) is an invalid value", in,
+              StringEscapeUtils.escapeJava(tokens[1])));
     }
+
+    final long timestamp;
+    try {
+      timestamp = Long.valueOf(tokens[2]);
+    } catch (final NumberFormatException e) {
+      throw new CorruptedFrameException(
+          String.format("malformed carbon frame (%s), (%s) is an invalid timestamp", in,
+              StringEscapeUtils.escapeJava(tokens[2])));
+    }
+
+    final Map<String, String> tags = new HashMap<>();
+    tags.put("what", tokens[0]);
+
+    out.add(new Metric(key, Value.DoubleValue.create(value), timestamp, tags, EMPTY_RESOURCE));
+  }
 }

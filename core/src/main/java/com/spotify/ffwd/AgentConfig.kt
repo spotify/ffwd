@@ -37,7 +37,7 @@ import java.nio.file.Path
 class AgentConfig(val config: Config) {
     fun hasDebug(): Boolean = config.contains(Debug.host) or config.contains(Debug.port)
 
-    val debugLocalAddress =  config[Debug.localAddress]
+    val debugLocalAddress = config[Debug.localAddress]
     val host = config[AgentConfig.host]
     val tags = config[AgentConfig.tags]
     val tagsToResource = config[AgentConfig.tagsToResource]
@@ -80,15 +80,15 @@ class AgentConfig(val config: Config) {
         fun load(path: Path, extraModule: SimpleModule): Config {
             val config = Config { addSpec(AgentConfig) }
             config.mapper
-                .registerModule(Jdk8Module())
-                .registerModule(extraModule)
+                    .registerModule(Jdk8Module())
+                    .registerModule(extraModule)
 
             // Load yaml config files with no prefix, then set it to "ffwd" for other sources.
             return config
-                .from.yaml.file(path.toFile())
-                .withPrefix("ffwd")
-                .from.env()
-                .from.systemProperties()
+                    .from.yaml.file(path.toFile())
+                    .withPrefix("ffwd")
+                    .from.env()
+                    .from.systemProperties()
         }
     }
 }

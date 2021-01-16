@@ -38,6 +38,7 @@ package com.spotify.ffwd.protobuf250;
  * @author cpovirk@google.com Chris Povirk
  */
 public interface BlockingRpcChannel {
+
   /**
    * Call the given method of the remote service and blocks until it returns.
    * {@code callBlockingMethod()} is the blocking equivalent to

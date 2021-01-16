@@ -128,7 +128,7 @@ public class LazyStringArrayList extends AbstractList<String>
     // When copying from another LazyStringList, directly copy the underlying
     // elements rather than forcing each element to be decoded to a String.
     Collection<?> collection = c instanceof LazyStringList
-        ? ((LazyStringList) c).getUnderlyingElements() : c;
+                               ? ((LazyStringList) c).getUnderlyingElements() : c;
     boolean ret = list.addAll(index, collection);
     modCount++;
     return ret;

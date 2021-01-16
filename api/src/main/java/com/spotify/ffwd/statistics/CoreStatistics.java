@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,13 +21,14 @@
 package com.spotify.ffwd.statistics;
 
 public interface CoreStatistics {
-    public InputManagerStatistics newInputManager();
 
-    public OutputManagerStatistics newOutputManager();
+  public InputManagerStatistics newInputManager();
 
-    public OutputPluginStatistics newOutputPlugin(String id);
+  public OutputManagerStatistics newOutputManager();
 
-    public BatchingStatistics newBatching(String id);
+  public OutputPluginStatistics newOutputPlugin(String id);
 
-    public HighFrequencyDetectorStatistics newHighFrequency();
+  public BatchingStatistics newBatching(String id);
+
+  public HighFrequencyDetectorStatistics newHighFrequency();
 }

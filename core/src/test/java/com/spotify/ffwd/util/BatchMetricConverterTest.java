@@ -36,57 +36,67 @@ import org.junit.Test;
 
 
 public class BatchMetricConverterTest {
-    public Map<String, String> baseTags;
-    public Map<String, String> baseResources;
-    public Map<String, String> commonTags;
-    public Map<String, String> commonResources;
-    public Batch.Point point1;
 
-    @Before
-    public void setUp() throws Exception {
-        baseTags = ImmutableMap.of("tag1", "v1", "tag2", "v2");
-        baseResources = ImmutableMap.of("resource1", "v1", "resource2", "v2");
-        commonTags = ImmutableMap.of("ctag1", "1", "ctag2", "2", "ctag3", "3");
-        commonResources = ImmutableMap.of("cResource1", "1", "cResource2", "2");
-        point1 = Batch.Point.create("test", Optional.of(baseTags), Optional.of(baseResources), Value.DoubleValue.create(5), 0);
+  public Map<String, String> baseTags;
+  public Map<String, String> baseResources;
+  public Map<String, String> commonTags;
+  public Map<String, String> commonResources;
+  public Batch.Point point1;
 
-    }
+  @Before
+  public void setUp() throws Exception {
+    baseTags = ImmutableMap.of("tag1", "v1", "tag2", "v2");
+    baseResources = ImmutableMap.of("resource1", "v1", "resource2", "v2");
+    commonTags = ImmutableMap.of("ctag1", "1", "ctag2", "2", "ctag3", "3");
+    commonResources = ImmutableMap.of("cResource1", "1", "cResource2", "2");
+    point1 = Batch.Point.create("test", Optional.of(baseTags), Optional.of(baseResources),
+        Value.DoubleValue.create(5), 0);
 
-    @Test
-    public void convertBatchMetric() throws Exception {
-        final ImmutableList<Point> points = ImmutableList.of(point1);
-        final Batch batch = Batch.create(Optional.of(commonTags), Optional.of(commonResources), points);
-        final Metric metric = BatchMetricConverter.convertBatchMetric(batch, points.get(0));
+  }
 
-        final Map<String, String> resultingTags = metric.getTags();
-        final Map<String, String> resultingResources = metric.getResource();
+  @Test
+  public void convertBatchMetric() throws Exception {
+    final ImmutableList<Point> points = ImmutableList.of(point1);
+    final Batch batch = Batch.create(Optional.of(commonTags), Optional.of(commonResources), points);
+    final Metric metric = BatchMetricConverter.convertBatchMetric(batch, points.get(0));
 
-        final ImmutableMap<Object, Object> targetTags = ImmutableMap.builder().putAll(baseTags).putAll(commonTags).build();
-        final ImmutableMap<Object, Object> targetResources = ImmutableMap.builder().putAll(baseResources).putAll(commonResources).build();
+    final Map<String, String> resultingTags = metric.getTags();
+    final Map<String, String> resultingResources = metric.getResource();
 
-        assertEquals(targetTags, resultingTags);
-        assertEquals(targetResources, resultingResources);
-    }
+    final ImmutableMap<Object, Object> targetTags =
+        ImmutableMap.builder().putAll(baseTags).putAll(commonTags).build();
+    final ImmutableMap<Object, Object> targetResources =
+        ImmutableMap.builder().putAll(baseResources).putAll(commonResources).build();
 
-    @Test
-    public void testConvertBatchesToMetrics() throws Exception {
-        final Batch batch1 = Batch.create(Optional.of(commonTags), Optional.of(commonResources), ImmutableList.of(point1));
-        final Batch batch2 = Batch.create(Optional.of(commonTags), Optional.of(commonResources), ImmutableList.of(point1));
-        final List<Metric> results = BatchMetricConverter.convertBatchesToMetrics(ImmutableList.of(batch1, batch2));
-        assertEquals(2, results.size());
-    }
+    assertEquals(targetTags, resultingTags);
+    assertEquals(targetResources, resultingResources);
+  }
 
-    @Test
-    public void convertBatchesToMetricsEmptyPoints() throws Exception {
-        final Batch batch1 = Batch.create(Optional.of(commonTags), Optional.of(commonResources), ImmutableList.of());
-        final Batch batch2 = Batch.create(Optional.of(commonTags), Optional.of(commonResources), ImmutableList.of());
-        final List<Metric> results = BatchMetricConverter.convertBatchesToMetrics(ImmutableList.of(batch1, batch2));
-        assertEquals(0, results.size());
-    }
+  @Test
+  public void testConvertBatchesToMetrics() throws Exception {
+    final Batch batch1 = Batch
+        .create(Optional.of(commonTags), Optional.of(commonResources), ImmutableList.of(point1));
+    final Batch batch2 = Batch
+        .create(Optional.of(commonTags), Optional.of(commonResources), ImmutableList.of(point1));
+    final List<Metric> results =
+        BatchMetricConverter.convertBatchesToMetrics(ImmutableList.of(batch1, batch2));
+    assertEquals(2, results.size());
+  }
 
-    @Test
-    public void convertBatchesToMetricsEmptyBatch() throws Exception {
-        final List<Metric> results = BatchMetricConverter.convertBatchesToMetrics(ImmutableList.of());
-        assertEquals(0, results.size());
-    }
+  @Test
+  public void convertBatchesToMetricsEmptyPoints() throws Exception {
+    final Batch batch1 =
+        Batch.create(Optional.of(commonTags), Optional.of(commonResources), ImmutableList.of());
+    final Batch batch2 =
+        Batch.create(Optional.of(commonTags), Optional.of(commonResources), ImmutableList.of());
+    final List<Metric> results =
+        BatchMetricConverter.convertBatchesToMetrics(ImmutableList.of(batch1, batch2));
+    assertEquals(0, results.size());
+  }
+
+  @Test
+  public void convertBatchesToMetricsEmptyBatch() throws Exception {
+    final List<Metric> results = BatchMetricConverter.convertBatchesToMetrics(ImmutableList.of());
+    assertEquals(0, results.size());
+  }
 }

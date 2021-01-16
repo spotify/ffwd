@@ -87,7 +87,6 @@ public class HighFrequencyDetector {
    * Detects high frequency metrics by grouping and calculating
    * time delta between metric timestamps
    *
-   * @param metrics
    * @return list of filtered metrics
    */
   public List<Metric> detect(final List<Metric> metrics) {
@@ -112,7 +111,7 @@ public class HighFrequencyDetector {
           .filter(
               metric ->
                   highFrequencyMetrics.get().getOrDefault(metric, 0)
-                      < minNumberOfTriggers)
+                  < minNumberOfTriggers)
           .forEach(newList::add);
 
       statistics.reportHighFrequencyMetricsDropped(metrics.size() - newList.size());
@@ -129,7 +128,7 @@ public class HighFrequencyDetector {
             x ->
                 (int)
                     (list.get(size - x).getTime()
-                        - list.get(size - x - 1).getTime()))
+                     - list.get(size - x - 1).getTime()))
         .filter(d -> (d >= 0 && d < minFrequencyMillisAllowed))
         .summaryStatistics();
 

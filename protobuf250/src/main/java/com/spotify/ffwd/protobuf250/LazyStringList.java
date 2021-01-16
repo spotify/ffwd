@@ -54,9 +54,11 @@ public interface LazyStringList extends List<String> {
    * Returns the element at the specified position in this list as a ByteString.
    *
    * @param index index of the element to return
+   *
    * @return the element at the specified position in this list
+   *
    * @throws IndexOutOfBoundsException if the index is out of range
-   *         ({@code index < 0 || index >= size()})
+   *                                   ({@code index < 0 || index >= size()})
    */
   ByteString getByteString(int index);
 
@@ -65,8 +67,9 @@ public interface LazyStringList extends List<String> {
    * operation).
    *
    * @param element element to be appended to this list
+   *
    * @throws UnsupportedOperationException if the <tt>add</tt> operation
-   *         is not supported by this list
+   *                                       is not supported by this list
    */
   void add(ByteString element);
 

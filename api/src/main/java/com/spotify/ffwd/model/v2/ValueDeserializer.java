@@ -34,34 +34,34 @@ import java.io.IOException;
  */
 public class ValueDeserializer extends StdDeserializer<Value> {
 
-    private static final long serialVersionUID = 6224613339173782914L;
+  private static final long serialVersionUID = 6224613339173782914L;
 
-    public ValueDeserializer() {
-        this(Value.class);
+  public ValueDeserializer() {
+    this(Value.class);
+  }
+
+
+  public ValueDeserializer(final Class<Value> classz) {
+    super(classz);
+  }
+
+  @Override
+  public Value deserialize(JsonParser jsonParser, DeserializationContext deserializationContext)
+      throws IOException, JsonProcessingException {
+
+    JsonNode node = jsonParser.getCodec().readTree(jsonParser);
+
+    if (node.get("distributionValue") != null) {
+      byte[] bytes = node.get("distributionValue").binaryValue();
+      ByteString byteString = ByteString.copyFrom(bytes);
+      return Value.DistributionValue.create(byteString);
     }
 
-
-    public ValueDeserializer(final Class<Value> classz) {
-        super(classz);
+    if (node.get("doubleValue") != null) {
+      double val = node.get("doubleValue").asDouble();
+      return Value.DoubleValue.create(val);
     }
 
-    @Override
-    public Value deserialize(JsonParser jsonParser, DeserializationContext deserializationContext)
-            throws IOException, JsonProcessingException {
-
-        JsonNode node = jsonParser.getCodec().readTree(jsonParser);
-
-        if (node.get("distributionValue") != null) {
-            byte[] bytes = node.get("distributionValue").binaryValue();
-            ByteString byteString = ByteString.copyFrom(bytes);
-            return Value.DistributionValue.create(byteString);
-        }
-
-        if (node.get("doubleValue") != null) {
-            double val = node.get("doubleValue").asDouble();
-            return Value.DoubleValue.create(val);
-        }
-
-        throw new RuntimeException("Unrecognized value type");
-    }
+    throw new RuntimeException("Unrecognized value type");
+  }
 }

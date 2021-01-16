@@ -43,5 +43,6 @@ package com.spotify.ffwd.protobuf250;
  * @author kenton@google.com Kenton Varda
  */
 public interface RpcCallback<ParameterType> {
+
   void run(ParameterType parameter);
 }
