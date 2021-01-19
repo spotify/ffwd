@@ -1,10 +1,10 @@
-FROM maven:3.5.4-jdk-11 as builder
+FROM maven:3.5.4-jdk-8 as builder
 COPY . .
 RUN mvn clean package
 RUN mv agent/target/ffwd-agent-*.jar agent/target/ffwd-full.jar
 
 # final image
-FROM openjdk:11.0.3-slim-stretch
+FROM openjdk:8-slim-stretch
 
 EXPOSE 19091/udp
 EXPOSE 19000/tcp

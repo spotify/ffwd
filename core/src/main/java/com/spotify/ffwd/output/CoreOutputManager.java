@@ -323,7 +323,7 @@ public class CoreOutputManager implements OutputManager {
     */
     private void swapHyperLogLogPlus() {
         if (System.currentTimeMillis() - hyperLogSwapTS.get() > hyperLogLogPlusSwapPeriodMS
-            && hyperLogSwapLock.compareAndExchange(false, true)) {
+            && hyperLogSwapLock.compareAndSet(false, true)) {
             hyperLog.set(new HLL(
                     HYPER_LOG_LOG_LOG2M,
                     HYPER_LOG_LOG_REG_WIDTH,

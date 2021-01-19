@@ -23,13 +23,15 @@ package com.spotify.ffwd.model.v2;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Resources;
 import com.google.protobuf.ByteString;
 import com.spotify.ffwd.Mappers;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,79 +39,86 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class TestBatch {
-        private ObjectMapper mapper;
+    private ObjectMapper mapper;
 
-        @Before
-        public void setUp() {
-            this.mapper = Mappers.setupApplicationJson();
-        }
+    @Before
+    public void setUp() {
+        this.mapper = Mappers.setupApplicationJson();
+    }
 
-        @Test
-        public void testBatch0() throws Exception {
-            final String value = readResources("TestBatchV2.withoutResource.json");
-            mapper.readValue(value, com.spotify.ffwd.model.v2.Batch.class);
-        }
+    @Test
+    public void testBatch0() throws Exception {
+        final String value = readResources("TestBatchV2.withoutResource.json");
+        mapper.readValue(value, com.spotify.ffwd.model.v2.Batch.class);
+    }
 
-        @Test
-        public void testBatchSerializationWithoutResource() throws Exception {
-            final String value = readResources("TestBatch.0.json");
-            mapper.readValue(value, com.spotify.ffwd.model.v2.Batch.class);
-        }
+    @Test
+    public void testBatchSerializationWithoutResource() throws Exception {
+        final String value = readResources("TestBatch.0.json");
+        mapper.readValue(value, com.spotify.ffwd.model.v2.Batch.class);
+    }
 
-        @Test(expected = Exception.class)
-        public void testBatchBad() throws Exception {
+    @Test(expected = Exception.class)
+    public void testBatchBad() throws Exception {
         final String value = readResources("TestBatch.bad.json");
         mapper.readValue(value, com.spotify.ffwd.model.v2.Batch.class);
-       }
+    }
 
 
     @Test
-        public void testBatchSerializationWithResource() throws Exception{
-            Map<String, String> commonResources = Map.of("node1","instance1","node2","instance2");
-            Map<String, String> commonTags = Map.of("host","host1");
-            Batch batchIn = createBatch(commonTags,commonResources);
-            String jsonStr = mapper.writeValueAsString(batchIn);
-            Batch batchOut = mapper.readValue(jsonStr,com.spotify.ffwd.model.v2.Batch.class);
-            assertThat(batchIn, is(batchOut));
-        }
+    public void testBatchSerializationWithResource() throws Exception{
+        Map<String, String> commonResources = new HashMap<String, String>() {{
+            put("node1","instance1");
+            put("node2","instance2");
+        }};
+        Map<String, String> commonTags = Collections.singletonMap("host","host1");
+        Batch batchIn = createBatch(commonTags,commonResources);
+        String jsonStr = mapper.writeValueAsString(batchIn);
+        Batch batchOut = mapper.readValue(jsonStr,com.spotify.ffwd.model.v2.Batch.class);
+        assertThat(batchIn, is(batchOut));
+    }
 
 
-       private com.spotify.ffwd.model.v2.Batch createBatch
-            (final Map<String,String>commonTags, final Map<String,String> commonResources){
-            ByteString byteString = ByteString.copyFromUtf8("addddesgeagtept");
-            Batch.Point p1  = createPoint(byteString);
-            Batch.Point p2 =createPoint(600.56);
-            List<Batch.Point> points = List.of(p1,p2);
-            return new com.spotify.ffwd.model.v2.Batch(commonTags,commonResources,points);
-      }
+    private com.spotify.ffwd.model.v2.Batch createBatch
+        (final Map<String,String>commonTags, final Map<String,String> commonResources){
+        ByteString byteString = ByteString.copyFromUtf8("addddesgeagtept");
+        Batch.Point p1 = createPoint(byteString);
+        Batch.Point p2 = createPoint(600.56);
+        List<Batch.Point> points = new ArrayList<>();
+        points.add(p1);
+        points.add(p2);
+        return new com.spotify.ffwd.model.v2.Batch(commonTags,commonResources,points);
+    }
 
 
     private  Batch.Point createPoint(final Double val){
-        Optional<Map<String,String>> tag1 =
-                Optional.of(Map.of("what","cpu-used-percentage","units",
-                "%" ));
+        Optional<Map<String, String>> tag1 = Optional.of(new HashMap<String, String>() {{
+            put("what", "cpu-used-percentage");
+            put("units", "%");
+        }});
 
         Optional<Map<String,String>> resource =
-                Optional.of( Map.of("instance","instance_point1"));
+            Optional.of(Collections.singletonMap("instance","instance_point1"));
 
         Value.DoubleValue val1 = com.spotify.ffwd.model.v2.Value.DoubleValue.create(val);
 
         return  Batch.Point.create("distribution-test",tag1,resource,val1,
-                System.currentTimeMillis());
+            System.currentTimeMillis());
     }
 
     private static Batch.Point createPoint(final ByteString val){
-        Optional<Map<String,String>> tag1 =
-                Optional.of(Map.of("what","cpu-used-percentage","units",
-                "%" ));
+        Optional<Map<String, String>> tag1 = Optional.of(new HashMap<String, String>() {{
+            put("what", "cpu-used-percentage");
+            put("units", "%");
+        }});
         Optional<Map<String,String>> resource =
-                Optional.of( Map.of("instance","instance_point1"));
+            Optional.of(Collections.singletonMap("instance","instance_point1"));
 
         Value.DistributionValue val1 =
-                com.spotify.ffwd.model.v2.Value.DistributionValue.create(val);
+            com.spotify.ffwd.model.v2.Value.DistributionValue.create(val);
 
         return Batch.Point.create("distribution-test",tag1,resource,val1,
-                System.currentTimeMillis());
+            System.currentTimeMillis());
     }
 
     private String readResources(final String name) throws IOException {

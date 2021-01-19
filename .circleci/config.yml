@@ -1,17 +1,30 @@
 version: 2
-jobs:
-  build:
-    working_directory: ~/ffwd
+shared: &shared
+  working_directory: ~/ffwd
+  steps:
+    - checkout
 
+    - save_cache:
+        paths:
+          - $HOME/.m2
+          - .cache
+        key: ffwd-{{ checksum "pom.xml" }}
+    - run: mvn -D environment=test verify
+
+jobs:
+  jdk8:
+    docker:
+      - image: circleci/openjdk:8-jdk-stretch
+    <<: *shared
+
+  jdk11:
     docker:
       - image: circleci/openjdk:11-jdk-stretch
+    <<: *shared
 
-    steps:
-      - checkout
-
-      - save_cache:
-          paths:
-            - $HOME/.m2
-            - .cache
-          key: ffwd-{{ checksum "pom.xml" }}
-      - run: mvn -D environment=test verify
+workflows:
+  version: 2
+  work:
+    jobs:
+      - jdk8
+      - jdk11

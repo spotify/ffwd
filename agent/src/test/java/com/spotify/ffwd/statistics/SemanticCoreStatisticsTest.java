@@ -20,17 +20,18 @@
 
 package com.spotify.ffwd.statistics;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.spy;
 
 import com.codahale.metrics.Gauge;
 import com.spotify.metrics.core.MetricId;
 import com.spotify.metrics.core.SemanticMetricRegistry;
+import java.util.Arrays;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
 
 public class SemanticCoreStatisticsTest {
 
@@ -46,6 +47,7 @@ public class SemanticCoreStatisticsTest {
     @Test
     public void testNewHighFrequency() {
         HighFrequencyDetectorStatistics stats = statistics.newHighFrequency();
+        List<Long> testLongs = Arrays.asList(2L, 70L, 10L);
 
         stats.reportHighFrequencyMetrics(1, "keys", "key1|key2|key3","whats","what,waht,what2");
         stats.reportHighFrequencyMetrics(2, "keys", "key1|key2|key3|key4","whats","waht,what2");
@@ -55,6 +57,6 @@ public class SemanticCoreStatisticsTest {
         SortedMap<MetricId, Gauge> gaugesFinal = registry.getGauges();
 
         List<Long> longs = gaugesFinal.entrySet().stream().map(set -> (Long)set.getValue().getValue()).collect(Collectors.toList());
-        assertEquals(List.of(2L, 70L, 10L), longs);
+        assertEquals(testLongs, longs);
     }
 }

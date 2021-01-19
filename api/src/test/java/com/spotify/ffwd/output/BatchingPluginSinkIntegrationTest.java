@@ -28,7 +28,6 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -46,9 +45,8 @@ import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.ResolvableFuture;
 import eu.toolchain.async.TinyAsync;
 import java.util.Collection;
-import java.util.Date;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -107,7 +105,8 @@ public class BatchingPluginSinkIntegrationTest {
         doReturn(async.resolved()).when(childSink).start();
         doReturn(async.resolved()).when(childSink).stop();
 
-        metric = new Metric("KEY", Value.DoubleValue.create(42.0), System.currentTimeMillis(), Map.of("tag1", "value1"), ImmutableMap.of());
+        metric = new Metric("KEY", Value.DoubleValue.create(42.0), System.currentTimeMillis(),
+         Collections.singletonMap("tag1", "value1"), ImmutableMap.of());
 
         sink.sink = childSink;
         sink.log = log;

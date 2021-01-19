@@ -289,7 +289,7 @@ public class OutputManagerTest {
         // Send a burst of metrics, all should be accepted
         for (int i = 0; i < sendNum; i++) {
             outputManager.sendMetric(new Metric("main-key"+i, Value.DoubleValue.create(42.0),
-                    System.currentTimeMillis(), Map.of("key"+i,"value"+i), ImmutableMap.of()));
+                    System.currentTimeMillis(), Collections.singletonMap("key"+i,"value"+i), ImmutableMap.of()));
         }
 
         // sent 18 as cardinality limit is 19
@@ -314,7 +314,7 @@ public class OutputManagerTest {
         for (int i = 0; i < sendNum; i++) {
             outputManager.sendMetric(new Metric("main-key"+i,
                     Value.DoubleValue.create(42.0), System.currentTimeMillis()
-                    ,  Map.of("key"+i,"value"+i), ImmutableMap.of()));
+                    ,  Collections.singletonMap("key"+i,"value"+i), ImmutableMap.of()));
         }
 
         // Next metric shouldn't be dropped as it uses special key
@@ -328,10 +328,10 @@ public class OutputManagerTest {
         // This should allow most of the metrics to be sent even though the cardinality is high
         for (int i = 0; i < sendNum; i++) {
             outputManager.sendMetric(new Metric("main-key"+i, Value.DoubleValue.create(42.0),
-                    System.currentTimeMillis(), Map.of("key"+i,"value"+i), ImmutableMap.of()));
+                    System.currentTimeMillis(), Collections.singletonMap("key"+i,"value"+i), ImmutableMap.of()));
         }
 
-        verify(sink, times(38)).sendMetric(captor.capture());
+        verify(sink, times(39)).sendMetric(captor.capture());
     }
 
 
@@ -349,7 +349,7 @@ public class OutputManagerTest {
         for (int i = 0; i < sendNum; i++) {
             double val = (double)m1.getValue().getValue();
             points.add(
-                new Batch.Point("main-key"+i, Map.of("key"+i,"value"+i),
+                new Batch.Point("main-key"+i, Collections.singletonMap("key"+i,"value"+i),
                         m1.getResource(), Value.DoubleValue.create(val+i), m1.getTime()));
         }
 
@@ -382,7 +382,7 @@ public class OutputManagerTest {
         for (int i = 0; i < sendNum; i++) {
             double val = (double)m1.getValue().getValue();
             points.add(
-                new Batch.Point("main-key"+i, Map.of("key"+i,"value"+i),
+                new Batch.Point("main-key"+i, Collections.singletonMap("key"+i,"value"+i),
                         m1.getResource(), Value.DoubleValue.create(val+i), m1.getTime()));
         }
 
@@ -401,10 +401,10 @@ public class OutputManagerTest {
         // This should allow most of the metrics to be sent even though the cardinality is high
         for (int i = 0; i < sendNum; i++) {
             outputManager.sendMetric(new Metric("main-key"+i, Value.DoubleValue.create(42.0), System.currentTimeMillis(),
-                    Map.of("key"+i,"value"+i), ImmutableMap.of()));
+                Collections.singletonMap("key"+i,"value"+i), ImmutableMap.of()));
         }
 
-        verify(sink, times(19)).sendMetric(captor.capture());
+        verify(sink, times(20)).sendMetric(captor.capture());
     }
 
     private Metric sendAndCaptureMetric(Metric metric) {

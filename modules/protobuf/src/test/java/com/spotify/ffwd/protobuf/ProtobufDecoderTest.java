@@ -22,12 +22,12 @@ package com.spotify.ffwd.protobuf;
 
 import static org.junit.Assert.assertEquals;
 
-
 import com.google.protobuf.ByteString;
 import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.model.v2.Value;
 import com.spotify.ffwd.protocol0.Protocol0;
 import com.spotify.ffwd.protocol1.Protocol1;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Data;
@@ -39,8 +39,8 @@ public class ProtobufDecoderTest {
     private final static String KEY = "key";
     private final static double DVALUE = 0.098;
     private final static long TIME = 1234879475;
-    private final static Map<String,String> TAGS = Map.of("tagKey", "tagVal");
-    private final static Map<String,String> RESOURCE = Map.of();  // Place holder, not supported yet.
+    private final static Map<String,String> TAGS = Collections.singletonMap("tagKey", "tagVal");
+    private final static Map<String,String> RESOURCE = Collections.emptyMap();  // Place holder, not supported yet.
     private final static ByteString byteString = ByteString.copyFromUtf8("xxveagefanmvjdueancge");
     private Field field;
     private ProtobufDecoder decoder;

@@ -50,7 +50,8 @@ import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.TinyAsync;
 import java.util.Collection;
-import java.util.Date;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -111,7 +112,9 @@ public class BatchingPluginSinkTest {
         log = LoggerFactory.getLogger(getClass());
         sink = createBatchingPluginSink();
         when(future.onFinished(any())).thenReturn(null);
-        metric = new Metric("KEY", value, System.currentTimeMillis(), Map.of("tag", "value"), ImmutableMap.of());
+        metric = new Metric("KEY", value, System.currentTimeMillis(), Collections.singletonMap("tag",
+        "value"),
+         ImmutableMap.of());
     }
 
     public BatchingPluginSink createBatchingPluginSink() {
@@ -229,8 +232,11 @@ public class BatchingPluginSinkTest {
 
     private Metric createMetric(final String key, final double val) {
         Value value = Value.DoubleValue.create(val);
-        return new Metric(key, value, System.currentTimeMillis(), Map
-                .of("tag1", "value1", "what", "fun"), ImmutableMap.of());
+        Map<String, String> tagval = new HashMap<String, String>() {{
+          put("tag1", "value1");
+          put("what", "fun");
+        }};
+        return new Metric(key, value, System.currentTimeMillis(), tagval, ImmutableMap.of());
     }
 
     @Test

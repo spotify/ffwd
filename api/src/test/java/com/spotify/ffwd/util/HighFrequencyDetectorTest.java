@@ -23,7 +23,6 @@ package com.spotify.ffwd.util;
 import static org.junit.Assert.assertEquals;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -34,7 +33,7 @@ import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.model.v2.Value;
 import com.spotify.ffwd.statistics.HighFrequencyDetectorStatistics;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.Before;
@@ -114,8 +113,11 @@ public class HighFrequencyDetectorTest {
 
   private Metric createMetric(final String key, final double val) {
     Value value = Value.DoubleValue.create(val);
-    return new Metric(key, value, System.currentTimeMillis(), Map
-            .of("tag1", "value1", "what", "fun"), ImmutableMap.of());
+    Map<String, String> tagval = new HashMap<String, String>() {{
+      put("tag1", "value1");
+      put("what", "fun");
+    }};
+    return new Metric(key, value, System.currentTimeMillis(), tagval, ImmutableMap.of());
   }
 
   @Test
