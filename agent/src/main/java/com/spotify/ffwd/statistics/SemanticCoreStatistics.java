@@ -54,7 +54,7 @@ public class SemanticCoreStatistics implements CoreStatistics {
 
             @Override
             public boolean isInstance(final Metric metric) {
-                return Histogram.class.isInstance(metric);
+                return metric instanceof Histogram;
             }
         };
 
@@ -99,9 +99,9 @@ public class SemanticCoreStatistics implements CoreStatistics {
             private final Counter metricsDroppedByCardinalityLimit =
               registry.counter(m.tagged("what", "metrics-dropped-by-cardlimit", "unit", "metric"));
 
-            private final Gauge metricsCardinalityMetric =
+            private final Gauge<Long> metricsCardinalityMetric =
               registry.register(m.tagged("what", "metrics-cardinality"),
-                  (Gauge<Long>) () -> (long) metricsCardinality.get());
+                  (Gauge<Long>) metricsCardinality::get);
 
             @Override
             public void reportSentMetrics(int sent) {
