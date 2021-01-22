@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 public class BatchMetricConverter {
-    public static Metric convertBatchMetric(final Batch batch, final Batch.Point point) {
+    public static Metric convertBatchMetric(final Batch batch, final Metric point) {
         final Map<String, String> allTags = new HashMap<>(batch.getCommonTags());
         allTags.putAll(point.getTags());
 

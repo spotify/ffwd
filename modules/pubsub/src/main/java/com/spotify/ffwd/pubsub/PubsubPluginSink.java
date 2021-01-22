@@ -118,7 +118,7 @@ public class PubsubPluginSink implements BatchablePluginSink {
       final ByteString m = ByteString.copyFrom(serializer.serialize(metrics, writeCache));
       publishPubSub(m);
     } catch (Exception e) {
-      logger.error("Failed to serialize batch of metrics {}", e);
+      logger.error("Failed to serialize batch of metrics: ", e);
     }
     return async.resolved();
   }

@@ -363,8 +363,8 @@ public class CoreOutputManager implements OutputManager {
      * Filter the provided Metric and complete fields.
      */
     private Metric filter(final Metric metric) {
-        final long time = metric.getTime() != 0 ?
-                metric.getTime() : System.currentTimeMillis();
+        final long time = metric.getTimestamp() != 0 ?
+                          metric.getTimestamp() : System.currentTimeMillis();
 
         final Map<String, String> tags = selectTags(metric);
         final Map<String, String> commonResource = Maps.newHashMap(resource);
@@ -394,7 +394,7 @@ public class CoreOutputManager implements OutputManager {
         final Map<String, String> mergedCommonTags = tagsAndResources.getKey();
         final Map<String, String> mergedCommonResource = tagsAndResources.getValue();
 
-        final List<Batch.Point> points = batch.getPoints().stream().map(point -> {
+        final List<Metric> points = batch.getPoints().stream().map(point -> {
             final Map<String, String> pointTags = point.getTags();
             final Map<String, String> pointResource = point.getResource();
 
@@ -403,13 +403,13 @@ public class CoreOutputManager implements OutputManager {
             final Map<String, String> mergedTags = pointTagsAndResources.getKey();
             final Map<String, String> mergedResource = pointTagsAndResources.getValue();
 
-            return new Batch.Point(
-                point.getKey(),
-                mergedTags,
-                mergedResource,
-                point.getValue(),
-                point.getTimestamp());
-
+            return Metric.builder()
+                .setKey(point.getKey())
+                .setTags(mergedTags)
+                .setResource(mergedResource)
+                .setValue(point.getValue())
+                .setTimestamp(point.getTimestamp())
+                .build();
         }).collect(Collectors.toList());
 
         return new Batch(mergedCommonTags, mergedCommonResource, points);

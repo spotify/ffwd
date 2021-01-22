@@ -91,11 +91,7 @@ public class HttpPluginSink implements BatchablePluginSink {
 
     @Override
     public AsyncFuture<Void> sendMetrics(final Collection<Metric> metrics) {
-        final List<Batch.Point> out = new ArrayList<>();
-
-        for (final Metric m : metrics) {
-            out.add(m.toBatchPoint());
-        }
+        final List<Metric> out = new ArrayList<>(metrics);
 
         // creates a new batch _without_ common tags, prefer using sendBatches instead.
         final Batch b = new Batch(ImmutableMap.of(), ImmutableMap.of(), out);

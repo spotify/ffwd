@@ -89,9 +89,11 @@ public class PubsubPluginSinkTest {
 
     @Test
     public void testSendBatch() {
-        final Batch batch = Batch.create(Optional.of(ImmutableMap.of("tag1", "foo")),
-            Optional.of(ImmutableMap.of("resource", "foo")),
-            ImmutableList.of(metric.toBatchPoint()));
+        final Batch batch = new Batch(
+            ImmutableMap.of("tag1", "foo"),
+            ImmutableMap.of("resource", "foo"),
+            ImmutableList.of(metric)
+        );
 
         sink.sendBatch(batch);
         verify(publisher).publish(isA(PubsubMessage.class));

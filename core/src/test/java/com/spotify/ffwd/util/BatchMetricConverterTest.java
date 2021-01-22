@@ -25,7 +25,6 @@ import static org.junit.Assert.assertEquals;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.spotify.ffwd.model.v2.Batch;
-import com.spotify.ffwd.model.v2.Batch.Point;
 import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.model.v2.Value;
 import java.util.List;
@@ -36,25 +35,30 @@ import org.junit.Test;
 
 
 public class BatchMetricConverterTest {
-    public Map<String, String> baseTags;
-    public Map<String, String> baseResources;
-    public Map<String, String> commonTags;
-    public Map<String, String> commonResources;
-    public Batch.Point point1;
+    private Map<String, String> baseTags;
+    private Map<String, String> baseResources;
+    private Map<String, String> commonTags;
+    private Map<String, String> commonResources;
+    private Metric point;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         baseTags = ImmutableMap.of("tag1", "v1", "tag2", "v2");
         baseResources = ImmutableMap.of("resource1", "v1", "resource2", "v2");
         commonTags = ImmutableMap.of("ctag1", "1", "ctag2", "2", "ctag3", "3");
         commonResources = ImmutableMap.of("cResource1", "1", "cResource2", "2");
-        point1 = Batch.Point.create("test", Optional.of(baseTags), Optional.of(baseResources), Value.DoubleValue.create(5), 0);
-
+        point = Metric.builder()
+            .setKey("test")
+            .setTags(baseTags)
+            .setResource(baseResources)
+            .setValue(Value.DoubleValue.create(5))
+            .setTimestamp(0)
+            .build();
     }
 
     @Test
-    public void convertBatchMetric() throws Exception {
-        final ImmutableList<Point> points = ImmutableList.of(point1);
+    public void convertBatchMetric() {
+        final ImmutableList<Metric> points = ImmutableList.of(point);
         final Batch batch = Batch.create(Optional.of(commonTags), Optional.of(commonResources), points);
         final Metric metric = BatchMetricConverter.convertBatchMetric(batch, points.get(0));
 
@@ -69,15 +73,17 @@ public class BatchMetricConverterTest {
     }
 
     @Test
-    public void testConvertBatchesToMetrics() throws Exception {
-        final Batch batch1 = Batch.create(Optional.of(commonTags), Optional.of(commonResources), ImmutableList.of(point1));
-        final Batch batch2 = Batch.create(Optional.of(commonTags), Optional.of(commonResources), ImmutableList.of(point1));
+    public void testConvertBatchesToMetrics() {
+        final Batch batch1 = Batch.create(Optional.of(commonTags), Optional.of(commonResources), ImmutableList.of(
+            point));
+        final Batch batch2 = Batch.create(Optional.of(commonTags), Optional.of(commonResources), ImmutableList.of(
+            point));
         final List<Metric> results = BatchMetricConverter.convertBatchesToMetrics(ImmutableList.of(batch1, batch2));
         assertEquals(2, results.size());
     }
 
     @Test
-    public void convertBatchesToMetricsEmptyPoints() throws Exception {
+    public void convertBatchesToMetricsEmptyPoints() {
         final Batch batch1 = Batch.create(Optional.of(commonTags), Optional.of(commonResources), ImmutableList.of());
         final Batch batch2 = Batch.create(Optional.of(commonTags), Optional.of(commonResources), ImmutableList.of());
         final List<Metric> results = BatchMetricConverter.convertBatchesToMetrics(ImmutableList.of(batch1, batch2));
@@ -85,7 +91,7 @@ public class BatchMetricConverterTest {
     }
 
     @Test
-    public void convertBatchesToMetricsEmptyBatch() throws Exception {
+    public void convertBatchesToMetricsEmptyBatch() {
         final List<Metric> results = BatchMetricConverter.convertBatchesToMetrics(ImmutableList.of());
         assertEquals(0, results.size());
     }

@@ -154,7 +154,7 @@ public class OpenTelemetryPluginSink implements PluginSink {
         return DoubleGauge.newBuilder()
             .addDataPoints(DoubleDataPoint.newBuilder()
                 .setStartTimeUnixNano(0)
-                .setTimeUnixNano(metric.getTime() * 1000 * 1000)
+                .setTimeUnixNano(metric.getTimestamp() * 1000 * 1000)
                 .setValue((Double) metric.getValue().getValue())
                 .addAllLabels(labels)
                 .build())

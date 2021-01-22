@@ -97,7 +97,7 @@ public class KafkaPluginSink implements BatchablePluginSink {
     }
 
     private KeyedMessage<Integer, byte[]> convertBatchMetric(
-        final Batch batch, final Batch.Point point
+        final Batch batch, final Metric point
     ) throws Exception {
         final Map<String, String> allTags = new HashMap<>(batch.getCommonTags());
         allTags.putAll(point.getTags());
@@ -177,7 +177,7 @@ public class KafkaPluginSink implements BatchablePluginSink {
         return Iterators.partition(iterator, batchSize);
     }
 
-    final Converter<Metric> metricConverter = new Converter<Metric>() {
+    private final Converter<Metric> metricConverter = new Converter<Metric>() {
         @Override
         public KeyedMessage<Integer, byte[]> toMessage(final Metric metric) throws Exception {
             final String topic = router.route(metric);

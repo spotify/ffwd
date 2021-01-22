@@ -97,7 +97,7 @@ public class SignalFxPluginSink implements BatchablePluginSink {
                             .setValue(SignalFxProtocolBuffers.Datum
                                 .newBuilder()
                                 .setDoubleValue(getDoubleDataPoint(metric)))
-                            .setTimestamp(metric.getTime());
+                            .setTimestamp(metric.getTimestamp());
 
                     metric
                         .getTags()

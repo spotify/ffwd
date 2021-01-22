@@ -23,9 +23,9 @@ package com.spotify.ffwd.http;
 import static io.netty.handler.codec.http.HttpMethod.GET;
 import static io.netty.handler.codec.http.HttpMethod.POST;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spotify.ffwd.model.v2.Batch;
+import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.model.v2.Value;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
@@ -56,12 +56,11 @@ public class HttpDecoder extends MessageToMessageDecoder<FullHttpRequest> {
     private ObjectMapper mapper;
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, FullHttpRequest in, List<Object> out)
-        throws Exception {
+    protected void decode(ChannelHandlerContext ctx, FullHttpRequest in, List<Object> out) {
         switch (in.uri()) {
             case "/ping":
                 if (in.method() == GET) {
-                    getPing(ctx, in, out);
+                    getPing(ctx);
                     return;
                 }
 
@@ -124,18 +123,21 @@ public class HttpDecoder extends MessageToMessageDecoder<FullHttpRequest> {
 
     private Batch convert(final com.spotify.ffwd.model.Batch batch) {
         List<com.spotify.ffwd.model.Batch.Point> v1Point = batch.getPoints();
-        final List<Batch.Point> v2Point =
-                v1Point.stream().map(p -> new Batch.Point(p.getKey(),
-                        p.getTags(), p.getResource(),
-                        Value.DoubleValue.create(p.getValue()),
-                              p.getTimestamp())).collect(Collectors.toList());
+        final List<Metric> v2Point = v1Point
+            .stream()
+            .map(p -> Metric.builder()
+                .setKey(p.getKey())
+                .setTags(p.getTags())
+                .setResource(p.getResource())
+                .setValue(Value.DoubleValue.create(p.getValue()))
+                .setTimestamp(p.getTimestamp())
+                .build())
+            .collect(Collectors.toList());
         return new Batch(batch.getCommonTags(), batch.getCommonResource(), v2Point);
     }
 
 
-    private void getPing(
-        final ChannelHandlerContext ctx, final FullHttpRequest in, final List<Object> out
-    ) {
+    private void getPing(final ChannelHandlerContext ctx) {
         ctx
             .channel()
             .writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK))

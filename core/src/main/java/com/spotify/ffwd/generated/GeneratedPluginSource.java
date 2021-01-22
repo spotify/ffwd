@@ -26,27 +26,20 @@ import com.spotify.ffwd.input.InputManager;
 import com.spotify.ffwd.input.PluginSource;
 import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.model.v2.Value;
-import com.spotify.ffwd.output.OutputManager;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class GeneratedPluginSource implements PluginSource {
     @Inject
     private AsyncFramework async;
-
     @Inject
     private InputManager input;
-    @Inject
-    private OutputManager output;
-
-    private final int count = 10000;
 
     private volatile AsyncFuture<Void> task;
     private volatile List<Metric> metrics;
@@ -56,30 +49,26 @@ public class GeneratedPluginSource implements PluginSource {
     private final ExecutorService single = Executors.newSingleThreadExecutor();
 
     private final boolean sameHost;
+    private final int count;
 
-    public GeneratedPluginSource(boolean sameHost) {
+    GeneratedPluginSource(boolean sameHost, int count) {
         this.sameHost = sameHost;
+        this.count = count;
     }
 
     @Override
     public void init() {
-        task = async.call(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                generate();
-                return null;
-            }
+        task = async.call(() -> {
+            generate();
+            return null;
         }, single);
     }
 
     @Override
     public AsyncFuture<Void> start() {
-        return async.call(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                metrics = generateMetrics();
-                return null;
-            }
+        return async.call(() -> {
+            metrics = generateMetrics();
+            return null;
         });
     }
 

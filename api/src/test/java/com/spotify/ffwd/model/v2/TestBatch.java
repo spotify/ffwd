@@ -82,43 +82,51 @@ public class TestBatch {
     private com.spotify.ffwd.model.v2.Batch createBatch
         (final Map<String,String>commonTags, final Map<String,String> commonResources){
         ByteString byteString = ByteString.copyFromUtf8("addddesgeagtept");
-        Batch.Point p1 = createPoint(byteString);
-        Batch.Point p2 = createPoint(600.56);
-        List<Batch.Point> points = new ArrayList<>();
+        Metric p1 = createPoint(byteString);
+        Metric p2 = createPoint(600.56);
+        List<Metric> points = new ArrayList<>();
         points.add(p1);
         points.add(p2);
-        return new com.spotify.ffwd.model.v2.Batch(commonTags,commonResources,points);
+        return new com.spotify.ffwd.model.v2.Batch(commonTags, commonResources, points);
     }
 
 
-    private  Batch.Point createPoint(final Double val){
-        Optional<Map<String, String>> tag1 = Optional.of(new HashMap<String, String>() {{
+    private Metric createPoint(final Double val){
+        Map<String, String> tags = new HashMap<String, String>() {{
             put("what", "cpu-used-percentage");
             put("units", "%");
-        }});
+        }};
 
-        Optional<Map<String,String>> resource =
-            Optional.of(Collections.singletonMap("instance","instance_point1"));
+        Map<String,String> resource = Collections.singletonMap("instance","instance_point1");
 
         Value.DoubleValue val1 = com.spotify.ffwd.model.v2.Value.DoubleValue.create(val);
 
-        return  Batch.Point.create("distribution-test",tag1,resource,val1,
-            System.currentTimeMillis());
+        return Metric.builder()
+            .setKey("distribution-test")
+            .setValue(val1)
+            .setTimestamp(System.currentTimeMillis())
+            .setTags(tags)
+            .setResource(resource)
+            .build();
     }
 
-    private static Batch.Point createPoint(final ByteString val){
-        Optional<Map<String, String>> tag1 = Optional.of(new HashMap<String, String>() {{
+    private static Metric createPoint(final ByteString val){
+        Map<String, String> tags = new HashMap<String, String>() {{
             put("what", "cpu-used-percentage");
             put("units", "%");
-        }});
-        Optional<Map<String,String>> resource =
-            Optional.of(Collections.singletonMap("instance","instance_point1"));
+        }};
+        Map<String,String> resource = Collections.singletonMap("instance","instance_point1");
 
         Value.DistributionValue val1 =
             com.spotify.ffwd.model.v2.Value.DistributionValue.create(val);
 
-        return Batch.Point.create("distribution-test",tag1,resource,val1,
-            System.currentTimeMillis());
+        return Metric.builder()
+            .setKey("distribution-test")
+            .setValue(val1)
+            .setTimestamp(System.currentTimeMillis())
+            .setTags(tags)
+            .setResource(resource)
+            .build();
     }
 
     private String readResources(final String name) throws IOException {

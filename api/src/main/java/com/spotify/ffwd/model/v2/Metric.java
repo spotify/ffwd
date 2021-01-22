@@ -20,12 +20,16 @@
 
 package com.spotify.ffwd.model.v2;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.spotify.ffwd.model.Metrics;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -38,18 +42,20 @@ public class Metric implements Metrics {
 
     private final String key;
     private final Value value;
-    private final long time;
+    private final long timestamp;
     private final Map<String, String> tags;
     private final Map<String, String> resource;
 
-
-    /**
-     * Convert into a batch point, lose information that is not relevant for batches.
-     *
-     * @return a batch point
-     */
-    public Batch.Point toBatchPoint() {
-        return new Batch.Point(key, tags, resource, value, time);
+    @JsonCreator
+    public static Metric create(
+        @JsonProperty("key") final String key,
+        @JsonProperty("tags") final Optional<Map<String, String>> tags,
+        @JsonProperty("resource") final Optional<Map<String, String>> resource,
+        @JsonProperty("value") final Value value,
+        @JsonProperty("timestamp") final long timestamp
+    ) {
+        return new Metric(key, value, timestamp,
+            tags.orElseGet(ImmutableMap::of), resource.orElseGet(ImmutableMap::of));
     }
 
     public boolean hasDistribution() {
@@ -81,5 +87,49 @@ public class Metric implements Metrics {
         }
 
         return hasher.hash().toString();
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private String key;
+        private Value value;
+        private Long timestamp;
+        private Map<String, String> tags = ImmutableMap.of();
+        private Map<String, String> resource = ImmutableMap.of();
+
+
+
+        public Builder setKey(String key) {
+            this.key = key;
+            return this;
+        }
+
+        public Builder setValue(Value value) {
+            this.value = value;
+            return this;
+        }
+
+        public Builder setTimestamp(long timestamp) {
+            this.timestamp = timestamp;
+            return this;
+        }
+
+        public Builder setTags(Map<String, String> tags) {
+            this.tags = tags;
+            return this;
+        }
+
+        public Builder setResource(Map<String, String> resource) {
+            this.resource = resource;
+            return this;
+        }
+
+        public Metric build() {
+            return new Metric(key, value, timestamp, tags, resource);
+        }
+
     }
 }

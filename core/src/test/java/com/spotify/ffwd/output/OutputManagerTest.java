@@ -42,7 +42,6 @@ import com.google.inject.util.Providers;
 import com.spotify.ffwd.debug.DebugServer;
 import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.model.v2.Batch;
-import com.spotify.ffwd.model.v2.Batch.Point;
 import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.model.v2.Value;
 import com.spotify.ffwd.statistics.OutputManagerStatistics;
@@ -161,7 +160,7 @@ public class OutputManagerTest {
         expectedTags.put("host", host);
 
         assertEquals(
-            new Metric(m1.getKey(), m1.getValue(), m1.getTime(), expectedTags,
+            new Metric(m1.getKey(), m1.getValue(), m1.getTimestamp(), expectedTags,
                 m1.getResource()), sendAndCaptureMetric(m1));
     }
 
@@ -173,7 +172,7 @@ public class OutputManagerTest {
         expectedTags.putAll(tags);
 
         assertEquals(
-            new Metric(m1.getKey(), m1.getValue(), m1.getTime(), expectedTags,
+            new Metric(m1.getKey(), m1.getValue(), m1.getTimestamp(), expectedTags,
                 m1.getResource()), sendAndCaptureMetric(m1));
     }
 
@@ -182,7 +181,7 @@ public class OutputManagerTest {
         skipTagsForKeys = ImmutableSet.of(KEY);
 
         assertEquals(
-            new Metric(m1.getKey(), m1.getValue(), m1.getTime(), m1.getTags(),
+            new Metric(m1.getKey(), m1.getValue(), m1.getTimestamp(), m1.getTags(),
                 m1.getResource()), sendAndCaptureMetric(m1));
     }
 
@@ -191,11 +190,11 @@ public class OutputManagerTest {
         Map<String, String> m2Tags = new HashMap<>();
         m2Tags.put("role", "abc");
         m2Tags.put("foo", "fooval");
-        Metric m2 = new Metric(m1.getKey(), m1.getValue(), m1.getTime(), m2Tags,
+        Metric m2 = new Metric(m1.getKey(), m1.getValue(), m1.getTimestamp(), m2Tags,
         m1.getResource());
 
         assertEquals(
-            new Metric(m1.getKey(), m1.getValue(), m1.getTime(), ImmutableMap.of("host","thehost","role","abc"),
+            new Metric(m1.getKey(), m1.getValue(), m1.getTimestamp(), ImmutableMap.of("host","thehost","role","abc"),
                 ImmutableMap.of("bar","fooval","gke_pod","123")), sendAndCaptureMetric(m2));
     }
 
@@ -205,11 +204,11 @@ public class OutputManagerTest {
         m2Tags.put("role", "abc");
         m2Tags.put("foo", "fooval");
 
-        final Batch.Point point = new Batch.Point(m1.getKey(), m2Tags, m1.getResource(), m1.getValue(), m1.getTime());
-        final Batch batch = new Batch(Maps.newHashMap(), Maps.newHashMap(), Collections.singletonList(point));
+        Metric point = new Metric(m1.getKey(), m1.getValue(), m1.getTimestamp(), m2Tags, m1.getResource());
+        Batch batch = new Batch(Maps.newHashMap(), Maps.newHashMap(), Collections.singletonList(point));
 
-        final Batch.Point expected = new Batch.Point(m1.getKey(), ImmutableMap.of("role","abc"),
-            ImmutableMap.of("bar","fooval"), m1.getValue(), m1.getTime());
+        Metric expected = new Metric(m1.getKey(), m1.getValue(), m1.getTimestamp(),
+            ImmutableMap.of("role","abc"), ImmutableMap.of("bar","fooval"));
 
         assertEquals(expected, sendAndCaptureBatch(batch).getPoints().get(0));
     }
@@ -256,11 +255,11 @@ public class OutputManagerTest {
         m2Tags.put("role", "abc");
         m2Tags.put("foo", "fooval");
 
-        final Batch.Point point = new Batch.Point(null, m2Tags, m1.getResource(), m1.getValue(), m1.getTime());
-        final Batch batch = new Batch(Maps.newHashMap(), Maps.newHashMap(), Collections.singletonList(point));
+        Metric point = new Metric(null, m1.getValue(), m1.getTimestamp(), m2Tags, m1.getResource());
+        Batch batch = new Batch(Maps.newHashMap(), Maps.newHashMap(), Collections.singletonList(point));
 
-        final Batch.Point expected = new Batch.Point(null, ImmutableMap.of("role","abc"),
-            ImmutableMap.of("bar","fooval"), m1.getValue(), m1.getTime());
+        Metric expected = new Metric(null, m1.getValue(), m1.getTimestamp(),
+            ImmutableMap.of("role", "abc"), ImmutableMap.of("bar", "fooval"));
         assertEquals(expected, sendAndCaptureBatch(batch).getPoints().get(0));
     }
 
@@ -271,11 +270,11 @@ public class OutputManagerTest {
         m2Tags.put("role", "abc");
         m2Tags.put("foo", "fooval");
 
-        final Batch.Point point = new Batch.Point(null, m2Tags, m1.getResource(), m1.getValue(), m1.getTime());
-        final Batch batch = new Batch(Maps.newHashMap(), Maps.newHashMap(), Collections.singletonList(point));
+        Metric point = new Metric(null, m1.getValue(), m1.getTimestamp(), m2Tags, m1.getResource());
+        Batch batch = new Batch(Maps.newHashMap(), Maps.newHashMap(), Collections.singletonList(point));
 
-        final Batch.Point expected = new Batch.Point(null, ImmutableMap.of("role","abc"),
-            ImmutableMap.of("bar","fooval"), m1.getValue(), m1.getTime());
+        Metric expected = new Metric(null, m1.getValue(), m1.getTimestamp(),
+            ImmutableMap.of("role","abc"), ImmutableMap.of("bar","fooval"));
         assertEquals(expected, sendAndCaptureBatch(batch).getPoints().get(0));
     }
 
@@ -343,14 +342,14 @@ public class OutputManagerTest {
         ArgumentCaptor<Metric> captor = ArgumentCaptor.forClass(Metric.class);
         ArgumentCaptor<Batch> captorBatch = ArgumentCaptor.forClass(Batch.class);
 
-        List<Point> points = new ArrayList<>();
+        List<Metric> points = new ArrayList<>();
 
         // Send a burst of metrics, all should be accepted
         for (int i = 0; i < sendNum; i++) {
-            double val = (double)m1.getValue().getValue();
+            double val = (double) m1.getValue().getValue();
             points.add(
-                new Batch.Point("main-key"+i, Collections.singletonMap("key"+i,"value"+i),
-                        m1.getResource(), Value.DoubleValue.create(val+i), m1.getTime()));
+                new Metric("main-key"+i, Value.DoubleValue.create(val+i), m1.getTimestamp(),
+                    Collections.singletonMap("key"+i,"value"+i), m1.getResource()));
         }
 
         final Batch batch = new Batch(Maps.newHashMap(), Maps.newHashMap(), points);
@@ -376,14 +375,14 @@ public class OutputManagerTest {
         ArgumentCaptor<Metric> captor = ArgumentCaptor.forClass(Metric.class);
         ArgumentCaptor<Batch> captorBatch = ArgumentCaptor.forClass(Batch.class);
 
-        List<Point> points = new ArrayList<>();
+        List<Metric> points = new ArrayList<>();
 
         // Send a burst of metrics, all should be accepted
         for (int i = 0; i < sendNum; i++) {
             double val = (double)m1.getValue().getValue();
             points.add(
-                new Batch.Point("main-key"+i, Collections.singletonMap("key"+i,"value"+i),
-                        m1.getResource(), Value.DoubleValue.create(val+i), m1.getTime()));
+                new Metric("main-key"+i, Value.DoubleValue.create(val+i), m1.getTimestamp(),
+                    Collections.singletonMap("key"+i, "value"+i), m1.getResource()));
         }
 
         final Batch batch = new Batch(Maps.newHashMap(), Maps.newHashMap(), points);

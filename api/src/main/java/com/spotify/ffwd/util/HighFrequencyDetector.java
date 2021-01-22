@@ -97,7 +97,7 @@ public class HighFrequencyDetector {
     // {metric1 -> -1, metric2 -> 10}
     Map<Metric, Integer> groupedMetrics =
         metrics.stream()
-            .sorted(Comparator.comparing(Metric::getTime))
+            .sorted(Comparator.comparing(Metric::getTimestamp))
             .collect(
                 Collectors.groupingBy(
                     Function.identity(),
@@ -128,8 +128,8 @@ public class HighFrequencyDetector {
         .map(
             x ->
                 (int)
-                    (list.get(size - x).getTime()
-                        - list.get(size - x - 1).getTime()))
+                    (list.get(size - x).getTimestamp()
+                        - list.get(size - x - 1).getTimestamp()))
         .filter(d -> (d >= 0 && d < minFrequencyMillisAllowed))
         .summaryStatistics();
 

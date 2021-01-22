@@ -25,19 +25,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.PrivateModule;
-import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.input.InputPlugin;
 import com.spotify.ffwd.input.PluginSource;
 import java.util.Optional;
 
 public class GeneratedInputPlugin implements InputPlugin {
     private final boolean sameHost;
+    private final int count;
 
     @JsonCreator
     public GeneratedInputPlugin(
-        @JsonProperty("sameHost") Boolean sameHost, @JsonProperty("filter") Optional<Filter> filter
+        @JsonProperty("sameHost") Optional<Boolean> sameHost,
+        @JsonProperty("count") Optional<Integer> count
     ) {
-        this.sameHost = Optional.ofNullable(sameHost).orElse(false);
+        this.sameHost = sameHost.orElse(false);
+        this.count = count.orElse(10000);
     }
 
     @Override
@@ -45,7 +47,7 @@ public class GeneratedInputPlugin implements InputPlugin {
         return new PrivateModule() {
             @Override
             protected void configure() {
-                bind(key).toInstance(new GeneratedPluginSource(sameHost));
+                bind(key).toInstance(new GeneratedPluginSource(sameHost, count));
                 expose(key);
             }
         };
