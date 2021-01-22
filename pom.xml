@@ -3,7 +3,7 @@
 
   <groupId>com.spotify.ffwd</groupId>
   <artifactId>ffwd-parent</artifactId>
-  <version>0.7.4-SNAPSHOT</version>
+  <version>0.8.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>FastForward Parent</name>
