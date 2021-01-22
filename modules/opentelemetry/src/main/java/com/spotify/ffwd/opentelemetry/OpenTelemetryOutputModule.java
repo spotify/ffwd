@@ -1,15 +1,15 @@
-/*-
+/*
  * -\-\-
- * FastForward API
+ * FastForward OpenTelemetry Module
  * --
- * Copyright (C) 2016 - 2018 Spotify AB
+ * Copyright (C) 2021 Spotify AB.
  * --
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,19 +18,18 @@
  * -/-/-
  */
 
-package com.spotify.ffwd;
+package com.spotify.ffwd.opentelemetry;
 
-/**
- * Interface to implement when you require post-start initialization of a component (e.g.
- * guarantee that everything else
- * has started).
- *
- * @author udoprog
- */
-public interface Initializable {
-    /**
-     * Initialize a component, will be called synchronously after everything has been started.
-     */
-    default void init() {
+import com.google.inject.Inject;
+import com.spotify.ffwd.module.FastForwardModule;
+import com.spotify.ffwd.module.PluginContext;
+
+public class OpenTelemetryOutputModule implements FastForwardModule {
+    @Inject
+    private PluginContext context;
+
+    @Override
+    public void setup() {
+        context.registerOutput("opentelemetry", OpenTelemetryOutputPlugin.class);
     }
 }

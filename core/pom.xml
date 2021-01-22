@@ -34,6 +34,10 @@
       <groupId>com.uchuhimo</groupId>
       <artifactId>konf</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>com.fasterxml.jackson.module</groupId>

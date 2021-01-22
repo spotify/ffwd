@@ -96,6 +96,7 @@ public class FastForwardAgent {
         modules.add(com.spotify.ffwd.http.HttpModule.class);
         modules.add(com.spotify.ffwd.pubsub.PubsubOutputModule.class);
         modules.add(com.spotify.ffwd.opencensus.OpenCensusOutputModule.class);
+        modules.add(com.spotify.ffwd.opentelemetry.OpenTelemetryOutputModule.class);
 
         final AgentCore.Builder builder = AgentCore.builder()
             .modules(modules)
