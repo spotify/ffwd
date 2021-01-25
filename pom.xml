@@ -64,16 +64,17 @@
     <tiny-async.version>1.11.0</tiny-async.version>
     <log4j.version>2.13.3</log4j.version>
     <slf4j.version>1.7.25</slf4j.version>
-    <jackson.version>2.9.9</jackson.version>
-    <kotlin.version>1.3.31</kotlin.version>
+    <jackson.version>2.10.0</jackson.version>
+    <kotlin.version>1.3.41</kotlin.version>
     <spotify-metrics.version>1.1.2</spotify-metrics.version>
     <findbugs.version>3.0.4</findbugs.version>
     <grpc.version>1.35.0</grpc.version>
+    <protobuf.version>3.14.0</protobuf.version>
     <gson.version>2.8.6</gson.version>
     <errorprone.version>2.4.0</errorprone.version>
     <animal_sniffer.version>1.19</animal_sniffer.version>
     <guava.version>27.0.1-jre</guava.version>
-    <protobuf.version>3.11.1</protobuf.version>
+    <opencensus.version>0.28.0</opencensus.version>
   </properties>
 
   <profiles>
@@ -213,21 +214,6 @@
       </dependency>
 
       <dependency>
-        <groupId>com.google.auth</groupId>
-        <artifactId>google-auth-library-credentials</artifactId>
-        <version>0.17.1</version>
-      </dependency>
-      <dependency>
-        <groupId>com.google.auth</groupId>
-        <artifactId>google-auth-library-oauth2-http</artifactId>
-        <version>0.17.1</version>
-      </dependency>
-      <dependency>
-        <groupId>com.google.http-client</groupId>
-        <artifactId>google-http-client</artifactId>
-        <version>1.31.0</version>
-      </dependency>
-      <dependency>
         <groupId>com.google.j2objc</groupId>
         <artifactId>j2objc-annotations</artifactId>
         <version>1.3</version>
@@ -236,11 +222,6 @@
         <groupId>com.google.code.gson</groupId>
         <artifactId>gson</artifactId>
         <version>${gson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.google.protobuf</groupId>
-        <artifactId>protobuf-java</artifactId>
-        <version>${protobuf.version}</version>
       </dependency>
 
       <!-- grpc dependencies -->
@@ -253,12 +234,6 @@
         <groupId>io.grpc</groupId>
         <artifactId>grpc-core</artifactId>
         <version>${grpc.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>io.grpc</groupId>
@@ -281,11 +256,6 @@
         <version>6.0.53</version>
       </dependency>
       <dependency>
-        <groupId>com.google.api.grpc</groupId>
-        <artifactId>proto-google-common-protos</artifactId>
-        <version>1.12.0</version>
-      </dependency>
-      <dependency>
         <groupId>com.google.errorprone</groupId>
         <artifactId>error_prone_annotations</artifactId>
         <version>${errorprone.version}</version>
@@ -295,10 +265,27 @@
         <artifactId>animal-sniffer-annotations</artifactId>
         <version>${animal_sniffer.version}</version>
       </dependency>
+      <dependency>
+        <groupId>com.google.protobuf</groupId>
+        <artifactId>protobuf-java</artifactId>
+        <version>${protobuf.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.cloud</groupId>
+        <artifactId>libraries-bom</artifactId>
+        <version>16.3.0</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
 
       <dependency>
         <groupId>org.jetbrains.kotlin</groupId>
         <artifactId>kotlin-stdlib-jdk8</artifactId>
+        <version>${kotlin.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jetbrains.kotlin</groupId>
+        <artifactId>kotlin-reflect</artifactId>
         <version>${kotlin.version}</version>
       </dependency>
       <dependency>
@@ -313,6 +300,16 @@
         </exclusions>
       </dependency>
 
+      <dependency>
+        <groupId>io.opencensus</groupId>
+        <artifactId>opencensus-api</artifactId>
+        <version>${opencensus.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.opencensus</groupId>
+        <artifactId>opencensus-impl</artifactId>
+        <version>${opencensus.version}</version>
+      </dependency>
 
       <dependency>
         <groupId>com.spotify.metrics</groupId>
@@ -332,12 +329,6 @@
         <version>${jackson.version}</version>
         <scope>import</scope>
         <type>pom</type>
-      </dependency>
-      <!-- annotations in the bom don't use patch releases which causes a conflict -->
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-annotations</artifactId>
-        <version>${jackson.version}</version>
       </dependency>
 
       <dependency>
@@ -373,6 +364,11 @@
         <groupId>org.isomorphism</groupId>
         <artifactId>token-bucket</artifactId>
         <version>1.6</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>3.5</version>
       </dependency>
 
       <dependency>
