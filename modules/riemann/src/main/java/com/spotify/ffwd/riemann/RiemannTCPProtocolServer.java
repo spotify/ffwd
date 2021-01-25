@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -38,39 +38,40 @@ import java.util.List;
  * @author udoprog
  */
 public class RiemannTCPProtocolServer implements ProtocolServer {
-    @Inject
-    private ChannelInboundHandler handler;
 
-    @Inject
-    private RiemannMessageDecoder decoder;
+  @Inject
+  private ChannelInboundHandler handler;
 
-    @Inject
-    private RiemannResponder responder;
+  @Inject
+  private RiemannMessageDecoder decoder;
 
-    @Inject
-    private Provider<RiemannFrameDecoder> frameDecoder;
+  @Inject
+  private RiemannResponder responder;
 
-    private final MessageToMessageDecoder<List<Object>> unpacker =
-        new MessageToMessageDecoder<List<Object>>() {
-            @Override
-            protected void decode(
-                final ChannelHandlerContext ctx, final List<Object> messages, final List<Object> out
-            ) throws Exception {
-                out.addAll(messages);
-            }
+  @Inject
+  private Provider<RiemannFrameDecoder> frameDecoder;
 
-            public boolean isSharable() {
-                return true;
-            }
-        };
+  private final MessageToMessageDecoder<List<Object>> unpacker =
+      new MessageToMessageDecoder<List<Object>>() {
+        @Override
+        protected void decode(
+            final ChannelHandlerContext ctx, final List<Object> messages, final List<Object> out
+        ) throws Exception {
+          out.addAll(messages);
+        }
 
-    @Override
-    public final ChannelInitializer<Channel> initializer() {
-        return new ChannelInitializer<Channel>() {
-            @Override
-            protected void initChannel(Channel ch) throws Exception {
-                ch.pipeline().addLast(frameDecoder.get(), decoder, responder, unpacker, handler);
-            }
-        };
-    }
+        public boolean isSharable() {
+          return true;
+        }
+      };
+
+  @Override
+  public final ChannelInitializer<Channel> initializer() {
+    return new ChannelInitializer<Channel>() {
+      @Override
+      protected void initChannel(Channel ch) throws Exception {
+        ch.pipeline().addLast(frameDecoder.get(), decoder, responder, unpacker, handler);
+      }
+    };
+  }
 }

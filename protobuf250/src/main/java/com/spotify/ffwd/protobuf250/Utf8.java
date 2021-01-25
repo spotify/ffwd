@@ -65,6 +65,7 @@ package com.spotify.ffwd.protobuf250;
  * @author martinrb@google.com (Martin Buchholz)
  */
 final class Utf8 {
+
   private Utf8() {}
 
   /**
@@ -129,16 +130,16 @@ final class Utf8 {
    * {@code limit}, exclusive.
    *
    * @param state either {@link Utf8#COMPLETE} (if this is the initial decoding
-   * operation) or the value returned from a call to a partial decoding method
-   * for the previous bytes
+   *              operation) or the value returned from a call to a partial decoding method
+   *              for the previous bytes
    *
    * @return {@link #MALFORMED} if the partial byte sequence is
-   * definitely not well-formed, {@link #COMPLETE} if it is well-formed
-   * (no additional input needed), or if the byte sequence is
-   * "incomplete", i.e. apparently terminated in the middle of a character,
-   * an opaque integer "state" value containing enough information to
-   * decode the character when passed to a subsequent invocation of a
-   * partial decoding method.
+   *     definitely not well-formed, {@link #COMPLETE} if it is well-formed
+   *     (no additional input needed), or if the byte sequence is
+   *     "incomplete", i.e. apparently terminated in the middle of a character,
+   *     an opaque integer "state" value containing enough information to
+   *     decode the character when passed to a subsequent invocation of a
+   *     partial decoding method.
    */
   public static int partialIsValidUtf8(
       int state, byte[] bytes, int index, int limit) {
@@ -219,7 +220,7 @@ final class Utf8 {
             // byte3 trailing-byte test
             byte3 > (byte) 0xBF ||
             // byte4 trailing-byte test
-             bytes[index++] > (byte) 0xBF) {
+            bytes[index++] > (byte) 0xBF) {
           return MALFORMED;
         }
       }
@@ -238,12 +239,12 @@ final class Utf8 {
    * partialIsValidUtf8(Utf8.COMPLETE, bytes, index, limit)}.
    *
    * @return {@link #MALFORMED} if the partial byte sequence is
-   * definitely not well-formed, {@link #COMPLETE} if it is well-formed
-   * (no additional input needed), or if the byte sequence is
-   * "incomplete", i.e. apparently terminated in the middle of a character,
-   * an opaque integer "state" value containing enough information to
-   * decode the character when passed to a subsequent invocation of a
-   * partial decoding method.
+   *     definitely not well-formed, {@link #COMPLETE} if it is well-formed
+   *     (no additional input needed), or if the byte sequence is
+   *     "incomplete", i.e. apparently terminated in the middle of a character,
+   *     an opaque integer "state" value containing enough information to
+   *     decode the character when passed to a subsequent invocation of a
+   *     partial decoding method.
    */
   public static int partialIsValidUtf8(
       byte[] bytes, int index, int limit) {
@@ -254,12 +255,12 @@ final class Utf8 {
     }
 
     return (index >= limit) ? COMPLETE :
-        partialIsValidUtf8NonAscii(bytes, index, limit);
+           partialIsValidUtf8NonAscii(bytes, index, limit);
   }
 
   private static int partialIsValidUtf8NonAscii(
       byte[] bytes, int index, int limit) {
-    for (;;) {
+    for (; ; ) {
       int byte1, byte2;
 
       // Optimize for interior runs of ASCII bytes.
@@ -321,29 +322,33 @@ final class Utf8 {
 
   private static int incompleteStateFor(int byte1) {
     return (byte1 > (byte) 0xF4) ?
-        MALFORMED : byte1;
+           MALFORMED : byte1;
   }
 
   private static int incompleteStateFor(int byte1, int byte2) {
     return (byte1 > (byte) 0xF4 ||
             byte2 > (byte) 0xBF) ?
-        MALFORMED : byte1 ^ (byte2 << 8);
+           MALFORMED : byte1 ^ (byte2 << 8);
   }
 
   private static int incompleteStateFor(int byte1, int byte2, int byte3) {
     return (byte1 > (byte) 0xF4 ||
             byte2 > (byte) 0xBF ||
             byte3 > (byte) 0xBF) ?
-        MALFORMED : byte1 ^ (byte2 << 8) ^ (byte3 << 16);
+           MALFORMED : byte1 ^ (byte2 << 8) ^ (byte3 << 16);
   }
 
   private static int incompleteStateFor(byte[] bytes, int index, int limit) {
     int byte1 = bytes[index - 1];
     switch (limit - index) {
-      case 0: return incompleteStateFor(byte1);
-      case 1: return incompleteStateFor(byte1, bytes[index]);
-      case 2: return incompleteStateFor(byte1, bytes[index], bytes[index + 1]);
-      default: throw new AssertionError();
+      case 0:
+        return incompleteStateFor(byte1);
+      case 1:
+        return incompleteStateFor(byte1, bytes[index]);
+      case 2:
+        return incompleteStateFor(byte1, bytes[index], bytes[index + 1]);
+      default:
+        throw new AssertionError();
     }
   }
 }

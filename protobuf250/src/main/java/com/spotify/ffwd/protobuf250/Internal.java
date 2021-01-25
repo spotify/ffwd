@@ -41,6 +41,7 @@ import java.io.UnsupportedEncodingException;
  * @author kenton@google.com (Kenton Varda)
  */
 public class Internal {
+
   /**
    * Helper called by generated code to construct default values for string
    * fields.
@@ -54,7 +55,7 @@ public class Internal {
    * generated code and leaves it to the runtime library to decode them.
    * <p>
    * It gets worse, though.  If protoc just generated a byte array, like:
-   *   new byte[] {0x12, 0x34, 0x56, 0x78}
+   * new byte[] {0x12, 0x34, 0x56, 0x78}
    * Java actually generates *code* which allocates an array and then fills
    * in each value.  This is much less efficient than just embedding the bytes
    * directly into the bytecode.  To get around this, we need another
@@ -125,6 +126,7 @@ public class Internal {
    * ByteString#isValidUtf8()}.  Calling that method directly is preferred.
    *
    * @param byteString the string to check
+   *
    * @return whether the byte array is round trippable
    */
   public static boolean isValidUtf8(ByteString byteString) {
@@ -137,6 +139,7 @@ public class Internal {
    * library stores EnumValueDescriptors in order to better support reflection.
    */
   public interface EnumLite {
+
     int getNumber();
   }
 
@@ -148,6 +151,7 @@ public class Internal {
    * returns an implementation of this type that maps numbers to enum values.
    */
   public interface EnumLiteMap<T extends EnumLite> {
+
     T findValueByNumber(int number);
   }
 }

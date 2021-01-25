@@ -44,16 +44,17 @@ import java.util.Collection;
  * @author kenton@google.com Kenton Varda
  */
 public abstract class AbstractMessageLite implements MessageLite {
+
   public ByteString toByteString() {
     try {
       final ByteString.CodedBuilder out =
-        ByteString.newCodedBuilder(getSerializedSize());
+          ByteString.newCodedBuilder(getSerializedSize());
       writeTo(out.getCodedOutput());
       return out.build();
     } catch (IOException e) {
       throw new RuntimeException(
-        "Serializing to a ByteString threw an IOException (should " +
-        "never happen).", e);
+          "Serializing to a ByteString threw an IOException (should " +
+          "never happen).", e);
     }
   }
 
@@ -66,8 +67,8 @@ public abstract class AbstractMessageLite implements MessageLite {
       return result;
     } catch (IOException e) {
       throw new RuntimeException(
-        "Serializing to a byte array threw an IOException " +
-        "(should never happen).", e);
+          "Serializing to a byte array threw an IOException " +
+          "(should never happen).", e);
     }
   }
 
@@ -107,12 +108,13 @@ public abstract class AbstractMessageLite implements MessageLite {
   @SuppressWarnings("unchecked")
   public static abstract class Builder<BuilderType extends Builder>
       implements MessageLite.Builder {
+
     // The compiler produces an error if this is not declared explicitly.
     @Override
     public abstract BuilderType clone();
 
     public BuilderType mergeFrom(final CodedInputStream input)
-                                 throws IOException {
+        throws IOException {
       return mergeFrom(input, ExtensionRegistryLite.getEmptyRegistry());
     }
 
@@ -133,8 +135,8 @@ public abstract class AbstractMessageLite implements MessageLite {
         throw e;
       } catch (IOException e) {
         throw new RuntimeException(
-          "Reading from a ByteString threw an IOException (should " +
-          "never happen).", e);
+            "Reading from a ByteString threw an IOException (should " +
+            "never happen).", e);
       }
     }
 
@@ -151,8 +153,8 @@ public abstract class AbstractMessageLite implements MessageLite {
         throw e;
       } catch (IOException e) {
         throw new RuntimeException(
-          "Reading from a ByteString threw an IOException (should " +
-          "never happen).", e);
+            "Reading from a ByteString threw an IOException (should " +
+            "never happen).", e);
       }
     }
 
@@ -163,7 +165,7 @@ public abstract class AbstractMessageLite implements MessageLite {
 
     public BuilderType mergeFrom(final byte[] data, final int off,
                                  final int len)
-                                 throws InvalidProtocolBufferException {
+        throws InvalidProtocolBufferException {
       try {
         final CodedInputStream input =
             CodedInputStream.newInstance(data, off, len);
@@ -174,8 +176,8 @@ public abstract class AbstractMessageLite implements MessageLite {
         throw e;
       } catch (IOException e) {
         throw new RuntimeException(
-          "Reading from a byte array threw an IOException (should " +
-          "never happen).", e);
+            "Reading from a byte array threw an IOException (should " +
+            "never happen).", e);
       }
     }
 
@@ -200,8 +202,8 @@ public abstract class AbstractMessageLite implements MessageLite {
         throw e;
       } catch (IOException e) {
         throw new RuntimeException(
-          "Reading from a byte array threw an IOException (should " +
-          "never happen).", e);
+            "Reading from a byte array threw an IOException (should " +
+            "never happen).", e);
       }
     }
 
@@ -229,6 +231,7 @@ public abstract class AbstractMessageLite implements MessageLite {
      * UnknownFieldSet can share it.
      */
     static final class LimitedInputStream extends FilterInputStream {
+
       private int limit;
 
       LimitedInputStream(InputStream in, int limit) {
@@ -255,7 +258,7 @@ public abstract class AbstractMessageLite implements MessageLite {
 
       @Override
       public int read(final byte[] b, final int off, int len)
-                      throws IOException {
+          throws IOException {
         if (limit <= 0) {
           return -1;
         }
@@ -302,7 +305,7 @@ public abstract class AbstractMessageLite implements MessageLite {
      * the given message.
      */
     protected static UninitializedMessageException
-        newUninitializedMessageException(MessageLite message) {
+    newUninitializedMessageException(MessageLite message) {
       return new UninitializedMessageException(message);
     }
 
@@ -311,7 +314,7 @@ public abstract class AbstractMessageLite implements MessageLite {
      * used by generated code.  Users should ignore it.
      *
      * @throws NullPointerException if any of the elements of {@code values} is
-     * null.
+     *                              null.
      */
     protected static <T> void addAll(final Iterable<T> values,
                                      final Collection<? super T> list) {

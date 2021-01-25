@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,30 +31,31 @@ import org.slf4j.LoggerFactory;
 
 @Sharable
 public class InputChannelInboundHandler extends ChannelInboundHandlerAdapter {
-    private static final Logger log = LoggerFactory.getLogger(InputChannelInboundHandler.class);
 
-    @Inject
-    private InputManager input;
+  private static final Logger log = LoggerFactory.getLogger(InputChannelInboundHandler.class);
 
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        if (msg instanceof Metric) {
-            input.receiveMetric((Metric) msg);
-            return;
-        }
+  @Inject
+  private InputManager input;
 
-        if (msg instanceof Batch) {
-            input.receiveBatch((Batch) msg);
-            return;
-        }
-
-        log.error("{}: Got garbage '{}' in channel, closing", ctx.channel(), msg);
-        ctx.channel().close();
+  @Override
+  public void channelRead(ChannelHandlerContext ctx, Object msg) {
+    if (msg instanceof Metric) {
+      input.receiveMetric((Metric) msg);
+      return;
     }
 
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        log.info("{}: Error in channel, closing", ctx.channel(), cause);
-        ctx.channel().close();
+    if (msg instanceof Batch) {
+      input.receiveBatch((Batch) msg);
+      return;
     }
+
+    log.error("{}: Got garbage '{}' in channel, closing", ctx.channel(), msg);
+    ctx.channel().close();
+  }
+
+  @Override
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+    log.info("{}: Error in channel, closing", ctx.channel(), cause);
+    ctx.channel().close();
+  }
 }

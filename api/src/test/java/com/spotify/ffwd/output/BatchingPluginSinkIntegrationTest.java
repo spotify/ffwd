@@ -67,165 +67,171 @@ import org.slf4j.Logger;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BatchingPluginSinkIntegrationTest {
-    private static final int BATCH_SIZE = 1000;
-    private final boolean dropHighFrequencyMetric = false;
-    private final int minFrequencyMillisAllowed = 1000;
-    private final long highFrequencyDataRecycleMS = 300_000;
-    private final int minNumberOfTriggers = 5;
 
-    @Mock
-    private BatchablePluginSink childSink;
+  private static final int BATCH_SIZE = 1000;
+  private final boolean dropHighFrequencyMetric = false;
+  private final int minFrequencyMillisAllowed = 1000;
+  private final long highFrequencyDataRecycleMS = 300_000;
+  private final int minNumberOfTriggers = 5;
 
-    @Mock
-    private Metric metric;
+  @Mock
+  private BatchablePluginSink childSink;
 
-    @Mock
-    private Logger log;
+  @Mock
+  private Metric metric;
 
-    private BatchingStatistics batchingStatistics = new NoopCoreStatistics().newBatching("");
+  @Mock
+  private Logger log;
 
-    @Captor
-    private ArgumentCaptor<Collection<Metric>> metricsCaptor;
+  private BatchingStatistics batchingStatistics = new NoopCoreStatistics().newBatching("");
 
-    private BatchingPluginSink sink;
-    private AsyncFramework async;
+  @Captor
+  private ArgumentCaptor<Collection<Metric>> metricsCaptor;
 
-    private final ExecutorService executor =
-        Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+  private BatchingPluginSink sink;
+  private AsyncFramework async;
 
-    @Mock
-    private ScheduledExecutorService scheduler;
+  private final ExecutorService executor =
+      Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
-    @Before
-    public void setup() {
-        // flush every second, limiting the batch sizes to 1000, with 5 max pending flushes.
-        async = TinyAsync.builder().executor(executor).build();
-        sink = createBatchingPluginSink();
+  @Mock
+  private ScheduledExecutorService scheduler;
 
-        doReturn(async.resolved()).when(childSink).start();
-        doReturn(async.resolved()).when(childSink).stop();
+  @Before
+  public void setup() {
+    // flush every second, limiting the batch sizes to 1000, with 5 max pending flushes.
+    async = TinyAsync.builder().executor(executor).build();
+    sink = createBatchingPluginSink();
 
-        metric = new Metric("KEY", Value.DoubleValue.create(42.0), System.currentTimeMillis(),
-         Collections.singletonMap("tag1", "value1"), ImmutableMap.of());
+    doReturn(async.resolved()).when(childSink).start();
+    doReturn(async.resolved()).when(childSink).stop();
 
-        sink.sink = childSink;
-        sink.log = log;
-        sink.batchingStatistics = batchingStatistics;
+    metric = new Metric("KEY", Value.DoubleValue.create(42.0), System.currentTimeMillis(),
+        Collections.singletonMap("tag1", "value1"), ImmutableMap.of());
+
+    sink.sink = childSink;
+    sink.log = log;
+    sink.batchingStatistics = batchingStatistics;
+  }
+
+  public BatchingPluginSink createBatchingPluginSink() {
+    final List<Module> modules = Lists.newArrayList();
+
+    modules.add(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(BatchingPluginSink.class).toInstance(new BatchingPluginSink(0, BATCH_SIZE, 0));
+        bind(AsyncFramework.class).toInstance(async);
+        bind(BatchablePluginSink.class).annotatedWith(BatchingDelegate.class)
+            .toInstance(new NoopPluginSink());
+        bind(Boolean.class).annotatedWith(Names.named("dropHighFrequencyMetric"))
+            .toInstance(dropHighFrequencyMetric);
+        bind(Integer.class).annotatedWith(Names.named("minFrequencyMillisAllowed"))
+            .toInstance(minFrequencyMillisAllowed);
+        bind(Long.class)
+            .annotatedWith(Names.named("highFrequencyDataRecycleMS"))
+            .toInstance(highFrequencyDataRecycleMS);
+        bind(Integer.class)
+            .annotatedWith(Names.named("minNumberOfTriggers"))
+            .toInstance(minNumberOfTriggers);
+        bind(BatchingStatistics.class).toInstance(NoopCoreStatistics.noopBatchingStatistics);
+        bind(OutputPluginStatistics.class)
+            .toInstance(NoopCoreStatistics.get().newOutputPlugin("output"));
+        bind(HighFrequencyDetectorStatistics.class)
+            .toInstance(NoopCoreStatistics.get().newHighFrequency());
+        bind(Logger.class).toInstance(log);
+        bind(ScheduledExecutorService.class).toInstance(scheduler);
+      }
+    });
+
+    final Injector injector = Guice.createInjector(modules);
+
+    return injector.getInstance(BatchingPluginSink.class);
+  }
+
+  @After
+  public void teardown() throws InterruptedException {
+    executor.shutdownNow();
+    executor.awaitTermination(10, TimeUnit.SECONDS);
+  }
+
+  /**
+   * Tests that the component creates batches that are being individually sized, and sent to the
+   * underlying sink.
+   */
+  @Test
+  public void testSizeLimitedFlushing() throws InterruptedException, ExecutionException {
+    final ResolvableFuture<Void> sendFuture = async.future();
+
+    // when sending any metrics, invoke the send future.
+    doReturn(sendFuture).when(childSink).sendMetrics(anyCollection());
+
+    // starts the scheduling of the next flush.
+    sink.start().get();
+
+    final int batches = 100;
+    final int metricCount = BATCH_SIZE * batches;
+
+    // send the given number of metrics, over the given number of threads.
+    sendMetrics(sink, 4, metricCount);
+
+    // Metrics will have been divided into batches because none of the batches have been
+    // successfully sent yet,
+    // which is indicated by resolving `sendFuture'.
+    synchronized (sink.pendingLock) {
+      assertEquals(batches, sink.pending.size());
     }
 
-    public BatchingPluginSink createBatchingPluginSink() {
-        final List<Module> modules = Lists.newArrayList();
+    // a very late flush resolve.
+    sendFuture.resolve(null);
 
-        modules.add(new AbstractModule() {
-            @Override
-            protected void configure() {
-            bind(BatchingPluginSink.class).toInstance(new BatchingPluginSink(0, BATCH_SIZE, 0));
-            bind(AsyncFramework.class).toInstance(async);
-            bind(BatchablePluginSink.class).annotatedWith(BatchingDelegate.class).toInstance(new NoopPluginSink());
-            bind(Boolean.class).annotatedWith(Names.named("dropHighFrequencyMetric")).toInstance(dropHighFrequencyMetric);
-            bind(Integer.class).annotatedWith(Names.named("minFrequencyMillisAllowed")).toInstance(minFrequencyMillisAllowed);
-            bind(Long.class)
-                .annotatedWith(Names.named("highFrequencyDataRecycleMS"))
-                .toInstance(highFrequencyDataRecycleMS);
-            bind(Integer.class)
-                .annotatedWith(Names.named("minNumberOfTriggers"))
-                .toInstance(minNumberOfTriggers);
-            bind(BatchingStatistics.class).toInstance(NoopCoreStatistics.noopBatchingStatistics);
-            bind(OutputPluginStatistics.class).toInstance(NoopCoreStatistics.get().newOutputPlugin("output"));
-            bind(HighFrequencyDetectorStatistics.class).toInstance(NoopCoreStatistics.get().newHighFrequency());
-            bind(Logger.class).toInstance(log);
-            bind(ScheduledExecutorService.class).toInstance(scheduler);
+    // all pending batches should have been marked as sent.
+    synchronized (sink.pendingLock) {
+      assertEquals(0, sink.pending.size());
+    }
+
+    sink.stop().get();
+
+    verify(childSink, atLeastOnce()).sendMetrics(metricsCaptor.capture());
+
+    int sum = 0;
+
+    for (final Collection<Metric> c : metricsCaptor.getAllValues()) {
+      sum += c.size();
+      // no single batch may be larger than the given batch size.
+      assertTrue(c.size() <= BATCH_SIZE);
+    }
+
+    assertEquals(metricCount, sum);
+  }
+
+  private void sendMetrics(final PluginSink sink, final int threadCount, final int metricCount)
+      throws InterruptedException {
+    final ExecutorService threads = Executors.newFixedThreadPool(threadCount);
+
+    final AtomicInteger count = new AtomicInteger();
+    final CountDownLatch latch = new CountDownLatch(threadCount);
+
+    // hammer time.
+    for (int i = 0; i < threadCount; i++) {
+      threads.submit(new Callable<Void>() {
+        @Override
+        public Void call() throws Exception {
+          try {
+            while (count.getAndIncrement() < metricCount) {
+              sink.sendMetric(metric);
             }
-        });
+          } finally {
+            latch.countDown();
+          }
 
-        final Injector injector = Guice.createInjector(modules);
-
-        return injector.getInstance(BatchingPluginSink.class);
+          return null;
+        }
+      });
     }
 
-    @After
-    public void teardown() throws InterruptedException {
-        executor.shutdownNow();
-        executor.awaitTermination(10, TimeUnit.SECONDS);
-    }
-
-    /**
-     * Tests that the component creates batches that are being individually sized, and sent to the
-     * underlying sink.
-     */
-    @Test
-    public void testSizeLimitedFlushing() throws InterruptedException, ExecutionException {
-        final ResolvableFuture<Void> sendFuture = async.future();
-
-        // when sending any metrics, invoke the send future.
-        doReturn(sendFuture).when(childSink).sendMetrics(anyCollection());
-
-        // starts the scheduling of the next flush.
-        sink.start().get();
-
-        final int batches = 100;
-        final int metricCount = BATCH_SIZE * batches;
-
-        // send the given number of metrics, over the given number of threads.
-        sendMetrics(sink, 4, metricCount);
-
-        // Metrics will have been divided into batches because none of the batches have been
-        // successfully sent yet,
-        // which is indicated by resolving `sendFuture'.
-        synchronized (sink.pendingLock) {
-            assertEquals(batches, sink.pending.size());
-        }
-
-        // a very late flush resolve.
-        sendFuture.resolve(null);
-
-        // all pending batches should have been marked as sent.
-        synchronized (sink.pendingLock) {
-            assertEquals(0, sink.pending.size());
-        }
-
-        sink.stop().get();
-
-        verify(childSink, atLeastOnce()).sendMetrics(metricsCaptor.capture());
-
-        int sum = 0;
-
-        for (final Collection<Metric> c : metricsCaptor.getAllValues()) {
-            sum += c.size();
-            // no single batch may be larger than the given batch size.
-            assertTrue(c.size() <= BATCH_SIZE);
-        }
-
-        assertEquals(metricCount, sum);
-    }
-
-    private void sendMetrics(final PluginSink sink, final int threadCount, final int metricCount)
-        throws InterruptedException {
-        final ExecutorService threads = Executors.newFixedThreadPool(threadCount);
-
-        final AtomicInteger count = new AtomicInteger();
-        final CountDownLatch latch = new CountDownLatch(threadCount);
-
-        // hammer time.
-        for (int i = 0; i < threadCount; i++) {
-            threads.submit(new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    try {
-                        while (count.getAndIncrement() < metricCount) {
-                            sink.sendMetric(metric);
-                        }
-                    } finally {
-                        latch.countDown();
-                    }
-
-                    return null;
-                }
-            });
-        }
-
-        latch.await();
-        threads.shutdown();
-        threads.awaitTermination(1, TimeUnit.SECONDS);
-    }
+    latch.await();
+    threads.shutdown();
+    threads.awaitTermination(1, TimeUnit.SECONDS);
+  }
 }

@@ -25,11 +25,12 @@ import com.spotify.ffwd.module.FastForwardModule;
 import com.spotify.ffwd.module.PluginContext;
 
 public class OpenTelemetryOutputModule implements FastForwardModule {
-    @Inject
-    private PluginContext context;
 
-    @Override
-    public void setup() {
-        context.registerOutput("opentelemetry", OpenTelemetryOutputPlugin.class);
-    }
+  @Inject
+  private PluginContext context;
+
+  @Override
+  public void setup() {
+    context.registerOutput("opentelemetry", OpenTelemetryOutputPlugin.class);
+  }
 }

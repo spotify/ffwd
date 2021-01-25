@@ -92,11 +92,11 @@ class SmallSortedMap<K extends Comparable<K>, V> extends AbstractMap<K, V> {
    * of any repeated fields to unmodifiable lists.
    *
    * @param arraySize The size of the entry array containing the
-   *        lexicographically smallest mappings.
+   *                  lexicographically smallest mappings.
    */
   static <FieldDescriptorType extends
       FieldSet.FieldDescriptorLite<FieldDescriptorType>>
-      SmallSortedMap<FieldDescriptorType, Object> newFieldMap(int arraySize) {
+  SmallSortedMap<FieldDescriptorType, Object> newFieldMap(int arraySize) {
     return new SmallSortedMap<FieldDescriptorType, Object>(arraySize) {
       @Override
       @SuppressWarnings("unchecked")
@@ -111,7 +111,7 @@ class SmallSortedMap<K extends Comparable<K>, V> extends AbstractMap<K, V> {
             }
           }
           for (Map.Entry<FieldDescriptorType, Object> entry :
-                   getOverflowEntries()) {
+              getOverflowEntries()) {
             if (entry.getKey().isRepeated()) {
               final List value = (List) entry.getValue();
               entry.setValue(Collections.unmodifiableList(value));
@@ -127,7 +127,7 @@ class SmallSortedMap<K extends Comparable<K>, V> extends AbstractMap<K, V> {
    * Creates a new instance for testing.
    *
    * @param arraySize The size of the entry array containing the
-   *        lexicographically smallest mappings.
+   *                  lexicographically smallest mappings.
    */
   static <K extends Comparable<K>, V> SmallSortedMap<K, V> newInstanceForTest(
       int arraySize) {
@@ -147,8 +147,8 @@ class SmallSortedMap<K extends Comparable<K>, V> extends AbstractMap<K, V> {
 
   /**
    * @code arraySize Size of the array in which the lexicographically smallest
-   *       mappings are stored. (i.e. the {@code k} referred to in the class
-   *       documentation).
+   *     mappings are stored. (i.e. the {@code k} referred to in the class
+   *     documentation).
    */
   private SmallSortedMap(int arraySize) {
     this.maxArraySize = arraySize;
@@ -164,8 +164,8 @@ class SmallSortedMap<K extends Comparable<K>, V> extends AbstractMap<K, V> {
       // overflowEntries, on the other hand, is exposed so it must be made
       // unmodifiable.
       overflowEntries = overflowEntries.isEmpty() ?
-          Collections.<K, V>emptyMap() :
-          Collections.unmodifiableMap(overflowEntries);
+                        Collections.<K, V>emptyMap() :
+                        Collections.unmodifiableMap(overflowEntries);
       isImmutable = true;
     }
   }
@@ -193,8 +193,8 @@ class SmallSortedMap<K extends Comparable<K>, V> extends AbstractMap<K, V> {
   /** @return An iterable over the overflow entries. */
   public Iterable<Map.Entry<K, V>> getOverflowEntries() {
     return overflowEntries.isEmpty() ?
-        EmptySet.<Map.Entry<K, V>>iterable() :
-        overflowEntries.entrySet();
+           EmptySet.<Map.Entry<K, V>>iterable() :
+           overflowEntries.entrySet();
   }
 
   @Override
@@ -210,8 +210,7 @@ class SmallSortedMap<K extends Comparable<K>, V> extends AbstractMap<K, V> {
    */
   @Override
   public boolean containsKey(Object o) {
-    @SuppressWarnings("unchecked")
-    final K key = (K) o;
+    @SuppressWarnings("unchecked") final K key = (K) o;
     return binarySearchInArray(key) >= 0 || overflowEntries.containsKey(key);
   }
 
@@ -223,8 +222,7 @@ class SmallSortedMap<K extends Comparable<K>, V> extends AbstractMap<K, V> {
    */
   @Override
   public V get(Object o) {
-    @SuppressWarnings("unchecked")
-    final K key = (K) o;
+    @SuppressWarnings("unchecked") final K key = (K) o;
     final int index = binarySearchInArray(key);
     if (index >= 0) {
       return entryList.get(index).getValue();
@@ -251,7 +249,7 @@ class SmallSortedMap<K extends Comparable<K>, V> extends AbstractMap<K, V> {
       // Shift the last array entry into overflow.
       final Entry lastEntryInArray = entryList.remove(maxArraySize - 1);
       getOverflowEntriesMutable().put(lastEntryInArray.getKey(),
-                                      lastEntryInArray.getValue());
+          lastEntryInArray.getValue());
     }
     entryList.add(insertionPoint, new Entry(key, value));
     return null;
@@ -277,8 +275,7 @@ class SmallSortedMap<K extends Comparable<K>, V> extends AbstractMap<K, V> {
   @Override
   public V remove(Object o) {
     checkMutable();
-    @SuppressWarnings("unchecked")
-    final K key = (K) o;
+    @SuppressWarnings("unchecked") final K key = (K) o;
     final int index = binarySearchInArray(key);
     if (index >= 0) {
       return removeArrayEntryAt(index);
@@ -308,6 +305,7 @@ class SmallSortedMap<K extends Comparable<K>, V> extends AbstractMap<K, V> {
 
   /**
    * @param key The key to find in the entry array.
+   *
    * @return The returned integer position follows the same semantics as the
    *     value returned by {@link java.util.Arrays#binarySearch()}.
    */
@@ -358,7 +356,7 @@ class SmallSortedMap<K extends Comparable<K>, V> extends AbstractMap<K, V> {
 
   /**
    * @throws UnsupportedOperationException if {@link #makeImmutable()} has
-   *         has been called.
+   *                                       has been called.
    */
   private void checkMutable() {
     if (isImmutable) {
@@ -368,9 +366,10 @@ class SmallSortedMap<K extends Comparable<K>, V> extends AbstractMap<K, V> {
 
   /**
    * @return a {@link SortedMap} to which overflow entries mappings can be
-   *         added or removed.
+   *     added or removed.
+   *
    * @throws UnsupportedOperationException if {@link #makeImmutable()} has been
-   *         called.
+   *                                       called.
    */
   @SuppressWarnings("unchecked")
   private SortedMap<K, V> getOverflowEntriesMutable() {
@@ -450,7 +449,7 @@ class SmallSortedMap<K extends Comparable<K>, V> extends AbstractMap<K, V> {
     @Override
     public int hashCode() {
       return (key == null ? 0 : key.hashCode()) ^
-          (value == null ? 0 : value.hashCode());
+             (value == null ? 0 : value.hashCode());
     }
 
     @Override
@@ -486,12 +485,11 @@ class SmallSortedMap<K extends Comparable<K>, V> extends AbstractMap<K, V> {
      */
     @Override
     public boolean contains(Object o) {
-      @SuppressWarnings("unchecked")
-      final Map.Entry<K, V> entry = (Map.Entry<K, V>) o;
+      @SuppressWarnings("unchecked") final Map.Entry<K, V> entry = (Map.Entry<K, V>) o;
       final V existing = get(entry.getKey());
       final V value = entry.getValue();
       return existing == value ||
-          (existing != null && existing.equals(value));
+             (existing != null && existing.equals(value));
     }
 
     @Override
@@ -510,8 +508,7 @@ class SmallSortedMap<K extends Comparable<K>, V> extends AbstractMap<K, V> {
      */
     @Override
     public boolean remove(Object o) {
-      @SuppressWarnings("unchecked")
-      final Map.Entry<K, V> entry = (Map.Entry<K, V>) o;
+      @SuppressWarnings("unchecked") final Map.Entry<K, V> entry = (Map.Entry<K, V>) o;
       if (contains(entry)) {
         SmallSortedMap.this.remove(entry.getKey());
         return true;
@@ -538,7 +535,7 @@ class SmallSortedMap<K extends Comparable<K>, V> extends AbstractMap<K, V> {
     //@Override (Java 1.6 override semantics, but we must support 1.5)
     public boolean hasNext() {
       return (pos + 1) < entryList.size() ||
-          getOverflowIterator().hasNext();
+             getOverflowIterator().hasNext();
     }
 
     //@Override (Java 1.6 override semantics, but we must support 1.5)
@@ -593,10 +590,12 @@ class SmallSortedMap<K extends Comparable<K>, V> extends AbstractMap<K, V> {
       public boolean hasNext() {
         return false;
       }
+
       //@Override (Java 1.6 override semantics, but we must support 1.5)
       public Object next() {
         throw new NoSuchElementException();
       }
+
       //@Override (Java 1.6 override semantics, but we must support 1.5)
       public void remove() {
         throw new UnsupportedOperationException();

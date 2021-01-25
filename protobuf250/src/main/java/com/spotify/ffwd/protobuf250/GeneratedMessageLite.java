@@ -47,6 +47,7 @@ import java.util.Map;
  */
 public abstract class GeneratedMessageLite extends AbstractMessageLite
     implements Serializable {
+
   private static final long serialVersionUID = 1L;
 
   protected GeneratedMessageLite() {
@@ -62,6 +63,7 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
 
   /**
    * Called by subclasses to parse an unknown field.
+   *
    * @return {@code true} unless the tag is an end-group tag.
    */
   protected boolean parseUnknownField(
@@ -80,8 +82,9 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
 
   @SuppressWarnings("unchecked")
   public abstract static class Builder<MessageType extends GeneratedMessageLite,
-                                       BuilderType extends Builder>
+      BuilderType extends Builder>
       extends AbstractMessageLite.Builder<BuilderType> {
+
     protected Builder() {}
 
     //@Override (Java 1.6 override semantics, but we must support 1.5)
@@ -106,6 +109,7 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
 
     /**
      * Called by subclasses to parse an unknown field.
+     *
      * @return {@code true} unless the tag is an end-group tag.
      */
     protected boolean parseUnknownField(
@@ -146,7 +150,7 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
    * Lite equivalent of {@link GeneratedMessage.ExtendableMessage}.
    */
   public abstract static class ExtendableMessage<
-        MessageType extends ExtendableMessage<MessageType>>
+      MessageType extends ExtendableMessage<MessageType>>
       extends GeneratedMessageLite
       implements ExtendableMessageOrBuilder<MessageType> {
 
@@ -166,8 +170,8 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
           getDefaultInstanceForType()) {
         // This can only happen if someone uses unchecked operations.
         throw new IllegalArgumentException(
-          "This extension is for a different message type.  Please make " +
-          "sure that you are not suppressing any generics type warnings.");
+            "This extension is for a different message type.  Please make " +
+            "sure that you are not suppressing any generics type warnings.");
       }
     }
 
@@ -218,6 +222,7 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
 
     /**
      * Called by subclasses to parse an unknown field or an extension.
+     *
      * @return {@code true} unless the tag is an end-group tag.
      */
     @Override
@@ -252,7 +257,7 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
       // a way to get the next element without advancing the iterator.
 
       private final Iterator<Map.Entry<ExtensionDescriptor, Object>> iter =
-            extensions.iterator();
+          extensions.iterator();
       private Map.Entry<ExtensionDescriptor, Object> next;
       private final boolean messageSetWireFormat;
 
@@ -264,14 +269,14 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
       }
 
       public void writeUntil(final int end, final CodedOutputStream output)
-                             throws IOException {
+          throws IOException {
         while (next != null && next.getKey().getNumber() < end) {
           ExtensionDescriptor extension = next.getKey();
           if (messageSetWireFormat && extension.getLiteJavaType() ==
-                  WireFormat.JavaType.MESSAGE &&
+                                      WireFormat.JavaType.MESSAGE &&
               !extension.isRepeated()) {
             output.writeMessageSetExtension(extension.getNumber(),
-                                            (MessageLite) next.getValue());
+                (MessageLite) next.getValue());
           } else {
             FieldSet.writeField(extension, next.getValue(), output);
           }
@@ -287,6 +292,7 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
     protected ExtensionWriter newExtensionWriter() {
       return new ExtensionWriter(false);
     }
+
     protected ExtensionWriter newMessageSetExtensionWriter() {
       return new ExtensionWriter(true);
     }
@@ -295,6 +301,7 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
     protected int extensionsSerializedSize() {
       return extensions.getSerializedSize();
     }
+
     protected int extensionsSerializedSizeAsMessageSet() {
       return extensions.getMessageSetSerializedSize();
     }
@@ -305,10 +312,11 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
    */
   @SuppressWarnings("unchecked")
   public abstract static class ExtendableBuilder<
-        MessageType extends ExtendableMessage<MessageType>,
-        BuilderType extends ExtendableBuilder<MessageType, BuilderType>>
+      MessageType extends ExtendableMessage<MessageType>,
+      BuilderType extends ExtendableBuilder<MessageType, BuilderType>>
       extends Builder<MessageType, BuilderType>
       implements ExtendableMessageOrBuilder<MessageType> {
+
     protected ExtendableBuilder() {}
 
     private FieldSet<ExtensionDescriptor> extensions = FieldSet.emptySet();
@@ -344,8 +352,8 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
           getDefaultInstanceForType()) {
         // This can only happen if someone uses unchecked operations.
         throw new IllegalArgumentException(
-          "This extension is for a different message type.  Please make " +
-          "sure that you are not suppressing any generics type warnings.");
+            "This extension is for a different message type.  Please make " +
+            "sure that you are not suppressing any generics type warnings.");
       }
     }
 
@@ -444,6 +452,7 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
 
     /**
      * Called by subclasses to parse an unknown field or an extension.
+     *
      * @return {@code true} unless the tag is an end-group tag.
      */
     @Override
@@ -470,35 +479,36 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
 
   /**
    * Parse an unknown field or an extension.
+   *
    * @return {@code true} unless the tag is an end-group tag.
    */
   private static <MessageType extends MessageLite>
-      boolean parseUnknownField(
-          FieldSet<ExtensionDescriptor> extensions,
-          MessageType defaultInstance,
-          CodedInputStream input,
-          ExtensionRegistryLite extensionRegistry,
-          int tag) throws IOException {
+  boolean parseUnknownField(
+      FieldSet<ExtensionDescriptor> extensions,
+      MessageType defaultInstance,
+      CodedInputStream input,
+      ExtensionRegistryLite extensionRegistry,
+      int tag) throws IOException {
     int wireType = WireFormat.getTagWireType(tag);
     int fieldNumber = WireFormat.getTagFieldNumber(tag);
 
     GeneratedExtension<MessageType, ?> extension =
-      extensionRegistry.findLiteExtensionByNumber(
-          defaultInstance, fieldNumber);
+        extensionRegistry.findLiteExtensionByNumber(
+            defaultInstance, fieldNumber);
 
     boolean unknown = false;
     boolean packed = false;
     if (extension == null) {
       unknown = true;  // Unknown field.
     } else if (wireType == FieldSet.getWireFormatForFieldType(
-                 extension.descriptor.getLiteType(),
-                 false  /* isPacked */)) {
+        extension.descriptor.getLiteType(),
+        false  /* isPacked */)) {
       packed = false;  // Normal, unpacked value.
     } else if (extension.descriptor.isRepeated &&
                extension.descriptor.type.isPackable() &&
                wireType == FieldSet.getWireFormatForFieldType(
-                 extension.descriptor.getLiteType(),
-                 true  /* isPacked */)) {
+                   extension.descriptor.getLiteType(),
+                   true  /* isPacked */)) {
       packed = true;  // Packed value.
     } else {
       unknown = true;  // Wrong wire type.
@@ -526,8 +536,8 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
       } else {
         while (input.getBytesUntilLimit() > 0) {
           Object value =
-            FieldSet.readPrimitiveField(input,
-                                        extension.descriptor.getLiteType());
+              FieldSet.readPrimitiveField(input,
+                  extension.descriptor.getLiteType());
           extensions.addRepeatedField(extension.descriptor, value);
         }
       }
@@ -550,7 +560,7 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
           if (extension.descriptor.getLiteType() ==
               WireFormat.FieldType.GROUP) {
             input.readGroup(extension.getNumber(),
-                            subBuilder, extensionRegistry);
+                subBuilder, extensionRegistry);
           } else {
             input.readMessage(subBuilder, extensionRegistry);
           }
@@ -560,7 +570,7 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
         case ENUM:
           int rawValue = input.readEnum();
           value = extension.descriptor.getEnumType()
-                           .findValueByNumber(rawValue);
+              .findValueByNumber(rawValue);
           // If the number isn't recognized as a valid value for this enum,
           // drop it.
           if (value == null) {
@@ -587,35 +597,35 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
 
   /** For use by generated code only. */
   public static <ContainingType extends MessageLite, Type>
-      GeneratedExtension<ContainingType, Type>
-          newSingularGeneratedExtension(
-              final ContainingType containingTypeDefaultInstance,
-              final Type defaultValue,
-              final MessageLite messageDefaultInstance,
-              final Internal.EnumLiteMap<?> enumTypeMap,
-              final int number,
-              final WireFormat.FieldType type) {
+  GeneratedExtension<ContainingType, Type>
+  newSingularGeneratedExtension(
+      final ContainingType containingTypeDefaultInstance,
+      final Type defaultValue,
+      final MessageLite messageDefaultInstance,
+      final Internal.EnumLiteMap<?> enumTypeMap,
+      final int number,
+      final WireFormat.FieldType type) {
     return new GeneratedExtension<ContainingType, Type>(
         containingTypeDefaultInstance,
         defaultValue,
         messageDefaultInstance,
         new ExtensionDescriptor(enumTypeMap, number, type,
-                                false /* isRepeated */,
-                                false /* isPacked */));
+            false /* isRepeated */,
+            false /* isPacked */));
   }
 
   /** For use by generated code only. */
   public static <ContainingType extends MessageLite, Type>
-      GeneratedExtension<ContainingType, Type>
-          newRepeatedGeneratedExtension(
-              final ContainingType containingTypeDefaultInstance,
-              final MessageLite messageDefaultInstance,
-              final Internal.EnumLiteMap<?> enumTypeMap,
-              final int number,
-              final WireFormat.FieldType type,
-              final boolean isPacked) {
+  GeneratedExtension<ContainingType, Type>
+  newRepeatedGeneratedExtension(
+      final ContainingType containingTypeDefaultInstance,
+      final MessageLite messageDefaultInstance,
+      final Internal.EnumLiteMap<?> enumTypeMap,
+      final int number,
+      final WireFormat.FieldType type,
+      final boolean isPacked) {
     @SuppressWarnings("unchecked")  // Subclasses ensure Type is a List
-    Type emptyList = (Type) Collections.emptyList();
+        Type emptyList = (Type) Collections.emptyList();
     return new GeneratedExtension<ContainingType, Type>(
         containingTypeDefaultInstance,
         emptyList,
@@ -626,7 +636,8 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
 
   private static final class ExtensionDescriptor
       implements FieldSet.FieldDescriptorLite<
-        ExtensionDescriptor> {
+      ExtensionDescriptor> {
+
     private ExtensionDescriptor(
         final Internal.EnumLiteMap<?> enumTypeMap,
         final int number,
@@ -743,6 +754,7 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
    * message as a class name and a byte array.
    */
   static final class SerializedForm implements Serializable {
+
     private static final long serialVersionUID = 0L;
 
     private String messageClassName;
@@ -750,6 +762,7 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
 
     /**
      * Creates the serialized form by calling {@link com.spotify.ffwd.protobuf250.MessageLite#toByteArray}.
+     *
      * @param regularForm the message to serialize
      */
     SerializedForm(MessageLite regularForm) {
@@ -760,6 +773,7 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
     /**
      * When read from an ObjectInputStream, this method converts this object
      * back to the regular form.  Part of Java's serialization magic.
+     *
      * @return a GeneratedMessage of the type that was serialized
      */
     @SuppressWarnings("unchecked")
@@ -789,6 +803,7 @@ public abstract class GeneratedMessageLite extends AbstractMessageLite
    * Replaces this object in the output stream with a serialized form.
    * Part of Java's serialization magic.  Generated sub-classes must override
    * this method by calling {@code return super.writeReplace();}
+   *
    * @return a SerializedForm of this message
    */
   protected Object writeReplace() throws ObjectStreamException {

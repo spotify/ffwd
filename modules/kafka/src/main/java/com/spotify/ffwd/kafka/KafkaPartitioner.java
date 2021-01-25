@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,69 +35,73 @@ import java.util.Optional;
     @JsonSubTypes.Type(value = KafkaPartitioner.Random.class, name = "random")
 })
 public interface KafkaPartitioner {
-    int partition(final Metric metric, final String defaultHost);
 
-    class Host implements KafkaPartitioner {
-        @JsonCreator
-        public Host() {
-        }
+  int partition(final Metric metric, final String defaultHost);
 
-        @Override
-        public int partition(final Metric metric, final String defaultHost) {
-            final String host = metric.getTags().get("host");
-            if (host == null) {
-                return defaultHost.hashCode();
-            }
-            return host.hashCode();
-        }
+  class Host implements KafkaPartitioner {
+
+    @JsonCreator
+    public Host() {
     }
 
-    class Tag implements KafkaPartitioner {
-        private static final String DEFAULT_TAGKEY = "site";
+    @Override
+    public int partition(final Metric metric, final String defaultHost) {
+      final String host = metric.getTags().get("host");
+      if (host == null) {
+        return defaultHost.hashCode();
+      }
+      return host.hashCode();
+    }
+  }
 
-        private final String tagKey;
+  class Tag implements KafkaPartitioner {
 
-        @JsonCreator
-        public Tag(@JsonProperty("tag") final String tagKey) {
-            this.tagKey = Optional.ofNullable(tagKey).orElse(DEFAULT_TAGKEY);
-        }
+    private static final String DEFAULT_TAGKEY = "site";
 
-        @Override
-        public int partition(final Metric metric, final String defaultHost) {
-            final String tagValue = metric.getTags().get(tagKey);
+    private final String tagKey;
 
-            if (tagValue != null) {
-                return tagValue.hashCode();
-            }
-
-            throw new IllegalArgumentException(
-                String.format("missing tag '%s' for metric %s", tagKey, metric));
-        }
+    @JsonCreator
+    public Tag(@JsonProperty("tag") final String tagKey) {
+      this.tagKey = Optional.ofNullable(tagKey).orElse(DEFAULT_TAGKEY);
     }
 
-    class Hashed implements KafkaPartitioner {
-        @JsonCreator
-        public Hashed() {
-        }
+    @Override
+    public int partition(final Metric metric, final String defaultHost) {
+      final String tagValue = metric.getTags().get(tagKey);
 
-        @Override
-        public int partition(final Metric metric, final String defaultHost) {
-            return metric.hashCode();
-        }
+      if (tagValue != null) {
+        return tagValue.hashCode();
+      }
+
+      throw new IllegalArgumentException(
+          String.format("missing tag '%s' for metric %s", tagKey, metric));
+    }
+  }
+
+  class Hashed implements KafkaPartitioner {
+
+    @JsonCreator
+    public Hashed() {
     }
 
-    class Random implements KafkaPartitioner {
-
-        private final java.util.Random rand;
-
-        @JsonCreator
-        public Random() {
-            this.rand = new java.util.Random();
-        }
-
-        @Override
-        public int partition(final Metric metric, final String defaultHost) {
-            return rand.nextInt();
-        }
+    @Override
+    public int partition(final Metric metric, final String defaultHost) {
+      return metric.hashCode();
     }
+  }
+
+  class Random implements KafkaPartitioner {
+
+    private final java.util.Random rand;
+
+    @JsonCreator
+    public Random() {
+      this.rand = new java.util.Random();
+    }
+
+    @Override
+    public int partition(final Metric metric, final String defaultHost) {
+      return rand.nextInt();
+    }
+  }
 }

@@ -146,6 +146,7 @@ class RopeByteString extends ByteString {
    *
    * @param left  string on the left
    * @param right string on the right
+   *
    * @return concatenation representing the same sequence as the given strings
    */
   static ByteString concatenate(ByteString left, ByteString right) {
@@ -163,7 +164,7 @@ class RopeByteString extends ByteString {
         // here) total length, do a copy of data to a new leaf.
         result = concatenateBytes(left, right);
       } else if (leftRope != null
-          && leftRope.right.size() + right.size() < CONCATENATE_BY_COPY_SIZE) {
+                 && leftRope.right.size() + right.size() < CONCATENATE_BY_COPY_SIZE) {
         // Optimization from BAP95: As an optimization of the case where the
         // ByteString is constructed by repeated concatenate, recognize the case
         // where a short string is concatenated to a left-hand node whose
@@ -177,8 +178,8 @@ class RopeByteString extends ByteString {
         ByteString newRight = concatenateBytes(leftRope.right, right);
         result = new RopeByteString(leftRope.left, newRight);
       } else if (leftRope != null
-          && leftRope.left.getTreeDepth() > leftRope.right.getTreeDepth()
-          && leftRope.getTreeDepth() > right.getTreeDepth()) {
+                 && leftRope.left.getTreeDepth() > leftRope.right.getTreeDepth()
+                 && leftRope.getTreeDepth() > right.getTreeDepth()) {
         // Typically for concatenate-built strings the left-side is deeper than
         // the right.  This is our final attempt to concatenate without
         // increasing the tree depth.  We'll redo the the node on the RHS.  This
@@ -207,10 +208,11 @@ class RopeByteString extends ByteString {
    *
    * @param left  string on the left
    * @param right string on the right
+   *
    * @return string formed by copying data bytes
    */
   private static LiteralByteString concatenateBytes(ByteString left,
-      ByteString right) {
+                                                    ByteString right) {
     int leftSize = left.size();
     int rightSize = right.size();
     byte[] bytes = new byte[leftSize + rightSize];
@@ -228,6 +230,7 @@ class RopeByteString extends ByteString {
    *
    * @param left  string on the left of this node
    * @param right string on the right of this node
+   *
    * @return an unsafe instance for testing only
    */
   static RopeByteString newInstanceForTest(ByteString left, ByteString right) {
@@ -241,7 +244,9 @@ class RopeByteString extends ByteString {
    * IndexOutOfBoundsException}.
    *
    * @param index index of byte
+   *
    * @return the value
+   *
    * @throws ArrayIndexOutOfBoundsException {@code index} is < 0 or >= size
    */
   @Override
@@ -303,6 +308,7 @@ class RopeByteString extends ByteString {
    *
    * @param beginIndex start at this index
    * @param endIndex   the last character is the one before this index
+   *
    * @return substring leaf node or tree
    */
   @Override
@@ -319,7 +325,7 @@ class RopeByteString extends ByteString {
     if (substringLength < 0) {
       throw new IndexOutOfBoundsException(
           "Beginning index larger than ending index: " + beginIndex + ", "
-              + endIndex);
+          + endIndex);
     }
 
     ByteString result;
@@ -356,8 +362,8 @@ class RopeByteString extends ByteString {
 
   @Override
   protected void copyToInternal(byte[] target, int sourceOffset,
-      int targetOffset, int numberToCopy) {
-   if (sourceOffset + numberToCopy <= leftLength) {
+                                int targetOffset, int numberToCopy) {
+    if (sourceOffset + numberToCopy <= leftLength) {
       left.copyToInternal(target, sourceOffset, targetOffset, numberToCopy);
     } else if (sourceOffset >= leftLength) {
       right.copyToInternal(target, sourceOffset - leftLength, targetOffset,
@@ -472,8 +478,9 @@ class RopeByteString extends ByteString {
    * overlapping segments of the leaves are compared.
    *
    * @param other string of the same length as this one
+   *
    * @return true if the values of this string equals the value of the given
-   *         one
+   *     one
    */
   private boolean equalsFragments(ByteString other) {
     int thisOffset = 0;
@@ -492,8 +499,8 @@ class RopeByteString extends ByteString {
 
       // At least one of the offsets will be zero
       boolean stillEqual = (thisOffset == 0)
-          ? thisString.equalsRange(thatString, thatOffset, bytesToCompare)
-          : thatString.equalsRange(thisString, thisOffset, bytesToCompare);
+                           ? thisString.equalsRange(thatString, thatOffset, bytesToCompare)
+                           : thatString.equalsRange(thisString, thisOffset, bytesToCompare);
       if (!stillEqual) {
         return false;
       }
@@ -586,6 +593,7 @@ class RopeByteString extends ByteString {
    * BAP95.
    */
   private static class Balancer {
+
     // Stack containing the part of the string, starting from the left, that
     // we've already traversed.  The final string should be the equivalent of
     // concatenating the strings on the stack from bottom to top.
@@ -620,7 +628,7 @@ class RopeByteString extends ByteString {
       } else {
         throw new IllegalArgumentException(
             "Has a new type of ByteString been created? Found " +
-                root.getClass());
+            root.getClass());
       }
     }
 
@@ -654,7 +662,7 @@ class RopeByteString extends ByteString {
         // Concatenate the subtrees of shorter length
         ByteString newTree = prefixesStack.pop();
         while (!prefixesStack.isEmpty()
-            && prefixesStack.peek().size() < binStart) {
+               && prefixesStack.peek().size() < binStart) {
           ByteString left = prefixesStack.pop();
           newTree = new RopeByteString(left, newTree);
         }
@@ -803,6 +811,7 @@ class RopeByteString extends ByteString {
    * {@link ByteArrayInputStream}.
    */
   private class RopeInputStream extends InputStream {
+
     // Iterates through the pieces of the rope
     private PieceIterator pieceIterator;
     // The current piece
@@ -821,7 +830,7 @@ class RopeByteString extends ByteString {
     }
 
     @Override
-    public int read(byte b[], int offset, int length)  {
+    public int read(byte b[], int offset, int length) {
       if (b == null) {
         throw new NullPointerException();
       } else if (offset < 0 || length < 0 || length > b.length - offset) {
@@ -850,15 +859,15 @@ class RopeByteString extends ByteString {
      * <p>
      * Returns the actual number of bytes read or skipped.
      */
-    private int readSkipInternal(byte b[], int offset, int length)  {
+    private int readSkipInternal(byte b[], int offset, int length) {
       int bytesRemaining = length;
       while (bytesRemaining > 0) {
         advanceIfCurrentPieceFullyRead();
         if (currentPiece == null) {
           if (bytesRemaining == length) {
-             // We didn't manage to read anything
-             return -1;
-           }
+            // We didn't manage to read anything
+            return -1;
+          }
           break;
         } else {
           // Copy the bytes from this piece.
@@ -872,7 +881,7 @@ class RopeByteString extends ByteString {
           bytesRemaining -= count;
         }
       }
-       // Return the number of bytes read.
+      // Return the number of bytes read.
       return length - bytesRemaining;
     }
 

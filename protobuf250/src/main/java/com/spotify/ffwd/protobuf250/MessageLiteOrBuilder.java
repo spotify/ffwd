@@ -37,6 +37,7 @@ package com.spotify.ffwd.protobuf250;
  * @author jonp@google.com (Jon Perlow)
  */
 public interface MessageLiteOrBuilder {
+
   /**
    * Get an instance of the type with no fields set. Because no fields are set,
    * all getters for singular fields will return default values and repeated

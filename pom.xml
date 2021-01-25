@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.spotify.ffwd</groupId>
@@ -99,6 +101,48 @@
 			compatibility with different versions of Java. -->
         <maven.compiler.release>8</maven.compiler.release>
       </properties>
+
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <version>3.0.0</version>
+            <dependencies>
+              <dependency>
+                <groupId>com.spotify.checkstyle</groupId>
+                <artifactId>spotify-checkstyle-config</artifactId>
+                <version>1.0.7</version>
+              </dependency>
+              <dependency>
+                <groupId>com.puppycrawl.tools</groupId>
+                <artifactId>checkstyle</artifactId>
+                <version>8.18</version>
+              </dependency>
+            </dependencies>
+            <configuration>
+              <sourceDirectories>
+                <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+              </sourceDirectories>
+              <configLocation>spotify_checks.xml</configLocation>
+              <consoleOutput>true</consoleOutput>
+              <!-- Remove or switch to false to keep building even with checkstyle errors -->
+              <failOnViolation>false</failOnViolation>
+              <logViolationsToConsole>true</logViolationsToConsole>
+              <!-- change to 'warning' to be more strict about following checkstyle conventions -->
+              <violationSeverity>warning</violationSeverity>
+            </configuration>
+            <executions>
+              <execution>
+                <id>validate</id>
+                <phase>validate</phase>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
 
     <profile>
@@ -527,12 +571,16 @@
           <execution>
             <id>java-compile</id>
             <phase>compile</phase>
-            <goals> <goal>compile</goal> </goals>
+            <goals>
+              <goal>compile</goal>
+            </goals>
           </execution>
           <execution>
             <id>java-test-compile</id>
             <phase>test-compile</phase>
-            <goals> <goal>testCompile</goal> </goals>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>
@@ -542,7 +590,8 @@
         <artifactId>protobuf-maven-plugin</artifactId>
         <version>0.6.1</version>
         <configuration>
-          <protocArtifact>com.google.protobuf:protoc:3.6.1:exe:${os.detected.classifier}</protocArtifact>
+          <protocArtifact>com.google.protobuf:protoc:3.6.1:exe:${os.detected.classifier}
+          </protocArtifact>
         </configuration>
         <executions>
           <execution>
@@ -564,7 +613,7 @@
           <effort>Max</effort>
           <threshold>Default</threshold>
           <xmlOutput>true</xmlOutput>
-         <skip>${skip.findbugs}</skip>
+          <skip>${skip.findbugs}</skip>
         </configuration>
         <executions>
           <execution>
@@ -603,45 +652,11 @@
             <id>enforce</id>
             <configuration>
               <rules>
-                <requireUpperBoundDeps />
+                <requireUpperBoundDeps/>
               </rules>
             </configuration>
           </execution>
         </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>3.1.1</version>
-        <configuration>
-          <configLocation>checkstyle.xml</configLocation>
-          <consoleOutput>true</consoleOutput>
-          <failOnViolation>true</failOnViolation>
-          <failsOnError>true</failsOnError>
-          <maxAllowedViolations>0</maxAllowedViolations>
-          <propertyExpansion>basedir=${user.dir}</propertyExpansion>
-        </configuration>
-        <executions>
-          <execution>
-            <id>validate-checkstyle</id>
-            <phase>validate</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-            <configuration>
-              <failOnViolation>true</failOnViolation>
-              <failsOnError>true</failsOnError>
-            </configuration>
-          </execution>
-        </executions>
-        <dependencies>
-          <dependency>
-            <groupId>com.puppycrawl.tools</groupId>
-            <artifactId>checkstyle</artifactId>
-            <version>8.18</version>
-          </dependency>
-        </dependencies>
       </plugin>
     </plugins>
   </build>

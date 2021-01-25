@@ -21,17 +21,18 @@
 package com.spotify.ffwd.statistics;
 
 public interface HighFrequencyDetectorStatistics {
-    /**
-     * Report that the given number of metrics have been marked as high frequency.
-     *
-     * @param marked The number of metrics marked.
-     */
-    void reportHighFrequencyMetrics(int marked, String... tags);
 
-    /**
-     * Report that the given number of metrics have been dropped.
-     *
-     * @param dropped The number of batches sent.
-     */
-    void reportHighFrequencyMetricsDropped(int dropped);
+  /**
+   * Report that the given number of metrics have been marked as high frequency.
+   *
+   * @param marked The number of metrics marked.
+   */
+  void reportHighFrequencyMetrics(int marked, String... tags);
+
+  /**
+   * Report that the given number of metrics have been dropped.
+   *
+   * @param dropped The number of batches sent.
+   */
+  void reportHighFrequencyMetricsDropped(int dropped);
 }

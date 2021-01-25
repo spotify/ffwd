@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,26 +32,27 @@ import org.slf4j.LoggerFactory;
 
 @RequiredArgsConstructor
 public abstract class OutputPluginModule extends PrivateModule {
-    private final String id;
 
-    @Provides
-    @Singleton
-    public Logger logger() {
-        final String logName =
-            String.format("%s[output:%s]", getClass().getPackage().getName(), id);
-        return LoggerFactory.getLogger(logName);
-    }
+  private final String id;
 
-    @Provides
-    @Singleton
-    public OutputPluginStatistics statistics(CoreStatistics statistics) {
-        return statistics.newOutputPlugin(id);
-    }
+  @Provides
+  @Singleton
+  public Logger logger() {
+    final String logName =
+        String.format("%s[output:%s]", getClass().getPackage().getName(), id);
+    return LoggerFactory.getLogger(logName);
+  }
 
-    @Provides
-    @Singleton
-    @Named("pluginId")
-    public String pluginId() {
-        return id;
-    }
+  @Provides
+  @Singleton
+  public OutputPluginStatistics statistics(CoreStatistics statistics) {
+    return statistics.newOutputPlugin(id);
+  }
+
+  @Provides
+  @Singleton
+  @Named("pluginId")
+  public String pluginId() {
+    return id;
+  }
 }

@@ -87,13 +87,13 @@ class LiteralByteString extends ByteString {
     }
     if (endIndex > size()) {
       throw new IndexOutOfBoundsException("End index: " + endIndex + " > " +
-          size());
+                                          size());
     }
     int substringLength = endIndex - beginIndex;
     if (substringLength < 0) {
       throw new IndexOutOfBoundsException(
           "Beginning index larger than ending index: " + beginIndex + ", "
-              + endIndex);
+          + endIndex);
     }
 
     ByteString result;
@@ -110,8 +110,8 @@ class LiteralByteString extends ByteString {
   // ByteString -> byte[]
 
   @Override
-  protected void copyToInternal(byte[] target, int sourceOffset, 
-      int targetOffset, int numberToCopy) {
+  protected void copyToInternal(byte[] target, int sourceOffset,
+                                int targetOffset, int numberToCopy) {
     // Optimized form, not for subclasses, since we don't call
     // getOffsetIntoBytes() or check the 'numberToCopy' parameter.
     System.arraycopy(bytes, sourceOffset, target, targetOffset, numberToCopy);
@@ -135,9 +135,9 @@ class LiteralByteString extends ByteString {
     List<ByteBuffer> result = new ArrayList<ByteBuffer>(1);
     result.add(asReadOnlyByteBuffer());
     return result;
- }
+  }
 
- @Override
+  @Override
   public void writeTo(OutputStream outputStream) throws IOException {
     outputStream.write(toByteArray());
   }
@@ -189,7 +189,7 @@ class LiteralByteString extends ByteString {
     } else {
       throw new IllegalArgumentException(
           "Has a new type of ByteString been created? Found "
-              + other.getClass());
+          + other.getClass());
     }
   }
 
@@ -200,6 +200,7 @@ class LiteralByteString extends ByteString {
    * @param other  what to compare a substring in
    * @param offset offset into other
    * @param length number of bytes to compare
+   *
    * @return true for equality of substrings, else false.
    */
   boolean equalsRange(LiteralByteString other, int offset, int length) {
@@ -210,15 +211,15 @@ class LiteralByteString extends ByteString {
     if (offset + length > other.size()) {
       throw new IllegalArgumentException(
           "Ran off end of other: " + offset + ", " + length + ", " +
-              other.size());
+          other.size());
     }
 
     byte[] thisBytes = bytes;
     byte[] otherBytes = other.bytes;
     int thisLimit = getOffsetIntoBytes() + length;
     for (int thisIndex = getOffsetIntoBytes(), otherIndex =
-        other.getOffsetIntoBytes() + offset;
-        (thisIndex < thisLimit); ++thisIndex, ++otherIndex) {
+         other.getOffsetIntoBytes() + offset;
+         (thisIndex < thisLimit); ++thisIndex, ++otherIndex) {
       if (thisBytes[thisIndex] != otherBytes[otherIndex]) {
         return false;
       }
@@ -263,7 +264,7 @@ class LiteralByteString extends ByteString {
   protected int partialHash(int h, int offset, int length) {
     byte[] thisBytes = bytes;
     for (int i = getOffsetIntoBytes() + offset, limit = i + length; i < limit;
-        i++) {
+         i++) {
       h = h * 31 + thisBytes[i];
     }
     return h;
@@ -295,6 +296,7 @@ class LiteralByteString extends ByteString {
   }
 
   private class LiteralByteIterator implements ByteIterator {
+
     private int position;
     private final int limit;
 

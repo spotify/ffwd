@@ -64,6 +64,7 @@ public interface Message extends MessageLite, MessageOrBuilder {
    * {@code Object.equals()} is incorrect.
    *
    * @param other object to be compared for equality with this message
+   *
    * @return {@code true} if the specified object is equal to this message
    */
   @Override
@@ -76,6 +77,7 @@ public interface Message extends MessageLite, MessageOrBuilder {
    * inheriting {@code Object.hashCode()} is incorrect.
    *
    * @return the hash code value for this message
+   *
    * @see Map#hashCode()
    */
   @Override
@@ -97,12 +99,14 @@ public interface Message extends MessageLite, MessageOrBuilder {
 
   // (From MessageLite, re-declared here only for return type covariance.)
   Builder newBuilderForType();
+
   Builder toBuilder();
 
   /**
    * Abstract interface implemented by Protocol Message builders.
    */
   interface Builder extends MessageLite.Builder, MessageOrBuilder {
+
     // (From MessageLite.Builder, re-declared here only for return type
     // covariance.)
     Builder clear();
@@ -114,12 +118,12 @@ public interface Message extends MessageLite, MessageOrBuilder {
      *
      * Merging occurs as follows.  For each field:<br>
      * * For singular primitive fields, if the field is set in {@code other},
-     *   then {@code other}'s value overwrites the value in this message.<br>
+     * then {@code other}'s value overwrites the value in this message.<br>
      * * For singular message fields, if the field is set in {@code other},
-     *   it is merged into the corresponding sub-message of this message
-     *   using the same merging rules.<br>
+     * it is merged into the corresponding sub-message of this message
+     * using the same merging rules.<br>
      * * For repeated fields, the elements in {@code other} are concatenated
-     *   with the elements in this message.
+     * with the elements in this message.
      *
      * This is equivalent to the {@code Message::MergeFrom} method in C++.
      */
@@ -128,12 +132,16 @@ public interface Message extends MessageLite, MessageOrBuilder {
     // (From MessageLite.Builder, re-declared here only for return type
     // covariance.)
     Message build();
+
     Message buildPartial();
+
     Builder clone();
+
     Builder mergeFrom(CodedInputStream input) throws IOException;
+
     Builder mergeFrom(CodedInputStream input,
                       ExtensionRegistryLite extensionRegistry)
-                      throws IOException;
+        throws IOException;
 
     /**
      * Get the message's type's descriptor.
@@ -182,18 +190,20 @@ public interface Message extends MessageLite, MessageOrBuilder {
     /**
      * Sets an element of a repeated field to the given value.  The value must
      * be of the correct type for this field, i.e. the same type that
-     * {@link Message#getRepeatedField(Descriptors.FieldDescriptor,int)} would
+     * {@link Message#getRepeatedField(Descriptors.FieldDescriptor, int)} would
      * return.
+     *
      * @throws IllegalArgumentException The field is not a repeated field, or
-     *           {@code field.getContainingType() != getDescriptorForType()}.
+     *                                  {@code field.getContainingType() != getDescriptorForType()}.
      */
     Builder setRepeatedField(Descriptors.FieldDescriptor field,
                              int index, Object value);
 
     /**
      * Like {@code setRepeatedField}, but appends the value as a new element.
+     *
      * @throws IllegalArgumentException The field is not a repeated field, or
-     *           {@code field.getContainingType() != getDescriptorForType()}.
+     *                                  {@code field.getContainingType() != getDescriptorForType()}.
      */
     Builder addRepeatedField(Descriptors.FieldDescriptor field, Object value);
 
@@ -212,26 +222,35 @@ public interface Message extends MessageLite, MessageOrBuilder {
     // (From MessageLite.Builder, re-declared here only for return type
     // covariance.)
     Builder mergeFrom(ByteString data) throws InvalidProtocolBufferException;
+
     Builder mergeFrom(ByteString data,
                       ExtensionRegistryLite extensionRegistry)
-                      throws InvalidProtocolBufferException;
+        throws InvalidProtocolBufferException;
+
     Builder mergeFrom(byte[] data) throws InvalidProtocolBufferException;
+
     Builder mergeFrom(byte[] data, int off, int len)
-                      throws InvalidProtocolBufferException;
+        throws InvalidProtocolBufferException;
+
     Builder mergeFrom(byte[] data,
                       ExtensionRegistryLite extensionRegistry)
-                      throws InvalidProtocolBufferException;
+        throws InvalidProtocolBufferException;
+
     Builder mergeFrom(byte[] data, int off, int len,
                       ExtensionRegistryLite extensionRegistry)
-                      throws InvalidProtocolBufferException;
+        throws InvalidProtocolBufferException;
+
     Builder mergeFrom(InputStream input) throws IOException;
+
     Builder mergeFrom(InputStream input,
                       ExtensionRegistryLite extensionRegistry)
-                      throws IOException;
+        throws IOException;
+
     boolean mergeDelimitedFrom(InputStream input)
-                               throws IOException;
+        throws IOException;
+
     boolean mergeDelimitedFrom(InputStream input,
                                ExtensionRegistryLite extensionRegistry)
-                               throws IOException;
+        throws IOException;
   }
 }

@@ -53,6 +53,7 @@ package com.spotify.ffwd.protobuf250;
  * @author kenton@google.com Kenton Varda
  */
 public interface RpcChannel {
+
   /**
    * Call the given method of the remote service.  This method is similar to
    * {@code Service.callMethod()} with one important difference:  the caller

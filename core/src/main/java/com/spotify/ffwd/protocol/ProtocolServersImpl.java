@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,100 +35,101 @@ import io.netty.util.Timer;
 import org.slf4j.Logger;
 
 public class ProtocolServersImpl implements ProtocolServers {
-    @Inject
-    private AsyncFramework async;
 
-    @Inject
-    @Named("boss")
-    private EventLoopGroup boss;
+  @Inject
+  private AsyncFramework async;
 
-    @Inject
-    @Named("worker")
-    private EventLoopGroup worker;
+  @Inject
+  @Named("boss")
+  private EventLoopGroup boss;
 
-    @Inject
-    private Timer timer;
+  @Inject
+  @Named("worker")
+  private EventLoopGroup worker;
 
-    @Override
-    public AsyncFuture<ProtocolConnection> bind(
-        Logger log, Protocol protocol, ProtocolServer server, RetryPolicy policy
-    ) {
-        if (protocol.getType() == ProtocolType.UDP) {
-            return bindUDP(log, protocol, server, policy);
-        }
+  @Inject
+  private Timer timer;
 
-        if (protocol.getType() == ProtocolType.TCP) {
-            return bindTCP(log, protocol, server, policy);
-        }
-
-        throw new IllegalArgumentException("Unsupported protocol: " + protocol);
+  @Override
+  public AsyncFuture<ProtocolConnection> bind(
+      Logger log, Protocol protocol, ProtocolServer server, RetryPolicy policy
+  ) {
+    if (protocol.getType() == ProtocolType.UDP) {
+      return bindUDP(log, protocol, server, policy);
     }
 
-    private AsyncFuture<ProtocolConnection> bindTCP(
-        final Logger log, final Protocol protocol, ProtocolServer server, RetryPolicy policy
-    ) {
-        final ServerBootstrap b = new ServerBootstrap();
-
-        b.group(boss, worker);
-        b.channel(NioServerSocketChannel.class);
-        b.childHandler(server.initializer());
-
-        b.option(ChannelOption.SO_BACKLOG, 128);
-
-        if (protocol.getReceiveBufferSize() != null) {
-            b.childOption(ChannelOption.SO_RCVBUF, protocol.getReceiveBufferSize());
-        }
-
-        b.childOption(ChannelOption.SO_KEEPALIVE, true);
-
-        final String host = protocol.getAddress().getHostString();
-        final int port = protocol.getAddress().getPort();
-
-        final RetryingProtocolConnection connection =
-            new RetryingProtocolConnection(async, timer, log, policy, new ProtocolChannelSetup() {
-                @Override
-                public ChannelFuture setup() {
-                    return b.bind(host, port);
-                }
-
-                @Override
-                public String toString() {
-                    return String.format("bind tcp://%s:%d", host, port);
-                }
-            });
-
-        return connection.getInitialFuture();
+    if (protocol.getType() == ProtocolType.TCP) {
+      return bindTCP(log, protocol, server, policy);
     }
 
-    private AsyncFuture<ProtocolConnection> bindUDP(
-        final Logger log, final Protocol protocol, ProtocolServer server, RetryPolicy policy
-    ) {
-        final Bootstrap b = new Bootstrap();
+    throw new IllegalArgumentException("Unsupported protocol: " + protocol);
+  }
 
-        b.group(worker);
-        b.channel(NioDatagramChannel.class);
-        b.handler(server.initializer());
+  private AsyncFuture<ProtocolConnection> bindTCP(
+      final Logger log, final Protocol protocol, ProtocolServer server, RetryPolicy policy
+  ) {
+    final ServerBootstrap b = new ServerBootstrap();
 
-        if (protocol.getReceiveBufferSize() != null) {
-            b.option(ChannelOption.SO_RCVBUF, protocol.getReceiveBufferSize());
-        }
+    b.group(boss, worker);
+    b.channel(NioServerSocketChannel.class);
+    b.childHandler(server.initializer());
 
-        final String host = protocol.getAddress().getHostString();
-        final int port = protocol.getAddress().getPort();
+    b.option(ChannelOption.SO_BACKLOG, 128);
 
-        final RetryingProtocolConnection connection =
-            new RetryingProtocolConnection(async, timer, log, policy, new ProtocolChannelSetup() {
-                @Override
-                public ChannelFuture setup() {
-                    return b.bind(host, port);
-                }
-
-                @Override
-                public String toString() {
-                    return String.format("bind udp://%s:%d", host, port);
-                }
-            });
-
-        return connection.getInitialFuture();
+    if (protocol.getReceiveBufferSize() != null) {
+      b.childOption(ChannelOption.SO_RCVBUF, protocol.getReceiveBufferSize());
     }
+
+    b.childOption(ChannelOption.SO_KEEPALIVE, true);
+
+    final String host = protocol.getAddress().getHostString();
+    final int port = protocol.getAddress().getPort();
+
+    final RetryingProtocolConnection connection =
+        new RetryingProtocolConnection(async, timer, log, policy, new ProtocolChannelSetup() {
+          @Override
+          public ChannelFuture setup() {
+            return b.bind(host, port);
+          }
+
+          @Override
+          public String toString() {
+            return String.format("bind tcp://%s:%d", host, port);
+          }
+        });
+
+    return connection.getInitialFuture();
+  }
+
+  private AsyncFuture<ProtocolConnection> bindUDP(
+      final Logger log, final Protocol protocol, ProtocolServer server, RetryPolicy policy
+  ) {
+    final Bootstrap b = new Bootstrap();
+
+    b.group(worker);
+    b.channel(NioDatagramChannel.class);
+    b.handler(server.initializer());
+
+    if (protocol.getReceiveBufferSize() != null) {
+      b.option(ChannelOption.SO_RCVBUF, protocol.getReceiveBufferSize());
+    }
+
+    final String host = protocol.getAddress().getHostString();
+    final int port = protocol.getAddress().getPort();
+
+    final RetryingProtocolConnection connection =
+        new RetryingProtocolConnection(async, timer, log, policy, new ProtocolChannelSetup() {
+          @Override
+          public ChannelFuture setup() {
+            return b.bind(host, port);
+          }
+
+          @Override
+          public String toString() {
+            return String.format("bind udp://%s:%d", host, port);
+          }
+        });
+
+    return connection.getInitialFuture();
+  }
 }

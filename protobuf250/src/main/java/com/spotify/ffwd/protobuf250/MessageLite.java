@@ -146,15 +146,17 @@ public interface MessageLite extends MessageLiteOrBuilder {
    * Abstract interface implemented by Protocol Message builders.
    */
   interface Builder extends MessageLiteOrBuilder, Cloneable {
+
     /** Resets all fields to their default values. */
     Builder clear();
 
     /**
      * Constructs the message based on the state of the Builder. Subsequent
      * changes to the Builder will not affect the returned message.
+     *
      * @throws UninitializedMessageException The message is missing one or more
-     *         required fields (i.e. {@link #isInitialized()} returns false).
-     *         Use {@link #buildPartial()} to bypass this check.
+     *                                       required fields (i.e. {@link #isInitialized()} returns false).
+     *                                       Use {@link #buildPartial()} to bypass this check.
      */
     MessageLite build();
 
@@ -167,6 +169,7 @@ public interface MessageLite extends MessageLiteOrBuilder {
 
     /**
      * Clones the Builder.
+     *
      * @see Object#clone()
      */
     Builder clone();
@@ -181,10 +184,10 @@ public interface MessageLite extends MessageLiteOrBuilder {
      * which is a {@code RuntimeException} and thus might not be caught.  There
      * are a few good ways to deal with this:
      * <ul>
-     *   <li>Call {@link #isInitialized()} to verify that all required fields
-     *       are set before building.
-     *   <li>Use {@code buildPartial()} to build, which ignores missing
-     *       required fields.
+     * <li>Call {@link #isInitialized()} to verify that all required fields
+     * are set before building.
+     * <li>Use {@code buildPartial()} to build, which ignores missing
+     * required fields.
      * </ul>
      *
      * <p>Note:  The caller should call
@@ -202,7 +205,7 @@ public interface MessageLite extends MessageLiteOrBuilder {
      */
     Builder mergeFrom(CodedInputStream input,
                       ExtensionRegistryLite extensionRegistry)
-                      throws IOException;
+        throws IOException;
 
     // ---------------------------------------------------------------
     // Convenience methods.
@@ -219,13 +222,13 @@ public interface MessageLite extends MessageLiteOrBuilder {
     /**
      * Parse {@code data} as a message of this type and merge it with the
      * message being built.  This is just a small wrapper around
-     * {@link #mergeFrom(CodedInputStream,ExtensionRegistryLite)}.
+     * {@link #mergeFrom(CodedInputStream, ExtensionRegistryLite)}.
      *
      * @return this
      */
     Builder mergeFrom(ByteString data,
                       ExtensionRegistryLite extensionRegistry)
-                      throws InvalidProtocolBufferException;
+        throws InvalidProtocolBufferException;
 
     /**
      * Parse {@code data} as a message of this type and merge it with the
@@ -244,29 +247,29 @@ public interface MessageLite extends MessageLiteOrBuilder {
      * @return this
      */
     Builder mergeFrom(byte[] data, int off, int len)
-                      throws InvalidProtocolBufferException;
+        throws InvalidProtocolBufferException;
 
     /**
      * Parse {@code data} as a message of this type and merge it with the
      * message being built.  This is just a small wrapper around
-     * {@link #mergeFrom(CodedInputStream,ExtensionRegistryLite)}.
+     * {@link #mergeFrom(CodedInputStream, ExtensionRegistryLite)}.
      *
      * @return this
      */
     Builder mergeFrom(byte[] data,
                       ExtensionRegistryLite extensionRegistry)
-                      throws InvalidProtocolBufferException;
+        throws InvalidProtocolBufferException;
 
     /**
      * Parse {@code data} as a message of this type and merge it with the
      * message being built.  This is just a small wrapper around
-     * {@link #mergeFrom(CodedInputStream,ExtensionRegistryLite)}.
+     * {@link #mergeFrom(CodedInputStream, ExtensionRegistryLite)}.
      *
      * @return this
      */
     Builder mergeFrom(byte[] data, int off, int len,
                       ExtensionRegistryLite extensionRegistry)
-                      throws InvalidProtocolBufferException;
+        throws InvalidProtocolBufferException;
 
     /**
      * Parse a message of this type from {@code input} and merge it with the
@@ -287,13 +290,13 @@ public interface MessageLite extends MessageLiteOrBuilder {
     /**
      * Parse a message of this type from {@code input} and merge it with the
      * message being built.  This is just a small wrapper around
-     * {@link #mergeFrom(CodedInputStream,ExtensionRegistryLite)}.
+     * {@link #mergeFrom(CodedInputStream, ExtensionRegistryLite)}.
      *
      * @return this
      */
     Builder mergeFrom(InputStream input,
                       ExtensionRegistryLite extensionRegistry)
-                      throws IOException;
+        throws IOException;
 
     /**
      * Like {@link #mergeFrom(InputStream)}, but does not read until EOF.
@@ -303,17 +306,17 @@ public interface MessageLite extends MessageLiteOrBuilder {
      * this format.
      *
      * @return True if successful, or false if the stream is at EOF when the
-     *         method starts.  Any other error (including reaching EOF during
-     *         parsing) will cause an exception to be thrown.
+     *     method starts.  Any other error (including reaching EOF during
+     *     parsing) will cause an exception to be thrown.
      */
     boolean mergeDelimitedFrom(InputStream input)
-                               throws IOException;
+        throws IOException;
 
     /**
      * Like {@link #mergeDelimitedFrom(InputStream)} but supporting extensions.
      */
     boolean mergeDelimitedFrom(InputStream input,
                                ExtensionRegistryLite extensionRegistry)
-                               throws IOException;
+        throws IOException;
   }
 }

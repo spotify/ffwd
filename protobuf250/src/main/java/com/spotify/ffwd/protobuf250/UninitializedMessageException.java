@@ -47,6 +47,7 @@ import java.util.List;
  * @author kenton@google.com Kenton Varda
  */
 public class UninitializedMessageException extends RuntimeException {
+
   private static final long serialVersionUID = -7466929953374883507L;
 
   public UninitializedMessageException(final MessageLite message) {
@@ -84,7 +85,7 @@ public class UninitializedMessageException extends RuntimeException {
   /** Construct the description string for this exception. */
   private static String buildDescription(final List<String> missingFields) {
     final StringBuilder description =
-      new StringBuilder("Message missing required fields: ");
+        new StringBuilder("Message missing required fields: ");
     boolean first = true;
     for (final String field : missingFields) {
       if (first) {

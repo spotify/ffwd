@@ -38,32 +38,33 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class OpenTelemetryOutputPlugin extends OutputPlugin {
-    private final Map<String, String> headers;
-    private final String endpoint;
 
-    @JsonCreator
-    public OpenTelemetryOutputPlugin(
-        @JsonProperty("filter") Optional<Filter> filter,
-        @JsonProperty("flushInterval") @Nullable Long flushInterval,
-        @JsonProperty("batching") Optional<Batching> batching,
-        @JsonProperty("headers") Optional<Map<String, String>> headers,
-        @JsonProperty("endpoint") @Nullable String endpoint
-    ) {
-        super(filter, Batching.from(flushInterval, batching));
-        this.headers = headers.orElse(new HashMap<>());
-        this.endpoint = Objects.requireNonNull(endpoint, "endpoint must be set");
-    }
+  private final Map<String, String> headers;
+  private final String endpoint;
 
-    @Override
-    public Module module(Key<PluginSink> key, String id) {
-        return new PrivateModule() {
-            @Override
-            protected void configure() {
-                bind(Logger.class).toInstance(LoggerFactory.getLogger(id));
-                bind(key).toInstance(
-                    new OpenTelemetryPluginSink(endpoint, headers));
-                expose(key);
-            }
-        };
-    }
+  @JsonCreator
+  public OpenTelemetryOutputPlugin(
+      @JsonProperty("filter") Optional<Filter> filter,
+      @JsonProperty("flushInterval") @Nullable Long flushInterval,
+      @JsonProperty("batching") Optional<Batching> batching,
+      @JsonProperty("headers") Optional<Map<String, String>> headers,
+      @JsonProperty("endpoint") @Nullable String endpoint
+  ) {
+    super(filter, Batching.from(flushInterval, batching));
+    this.headers = headers.orElse(new HashMap<>());
+    this.endpoint = Objects.requireNonNull(endpoint, "endpoint must be set");
+  }
+
+  @Override
+  public Module module(Key<PluginSink> key, String id) {
+    return new PrivateModule() {
+      @Override
+      protected void configure() {
+        bind(Logger.class).toInstance(LoggerFactory.getLogger(id));
+        bind(key).toInstance(
+            new OpenTelemetryPluginSink(endpoint, headers));
+        expose(key);
+      }
+    };
+  }
 }

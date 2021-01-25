@@ -38,6 +38,7 @@ import java.io.InputStream;
  * @author liujisi@google.com (Pherl Liu)
  */
 public interface Parser<MessageType> {
+
   /**
    * Parses a message of {@code MessageType} from the input.
    *
@@ -226,8 +227,8 @@ public interface Parser<MessageType> {
    * messages in this format.
    *
    * @return True if successful, or false if the stream is at EOF when the
-   *         method starts. Any other error (including reaching EOF during
-   *         parsing) will cause an exception to be thrown.
+   *     method starts. Any other error (including reaching EOF during
+   *     parsing) will cause an exception to be thrown.
    */
   public MessageType parseDelimitedFrom(InputStream input)
       throws InvalidProtocolBufferException;

@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,27 +26,28 @@ import com.spotify.ffwd.model.v2.Metric;
 import eu.toolchain.async.AsyncFuture;
 
 public interface PluginSink extends Initializable {
-    /**
-     * Send the given collection of metrics.
-     * <p>
-     * This method is fire-and-forget, because tracking each individual send is too expensive.
-     *
-     * @param metric Metric to send.
-     */
-    void sendMetric(Metric metric);
 
-    /**
-     * Send the given collection of metrics.
-     * <p>
-     * This method is fire-and-forget, because tracking each individual send is too expensive.
-     *
-     * @param batch Batch to send.
-     */
-    void sendBatch(Batch batch);
+  /**
+   * Send the given collection of metrics.
+   * <p>
+   * This method is fire-and-forget, because tracking each individual send is too expensive.
+   *
+   * @param metric Metric to send.
+   */
+  void sendMetric(Metric metric);
 
-    AsyncFuture<Void> start();
+  /**
+   * Send the given collection of metrics.
+   * <p>
+   * This method is fire-and-forget, because tracking each individual send is too expensive.
+   *
+   * @param batch Batch to send.
+   */
+  void sendBatch(Batch batch);
 
-    AsyncFuture<Void> stop();
+  AsyncFuture<Void> start();
 
-    boolean isReady();
+  AsyncFuture<Void> stop();
+
+  boolean isReady();
 }

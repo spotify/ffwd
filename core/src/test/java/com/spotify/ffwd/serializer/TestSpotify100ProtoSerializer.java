@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -40,6 +40,7 @@ import org.xerial.snappy.Snappy;
 
 
 public class TestSpotify100ProtoSerializer {
+
   private Serializer serializer;
   private Metric metric;
 
@@ -49,10 +50,11 @@ public class TestSpotify100ProtoSerializer {
   //Test Data
   private String key = "KEY";
   private Value distributionDoubleValue = Value.DoubleValue.create(0.02);
-  private Value distributionBytStringValue = Value.DistributionValue.create(ByteString.copyFromUtf8("ABCDEFG_1234"));
+  private Value distributionBytStringValue =
+      Value.DistributionValue.create(ByteString.copyFromUtf8("ABCDEFG_1234"));
   private long time = 1542812184;
-  private Map<String,String> tags =  ImmutableMap.of("tag_key", "tag_val");
-  private Map<String,String> resource = ImmutableMap.of("res_key","res_val");
+  private Map<String, String> tags = ImmutableMap.of("tag_key", "tag_val");
+  private Map<String, String> resource = ImmutableMap.of("res_key", "res_val");
 
   @Before
   public void setup() {
@@ -62,107 +64,110 @@ public class TestSpotify100ProtoSerializer {
 
   @Test(expected = UnsupportedOperationException.class)
   public void testSerializeMetric() throws Exception {
-      metric = create("",distributionDoubleValue,time,tags,resource);
-      serializer.serialize(metric);
+    metric = create("", distributionDoubleValue, time, tags, resource);
+    serializer.serialize(metric);
   }
 
   @Test(expected = NullPointerException.class)
   public void testNullKeyException() throws Exception {
-    metric = create(null,distributionDoubleValue,time,tags,resource);
+    metric = create(null, distributionDoubleValue, time, tags, resource);
     serializer.serialize(ImmutableList.of(metric), writeCache);
   }
 
-    @Test(expected = UnknownFormatConversionException.class)
+  @Test(expected = UnknownFormatConversionException.class)
   public void testNullValueException() throws Exception {
-    metric = create(key,null,time,tags,resource);
+    metric = create(key, null, time, tags, resource);
     serializer.serialize(ImmutableList.of(metric), writeCache);
   }
 
-    @Test
-    public void testSerializedMetricBatching() throws Exception {
-        com.spotify.ffwd.model.v2.Metric metric1 = create(key,distributionDoubleValue,time,tags,resource);
-        com.spotify.ffwd.model.v2.Metric metric2 = create(key,distributionBytStringValue,time,tags,resource);
-        com.spotify.ffwd.model.v2.Metric metric3  = create(key,Value.DoubleValue.create(40),time,tags,resource);
-        Collection<Metric> batchIn = ImmutableList.of(metric1,metric2,metric3);
+  @Test
+  public void testSerializedMetricBatching() throws Exception {
+    com.spotify.ffwd.model.v2.Metric metric1 =
+        create(key, distributionDoubleValue, time, tags, resource);
+    com.spotify.ffwd.model.v2.Metric metric2 =
+        create(key, distributionBytStringValue, time, tags, resource);
+    com.spotify.ffwd.model.v2.Metric metric3 =
+        create(key, Value.DoubleValue.create(40), time, tags, resource);
+    Collection<Metric> batchIn = ImmutableList.of(metric1, metric2, metric3);
 
-        final byte [] bytes = serializer.serialize(batchIn, writeCache );
+    final byte[] bytes = serializer.serialize(batchIn, writeCache);
 
-        Spotify100.Batch spotify100BatchOut = deserialize(bytes);
+    Spotify100.Batch spotify100BatchOut = deserialize(bytes);
 
-        assertThat( batchIn.size(), is(spotify100BatchOut.getMetricList().size()));
-    }
+    assertThat(batchIn.size(), is(spotify100BatchOut.getMetricList().size()));
+  }
 
 
   @Test
   public void testSerializedMetricWithDoubleValue() throws Exception {
-      Map<String,String> tags =  ImmutableMap.of("a", "b");
-      Map<String,String> resource = ImmutableMap.of("res1","res2");
-      Value value = Value.DoubleValue.create(0.02);
-      long time = System.currentTimeMillis();
+    Map<String, String> tags = ImmutableMap.of("a", "b");
+    Map<String, String> resource = ImmutableMap.of("res1", "res2");
+    Value value = Value.DoubleValue.create(0.02);
+    long time = System.currentTimeMillis();
 
-      Metric  metric1 = create(key,value,time,tags,resource);
+    Metric metric1 = create(key, value, time, tags, resource);
 
-     final byte [] bytes = serializer.serialize(ImmutableList.of(metric1), writeCache );
+    final byte[] bytes = serializer.serialize(ImmutableList.of(metric1), writeCache);
 
-     Spotify100.Batch spotify100BatchOut = deserialize(bytes);
+    Spotify100.Batch spotify100BatchOut = deserialize(bytes);
 
-     assertThat( value.getValue(), is(spotify100BatchOut.getMetricList()
-          .get(0).getDistributionTypeValue().getDoubleValue()));
+    assertThat(value.getValue(), is(spotify100BatchOut.getMetricList()
+        .get(0).getDistributionTypeValue().getDoubleValue()));
 
-     assertThat( key, is(spotify100BatchOut.getMetricList()
-            .get(0).getKey()));
+    assertThat(key, is(spotify100BatchOut.getMetricList()
+        .get(0).getKey()));
 
-     assertThat( tags, is(spotify100BatchOut.getMetricList()
-            .get(0).getTagsMap()));
-     assertThat( resource, is(spotify100BatchOut.getMetricList()
-            .get(0).getResourceMap()));
-     assertThat( time, is(spotify100BatchOut.getMetricList()
-            .get(0).getTime()));
+    assertThat(tags, is(spotify100BatchOut.getMetricList()
+        .get(0).getTagsMap()));
+    assertThat(resource, is(spotify100BatchOut.getMetricList()
+        .get(0).getResourceMap()));
+    assertThat(time, is(spotify100BatchOut.getMetricList()
+        .get(0).getTime()));
   }
+
   @Test
   public void testSerializedMetricWithDistributionValue() throws Exception {
     Value value = Value.DistributionValue.create((ByteString.copyFromUtf8("ABCDEFG")));
 
-    Metric  metric1 = create(key,value,time,tags,resource);
+    Metric metric1 = create(key, value, time, tags, resource);
 
-    final byte [] bytes = serializer.serialize(ImmutableList.of(metric1), writeCache );
+    final byte[] bytes = serializer.serialize(ImmutableList.of(metric1), writeCache);
 
     Spotify100.Batch spotify100BatchOut = deserialize(bytes);
 
-    assertThat( value.getValue(), is(spotify100BatchOut.getMetricList()
-            .get(0).getDistributionTypeValue().getDistributionValue()));
+    assertThat(value.getValue(), is(spotify100BatchOut.getMetricList()
+        .get(0).getDistributionTypeValue().getDistributionValue()));
 
-    assertThat( key, is(spotify100BatchOut.getMetricList()
-            .get(0).getKey()));
+    assertThat(key, is(spotify100BatchOut.getMetricList()
+        .get(0).getKey()));
 
-    assertThat( tags, is(spotify100BatchOut.getMetricList()
-            .get(0).getTagsMap()));
-    assertThat( resource, is(spotify100BatchOut.getMetricList()
-            .get(0).getResourceMap()));
-    assertThat( time, is(spotify100BatchOut.getMetricList()
-            .get(0).getTime()));
+    assertThat(tags, is(spotify100BatchOut.getMetricList()
+        .get(0).getTagsMap()));
+    assertThat(resource, is(spotify100BatchOut.getMetricList()
+        .get(0).getResourceMap()));
+    assertThat(time, is(spotify100BatchOut.getMetricList()
+        .get(0).getTime()));
   }
 
 
-
-  private Spotify100.Batch deserialize( final byte bytesIn [] ) throws
-          IOException {
-      final byte [] bytesOut = Snappy.uncompress(bytesIn);
-      return  Spotify100.Batch.parseFrom(bytesOut);
+  private Spotify100.Batch deserialize(final byte bytesIn[]) throws
+                                                             IOException {
+    final byte[] bytesOut = Snappy.uncompress(bytesIn);
+    return Spotify100.Batch.parseFrom(bytesOut);
   }
 
 
   private com.spotify.ffwd.model.v2.Metric create(final String key,
-                              final Value value,
-                              final long time,
-                              final Map<String,String>tags,
-                              final Map<String,String>resource){
-    return new com.spotify.ffwd.model.v2.Metric (
-            key,
-            value,
-            time,
-            tags,
-            resource);
+                                                  final Value value,
+                                                  final long time,
+                                                  final Map<String, String> tags,
+                                                  final Map<String, String> resource) {
+    return new com.spotify.ffwd.model.v2.Metric(
+        key,
+        value,
+        time,
+        tags,
+        resource);
 
   }
 

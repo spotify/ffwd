@@ -2,7 +2,7 @@
 ---
 <!doctype html>
 <html>
-  <head>
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="FFWD Documentation">
@@ -21,51 +21,56 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.16.0/components/prism-json.min.js"></script>
     <script src="assets/js/prism-hql.js" type="text/javascript"></script>
     <script src="assets/js/prism-ts.js" type="text/javascript"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.1/themes/prism-tomorrow.min.css" />
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.1/themes/prism-tomorrow.min.css"/>
 
     <!-- bootstrap -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-social/5.0.0/bootstrap-social.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css" />
+    <link rel="stylesheet"
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-social/5.0.0/bootstrap-social.min.css"/>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css"/>
 
-    <link rel="stylesheet" href="assets/css/index.css" />
-    <link rel="stylesheet" href="assets/css/docs.css" />
-    <link rel="stylesheet" href="assets/css/api.css" />
-  </head>
-  <body>
-    <nav class="navbar navbar-inverse">
-      <div class="container">
+    <link rel="stylesheet" href="assets/css/index.css"/>
+    <link rel="stylesheet" href="assets/css/docs.css"/>
+    <link rel="stylesheet" href="assets/css/api.css"/>
+</head>
+<body>
+<nav class="navbar navbar-inverse">
+    <div class="container">
         <div class="navbar-left">
-          <a href="{{ '/' | relative_url }}">
-            <img src="images/ffwdsmall.png" style="margin-top: .25em;" />
-          </a>
+            <a href="{{ '/' | relative_url }}">
+                <img src="images/ffwdsmall.png" style="margin-top: .25em;"/>
+            </a>
         </div>
 
         <ul class="nav navbar-nav">
-          <li {% if page.collection == 'docs' %}class="active"{% endif %}>
+            <li {% if page.collection==
+            'docs' %}class="active"{% endif %}>
             <a href="docs/overview">Documentation</a>
-          </li>
+            </li>
         </ul>
 
         <ul class="nav navbar-nav navbar-right">
-          <li>
-            <a href="https://github.com/spotify/ffwd">
-              <span class="fa fa-github"></span>
-              FFWD on Github
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/spotify/ffwd/tree/master/docs">
-              <span class="fa fa-pencil"></span>
-              Improve this site
-            </a>
-          </li>
+            <li>
+                <a href="https://github.com/spotify/ffwd">
+                    <span class="fa fa-github"></span>
+                    FFWD on Github
+                </a>
+            </li>
+            <li>
+                <a href="https://github.com/spotify/ffwd/tree/master/docs">
+                    <span class="fa fa-pencil"></span>
+                    Improve this site
+                </a>
+            </li>
         </ul>
-      </div>
-    </nav>
-
-    <div class="container">
-      {{ content }}
     </div>
-  </body>
+</nav>
+
+<div class="container">
+    {{ content }}
+</div>
+</body>
 </html>

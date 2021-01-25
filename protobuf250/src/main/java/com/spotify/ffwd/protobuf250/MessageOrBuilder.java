@@ -91,8 +91,9 @@ public interface MessageOrBuilder extends MessageLiteOrBuilder {
   /**
    * Returns true if the given field is set.  This is exactly equivalent to
    * calling the generated "has" accessor method corresponding to the field.
+   *
    * @throws IllegalArgumentException The field is a repeated field, or
-   *           {@code field.getContainingType() != getDescriptorForType()}.
+   *                                  {@code field.getContainingType() != getDescriptorForType()}.
    */
   boolean hasField(Descriptors.FieldDescriptor field);
 
@@ -109,8 +110,9 @@ public interface MessageOrBuilder extends MessageLiteOrBuilder {
    * Gets the number of elements of a repeated field.  This is exactly
    * equivalent to calling the generated "Count" accessor method corresponding
    * to the field.
+   *
    * @throws IllegalArgumentException The field is not a repeated field, or
-   *           {@code field.getContainingType() != getDescriptorForType()}.
+   *                                  {@code field.getContainingType() != getDescriptorForType()}.
    */
   int getRepeatedFieldCount(Descriptors.FieldDescriptor field);
 
@@ -119,8 +121,9 @@ public interface MessageOrBuilder extends MessageLiteOrBuilder {
    * primitive value is returned.  For enum fields, the EnumValueDescriptor
    * for the value is returned. For embedded message fields, the sub-message
    * is returned.
+   *
    * @throws IllegalArgumentException The field is not a repeated field, or
-   *           {@code field.getContainingType() != getDescriptorForType()}.
+   *                                  {@code field.getContainingType() != getDescriptorForType()}.
    */
   Object getRepeatedField(Descriptors.FieldDescriptor field, int index);
 

@@ -22,10 +22,11 @@ package com.spotify.ffwd.filter;
 
 
 public interface Filter {
-    boolean matchesMetric(com.spotify.ffwd.model.v2.Metric metric);
 
-    default boolean matchesBatch(com.spotify.ffwd.model.v2.Batch batch) {
-        return true;
-    }
+  boolean matchesMetric(com.spotify.ffwd.model.v2.Metric metric);
+
+  default boolean matchesBatch(com.spotify.ffwd.model.v2.Batch batch) {
+    return true;
+  }
 
 }

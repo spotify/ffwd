@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,59 +31,60 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DebugPluginSink implements BatchablePluginSink {
-    private static final Logger log = LoggerFactory.getLogger(DebugPluginSink.class);
 
-    @Inject
-    private AsyncFramework async;
+  private static final Logger log = LoggerFactory.getLogger(DebugPluginSink.class);
 
-    @Override
-    public void init() {
+  @Inject
+  private AsyncFramework async;
+
+  @Override
+  public void init() {
+  }
+
+  @Override
+  public void sendMetric(Metric metric) {
+    log.info("M: {}", metric);
+  }
+
+  @Override
+  public void sendBatch(final Batch batch) {
+    log.info("B: {}", batch);
+  }
+
+  @Override
+  public AsyncFuture<Void> sendMetrics(Collection<Metric> metrics) {
+    int i = 0;
+
+    for (final Metric m : metrics) {
+      log.info("M#{}: {}", i++, m);
     }
 
-    @Override
-    public void sendMetric(Metric metric) {
-        log.info("M: {}", metric);
+    return async.resolved(null);
+  }
+
+  @Override
+  public AsyncFuture<Void> sendBatches(final Collection<Batch> batches) {
+    int i = 0;
+
+    for (final Batch b : batches) {
+      log.info("B#{}: {}", i++, b);
     }
 
-    @Override
-    public void sendBatch(final Batch batch) {
-        log.info("B: {}", batch);
-    }
+    return async.resolved(null);
+  }
 
-    @Override
-    public AsyncFuture<Void> sendMetrics(Collection<Metric> metrics) {
-        int i = 0;
+  @Override
+  public AsyncFuture<Void> start() {
+    return async.resolved();
+  }
 
-        for (final Metric m : metrics) {
-            log.info("M#{}: {}", i++, m);
-        }
+  @Override
+  public AsyncFuture<Void> stop() {
+    return async.resolved();
+  }
 
-        return async.resolved(null);
-    }
-
-    @Override
-    public AsyncFuture<Void> sendBatches(final Collection<Batch> batches) {
-        int i = 0;
-
-        for (final Batch b : batches) {
-            log.info("B#{}: {}", i++, b);
-        }
-
-        return async.resolved(null);
-    }
-
-    @Override
-    public AsyncFuture<Void> start() {
-        return async.resolved();
-    }
-
-    @Override
-    public AsyncFuture<Void> stop() {
-        return async.resolved();
-    }
-
-    @Override
-    public boolean isReady() {
-        return true;
-    }
+  @Override
+  public boolean isReady() {
+    return true;
+  }
 }

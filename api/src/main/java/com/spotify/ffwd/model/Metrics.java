@@ -26,5 +26,6 @@ package com.spotify.ffwd.model;
  * both old and new metrics.
  */
 public interface Metrics {
-    String generateHash();
+
+  String generateHash();
 }

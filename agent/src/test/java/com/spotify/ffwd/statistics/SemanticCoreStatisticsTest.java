@@ -35,28 +35,29 @@ import org.junit.Test;
 
 public class SemanticCoreStatisticsTest {
 
-    private SemanticMetricRegistry registry;
-    private SemanticCoreStatistics statistics;
+  private SemanticMetricRegistry registry;
+  private SemanticCoreStatistics statistics;
 
-    @Before
-    public void setup() {
-      registry = spy(new SemanticMetricRegistry());
-      statistics = new SemanticCoreStatistics(registry);
-    }
+  @Before
+  public void setup() {
+    registry = spy(new SemanticMetricRegistry());
+    statistics = new SemanticCoreStatistics(registry);
+  }
 
-    @Test
-    public void testNewHighFrequency() {
-        HighFrequencyDetectorStatistics stats = statistics.newHighFrequency();
-        List<Long> testLongs = Arrays.asList(2L, 70L, 10L);
+  @Test
+  public void testNewHighFrequency() {
+    HighFrequencyDetectorStatistics stats = statistics.newHighFrequency();
+    List<Long> testLongs = Arrays.asList(2L, 70L, 10L);
 
-        stats.reportHighFrequencyMetrics(1, "keys", "key1|key2|key3","whats","what,waht,what2");
-        stats.reportHighFrequencyMetrics(2, "keys", "key1|key2|key3|key4","whats","waht,what2");
-        stats.reportHighFrequencyMetrics(10, "keys", "key1|key2|key3","whats","what,what2");
-        stats.reportHighFrequencyMetrics(70, "keys", "key1|key2|key3","whats","what,waht,what2");
+    stats.reportHighFrequencyMetrics(1, "keys", "key1|key2|key3", "whats", "what,waht,what2");
+    stats.reportHighFrequencyMetrics(2, "keys", "key1|key2|key3|key4", "whats", "waht,what2");
+    stats.reportHighFrequencyMetrics(10, "keys", "key1|key2|key3", "whats", "what,what2");
+    stats.reportHighFrequencyMetrics(70, "keys", "key1|key2|key3", "whats", "what,waht,what2");
 
-        SortedMap<MetricId, Gauge> gaugesFinal = registry.getGauges();
+    SortedMap<MetricId, Gauge> gaugesFinal = registry.getGauges();
 
-        List<Long> longs = gaugesFinal.entrySet().stream().map(set -> (Long)set.getValue().getValue()).collect(Collectors.toList());
-        assertEquals(testLongs, longs);
-    }
+    List<Long> longs = gaugesFinal.entrySet().stream().map(set -> (Long) set.getValue().getValue())
+        .collect(Collectors.toList());
+    assertEquals(testLongs, longs);
+  }
 }

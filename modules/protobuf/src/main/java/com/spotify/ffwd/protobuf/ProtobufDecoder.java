@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -42,174 +42,175 @@ import org.slf4j.LoggerFactory;
 
 @Sharable
 public class ProtobufDecoder extends MessageToMessageDecoder<ByteBuf> {
-    private static final Logger log = LoggerFactory.getLogger(ProtobufDecoder.class);
-    public static final int MAX_FRAME_SIZE = 0xffffff;
 
-    @Override
-    protected void decode(final ChannelHandlerContext ctx, final ByteBuf in, final List<Object> out)
-        throws Exception {
-        while (in.readableBytes() >= 8) {
-            decodeOne(in, out);
-        }
+  private static final Logger log = LoggerFactory.getLogger(ProtobufDecoder.class);
+  public static final int MAX_FRAME_SIZE = 0xffffff;
 
-        if (in.readableBytes() > 0) {
-            log.error("Garbage left in buffer, " + in.readableBytes() +
+  @Override
+  protected void decode(final ChannelHandlerContext ctx, final ByteBuf in, final List<Object> out)
+      throws Exception {
+    while (in.readableBytes() >= 8) {
+      decodeOne(in, out);
+    }
+
+    if (in.readableBytes() > 0) {
+      log.error("Garbage left in buffer, " + in.readableBytes() +
                 " readable bytes have not been processed");
-        }
+    }
+  }
+
+  private void decodeOne(final ByteBuf in, final List<Object> out)
+      throws Exception {
+    final int version = (int) in.getUnsignedInt(0);
+    final long totalLength = in.getUnsignedInt(4);
+
+    if (totalLength > MAX_FRAME_SIZE) {
+      log.error(
+          "Received frame with length (" + totalLength + ") larger than maximum allowed ( " +
+          MAX_FRAME_SIZE + ")");
+      in.clear();
+      return;
     }
 
-    private void decodeOne(final ByteBuf in, final List<Object> out)
-        throws Exception {
-        final int version = (int) in.getUnsignedInt(0);
-        final long totalLength = in.getUnsignedInt(4);
-
-        if (totalLength > MAX_FRAME_SIZE) {
-            log.error(
-                "Received frame with length (" + totalLength + ") larger than maximum allowed ( " +
-                    MAX_FRAME_SIZE + ")");
-            in.clear();
-            return;
-        }
-
-        // datagram underflow
-        if (in.readableBytes() < totalLength) {
-            log.error(
-                "Received frame of shorter length (" + in.readableBytes() + ") than reported (" +
-                    totalLength + ")");
-            in.clear();
-            return;
-        }
-
-        in.skipBytes(8);
-
-        final Object frame;
-
-        switch (version) {
-            case 0:  //TODO update this
-                frame = decodeFrame(in, FastForward.Version.V0);
-                break;
-            case 1 :
-                frame = decodeFrame(in, FastForward.Version.V1);
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported protocol version: " + version);
-        }
-
-        if (frame != null) {
-            out.add(frame);
-        }
+    // datagram underflow
+    if (in.readableBytes() < totalLength) {
+      log.error(
+          "Received frame of shorter length (" + in.readableBytes() + ") than reported (" +
+          totalLength + ")");
+      in.clear();
+      return;
     }
 
+    in.skipBytes(8);
 
-    private Object decodeFrame(ByteBuf buffer, FastForward.Version version) throws Exception {
+    final Object frame;
 
-
-        final InputStream inputStream = new ByteBufInputStream(buffer);
-
-        try {
-            if (FastForward.Version.V0.equals(version)) {
-                return decodeMetric0(Protocol0.Message.parseFrom(inputStream));
-            }
-            if (FastForward.Version.V1.equals(version)) {
-                return decodeMetric1(com.spotify.ffwd.protocol1.Protocol1
-                        .Message.parseFrom(inputStream));
-            }
-        } catch (final InvalidProtocolBufferException e) {
-            throw new Exception("Invalid protobuf message version = " + version.getVersion(), e);
-        }
-        return null;
+    switch (version) {
+      case 0:  //TODO update this
+        frame = decodeFrame(in, FastForward.Version.V0);
+        break;
+      case 1:
+        frame = decodeFrame(in, FastForward.Version.V1);
+        break;
+      default:
+        throw new IllegalArgumentException("Unsupported protocol version: " + version);
     }
 
-    /**
-     * Convert {@link com.spotify.ffwd.protocol0.Protocol0.Metric}
-     * into {@link com.spotify.ffwd.model.v2.Metric}
-     * The object is then passed to the inputChannel.
-     *
-     * @param message, Metric wrapper
-     * @return Object, {@link com.spotify.ffwd.model.v2.Metric} as an Object
-     */
-    @VisibleForTesting
-    Object decodeMetric0(final Protocol0.Message message) {
-        if (!message.hasMetric()) {
-            return null;
-        }
-        Protocol0.Metric metric = message.getMetric();
-        final String key = metric.hasKey() ? metric.getKey() : null;
-        final double dval = metric.hasValue() ? metric.getValue() : Double.NaN;
-        final Value value = Value.DoubleValue.create(dval);
-        final String host = metric.hasHost() ? metric.getHost() : null;
-        final Map<String, String> tags = convertAttributes0(metric.getAttributesList());
-        final Map<String, String> resource = ImmutableMap.of(); //Not supported yet
-        if (host != null) {
-            tags.put("host", host);
-        }
-        //TODO check how time set to default value is handled
-        return new Metric(key, value, metric.getTime(), tags, resource);
+    if (frame != null) {
+      out.add(frame);
+    }
+  }
+
+
+  private Object decodeFrame(ByteBuf buffer, FastForward.Version version) throws Exception {
+
+    final InputStream inputStream = new ByteBufInputStream(buffer);
+
+    try {
+      if (FastForward.Version.V0.equals(version)) {
+        return decodeMetric0(Protocol0.Message.parseFrom(inputStream));
+      }
+      if (FastForward.Version.V1.equals(version)) {
+        return decodeMetric1(com.spotify.ffwd.protocol1.Protocol1
+            .Message.parseFrom(inputStream));
+      }
+    } catch (final InvalidProtocolBufferException e) {
+      throw new Exception("Invalid protobuf message version = " + version.getVersion(), e);
+    }
+    return null;
+  }
+
+  /**
+   * Convert {@link com.spotify.ffwd.protocol0.Protocol0.Metric}
+   * into {@link com.spotify.ffwd.model.v2.Metric}
+   * The object is then passed to the inputChannel.
+   *
+   * @param message, Metric wrapper
+   *
+   * @return Object, {@link com.spotify.ffwd.model.v2.Metric} as an Object
+   */
+  @VisibleForTesting
+  Object decodeMetric0(final Protocol0.Message message) {
+    if (!message.hasMetric()) {
+      return null;
+    }
+    Protocol0.Metric metric = message.getMetric();
+    final String key = metric.hasKey() ? metric.getKey() : null;
+    final double dval = metric.hasValue() ? metric.getValue() : Double.NaN;
+    final Value value = Value.DoubleValue.create(dval);
+    final String host = metric.hasHost() ? metric.getHost() : null;
+    final Map<String, String> tags = convertAttributes0(metric.getAttributesList());
+    final Map<String, String> resource = ImmutableMap.of(); //Not supported yet
+    if (host != null) {
+      tags.put("host", host);
+    }
+    //TODO check how time set to default value is handled
+    return new Metric(key, value, metric.getTime(), tags, resource);
+  }
+
+  /**
+   * Convert {@link com.spotify.ffwd.protocol1.Protocol1.Metric}
+   * into {@link com.spotify.ffwd.model.v2.Metric}.
+   * The object is then passed to the inputChannel.
+   *
+   * @param message, Metric wrapper
+   *
+   * @return Object, {@link com.spotify.ffwd.model.v2.Metric} as an Object
+   */
+  @VisibleForTesting
+  Object decodeMetric1(final Protocol1.Message message) {
+    if (!message.hasMetric()) {
+      return null;
+    }
+    com.spotify.ffwd.protocol1.Protocol1.Metric metric = message.getMetric();
+    final String key = (metric.getKey() == null ||
+                        metric.getKey().isEmpty()) ? null : metric.getKey();
+    final com.spotify.ffwd.model.v2.Value value = extractPointValue(metric);
+    final String host = metric.getHost();
+    final Map<String, String> tags = convertAttributes1(metric.getAttributesList());
+
+    final Map<String, String> resource = ImmutableMap.of(); //Not supported yet
+
+    if (host != null && !host.isEmpty()) {
+      tags.put("host", host);
     }
 
-    /**
-     * Convert {@link com.spotify.ffwd.protocol1.Protocol1.Metric}
-     * into {@link com.spotify.ffwd.model.v2.Metric}.
-     * The object is then passed to the inputChannel.
-     *
-     * @param message, Metric wrapper
-     * @return  Object, {@link com.spotify.ffwd.model.v2.Metric} as an Object
-     */
-    @VisibleForTesting
-    Object decodeMetric1(final Protocol1.Message message) {
-        if (!message.hasMetric()) {
-            return null;
-        }
-        com.spotify.ffwd.protocol1.Protocol1.Metric metric = message.getMetric();
-        final String key =  (metric.getKey() == null ||
-                metric.getKey().isEmpty()) ? null : metric.getKey();
-        final com.spotify.ffwd.model.v2.Value value = extractPointValue(metric);
-        final String host = metric.getHost();
-        final Map<String, String> tags = convertAttributes1(metric.getAttributesList());
+    return new Metric(key, value, metric.getTime(), tags, resource);
+  }
 
-        final Map<String, String> resource = ImmutableMap.of(); //Not supported yet
-
-        if (host != null && !host.isEmpty()) {
-            tags.put("host", host);
-        }
-
-        return new Metric(key, value, metric.getTime(), tags, resource);
+  private com.spotify.ffwd.model.v2.Value extractPointValue(
+      com.spotify.ffwd.protocol1.Protocol1.Metric metric) {
+    if (!metric.hasValue()) {
+      return Value.DoubleValue.create(Double.NaN);
+      //TODO determine why Double.NaN is used as default
     }
 
-    private com.spotify.ffwd.model.v2.Value extractPointValue(
-            com.spotify.ffwd.protocol1.Protocol1.Metric metric) {
-        if (!metric.hasValue()) {
-            return  Value.DoubleValue.create(Double.NaN);
-            //TODO determine why Double.NaN is used as default
-        }
+    com.spotify.ffwd.protocol1.Protocol1.Value value = metric.getValue();
 
-        com.spotify.ffwd.protocol1.Protocol1.Value value = metric.getValue();
+    if (value.getDistributionValue() == null) {
+      return Value.DoubleValue.create(value.getDoubleValue());
+    }
+    return Value.DistributionValue.create(value.getDistributionValue());
+  }
 
+  private Map<String, String> convertAttributes1(
+      List<com.spotify.ffwd.protocol1.Protocol1.Attribute> attributesList) {
+    final Map<String, String> attributes = new HashMap<>();
 
-        if (value.getDistributionValue() == null) {
-            return Value.DoubleValue.create(value.getDoubleValue());
-        }
-        return Value.DistributionValue.create(value.getDistributionValue());
+    for (final com.spotify.ffwd.protocol1.Protocol1.Attribute a : attributesList) {
+      attributes.put(a.getKey(), a.getValue());
     }
 
-    private Map<String, String> convertAttributes1(
-            List<com.spotify.ffwd.protocol1.Protocol1.Attribute> attributesList) {
-        final Map<String, String> attributes = new HashMap<>();
+    return attributes;
+  }
 
-        for (final com.spotify.ffwd.protocol1.Protocol1.Attribute a : attributesList) {
-            attributes.put(a.getKey(), a.getValue());
-        }
+  private Map<String, String> convertAttributes0(List<Protocol0.Attribute> attributesList) {
+    final Map<String, String> attributes = new HashMap<>();
 
-        return attributes;
+    for (final Protocol0.Attribute a : attributesList) {
+      attributes.put(a.getKey(), a.getValue());
     }
 
-    private Map<String, String> convertAttributes0(List<Protocol0.Attribute> attributesList) {
-        final Map<String, String> attributes = new HashMap<>();
-
-        for (final Protocol0.Attribute a : attributesList) {
-            attributes.put(a.getKey(), a.getValue());
-        }
-
-        return attributes;
-    }
+    return attributes;
+  }
 }

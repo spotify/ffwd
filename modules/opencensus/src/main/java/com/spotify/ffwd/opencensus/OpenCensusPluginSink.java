@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -63,9 +63,10 @@ import org.slf4j.LoggerFactory;
  * Resources can be specified using the environment variables
  * OC_RESOURCE_TYPE and OC_RESOURCE_LABELS until the api becomes stable
  * https://www.javadoc.io/doc/io.opencensus/opencensus-api/latest/io/opencensus/resource/
-package-summary.html
+ package-summary.html
  */
-public class OpenCensusPluginSink implements PluginSink  {
+public class OpenCensusPluginSink implements PluginSink {
+
   private static final Logger log = LoggerFactory.getLogger(OpenCensusPluginSink.class);
   @Inject
   private AsyncFramework async;
@@ -85,7 +86,7 @@ public class OpenCensusPluginSink implements PluginSink  {
   }
 
   public OpenCensusPluginSink(Optional<String> gcpProject, Optional<Integer> maxViews,
-      Optional<String> outputMetricNamePattern) {
+                              Optional<String> outputMetricNamePattern) {
     this.gcpProject = gcpProject;
     this.maxViews = maxViews.orElse(500);
     this.outputMetricNamePattern = outputMetricNamePattern.orElse("${key}_${what}");
@@ -102,7 +103,7 @@ public class OpenCensusPluginSink implements PluginSink  {
       if (measure == null) {
         if (measures.size() > maxViews) {
           throw new RuntimeException("maxViews exceeded. " +
-              "Please increase in configuration or decrease number of metrics.");
+                                     "Please increase in configuration or decrease number of metrics.");
         }
 
         measure = MeasureDouble.create("Metric", "Value", "1");
@@ -114,7 +115,7 @@ public class OpenCensusPluginSink implements PluginSink  {
         // from the start.
         final List<TagKey> columns = new ArrayList<TagKey>(metric.getTags().size());
         metric.getTags().keySet().forEach(tagName -> {
-            columns.add(TagKey.create(sanitizeName(tagName)));
+          columns.add(TagKey.create(sanitizeName(tagName)));
         });
         final View view =
             View.create(
@@ -128,12 +129,12 @@ public class OpenCensusPluginSink implements PluginSink  {
       }
       final TagContextBuilder builder = tagger.emptyBuilder();
       metric.getTags().forEach((k, v) -> {
-          builder.putPropagating(TagKey.create(sanitizeName(k)), TagValue.create(v));
+        builder.putPropagating(TagKey.create(sanitizeName(k)), TagValue.create(v));
       });
       final TagContext context = builder.build();
 
       statsRecorder.newMeasureMap().put(measure,
-              (Double) metric.getValue().getValue()).record(context);
+          (Double) metric.getValue().getValue()).record(context);
     } catch (Exception ex) {
       log.error("Couldn't send metric %s", ex);
       throw ex;

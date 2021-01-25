@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -45,56 +45,57 @@ import org.slf4j.LoggerFactory;
  * @author udoprog
  */
 public class HttpProtocolServer implements ProtocolServer {
-    private static final Logger log = LoggerFactory.getLogger(HttpDecoder.class);
 
-    @Inject
-    private ChannelInboundHandler handler;
+  private static final Logger log = LoggerFactory.getLogger(HttpDecoder.class);
 
-    @Inject
-    private HttpDecoder decoder;
+  @Inject
+  private ChannelInboundHandler handler;
 
-    @Override
-    public final ChannelInitializer<Channel> initializer() {
-        return new ChannelInitializer<Channel>() {
-            @Override
-            protected void initChannel(Channel ch) throws Exception {
-                final ChannelInboundHandlerAdapter exceptionHandler =
-                    new ChannelInboundHandlerAdapter() {
-                        @Override
-                        public void exceptionCaught(
-                            final ChannelHandlerContext ctx, final Throwable cause
-                        ) throws Exception {
-                            if (cause instanceof HttpException) {
-                                final HttpException e = (HttpException) cause;
-                                sendResponse(ctx, e.getStatus());
-                                return;
-                            }
+  @Inject
+  private HttpDecoder decoder;
 
-                            if (cause instanceof DecoderException) {
-                                exceptionCaught(ctx, cause.getCause());
-                                return;
-                            }
+  @Override
+  public final ChannelInitializer<Channel> initializer() {
+    return new ChannelInitializer<Channel>() {
+      @Override
+      protected void initChannel(Channel ch) throws Exception {
+        final ChannelInboundHandlerAdapter exceptionHandler =
+            new ChannelInboundHandlerAdapter() {
+              @Override
+              public void exceptionCaught(
+                  final ChannelHandlerContext ctx, final Throwable cause
+              ) throws Exception {
+                if (cause instanceof HttpException) {
+                  final HttpException e = (HttpException) cause;
+                  sendResponse(ctx, e.getStatus());
+                  return;
+                }
 
-                            log.error("error in pipeline: ", cause);
-                            sendResponse(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
-                        }
-                    };
-                ch
-                    .pipeline()
-                    .addLast(new HttpRequestDecoder(), new HttpContentDecompressor(),
-                        new HttpObjectAggregator(Integer.MAX_VALUE), decoder, exceptionHandler,
-                        handler);
-                ch.pipeline().addLast(new HttpResponseEncoder());
-            }
-        };
-    }
+                if (cause instanceof DecoderException) {
+                  exceptionCaught(ctx, cause.getCause());
+                  return;
+                }
 
-    private void sendResponse(
-        final ChannelHandlerContext ctx, final HttpResponseStatus status
-    ) {
-        ctx
-            .channel()
-            .writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status))
-            .addListener((ChannelFutureListener) future -> future.channel().close());
-    }
+                log.error("error in pipeline: ", cause);
+                sendResponse(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
+              }
+            };
+        ch
+            .pipeline()
+            .addLast(new HttpRequestDecoder(), new HttpContentDecompressor(),
+                new HttpObjectAggregator(Integer.MAX_VALUE), decoder, exceptionHandler,
+                handler);
+        ch.pipeline().addLast(new HttpResponseEncoder());
+      }
+    };
+  }
+
+  private void sendResponse(
+      final ChannelHandlerContext ctx, final HttpResponseStatus status
+  ) {
+    ctx
+        .channel()
+        .writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status))
+        .addListener((ChannelFutureListener) future -> future.channel().close());
+  }
 }

@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,13 +25,14 @@ import com.spotify.ffwd.module.FastForwardModule;
 import com.spotify.ffwd.module.PluginContext;
 
 public class BuiltInSerializers implements FastForwardModule {
-    @Inject
-    private PluginContext context;
 
-    @Override
-    public void setup() throws Exception {
-        context.registerSerializer("spotify100", Spotify100Serializer.class);
-        context.registerSerializer("spotify100proto", Spotify100ProtoSerializer.class);
-        context.registerSerializer("to-string", ToStringSerializer.class);
-    }
+  @Inject
+  private PluginContext context;
+
+  @Override
+  public void setup() throws Exception {
+    context.registerSerializer("spotify100", Spotify100Serializer.class);
+    context.registerSerializer("spotify100proto", Spotify100ProtoSerializer.class);
+    context.registerSerializer("to-string", ToStringSerializer.class);
+  }
 }

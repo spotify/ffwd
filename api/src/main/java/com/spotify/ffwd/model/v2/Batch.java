@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -36,23 +36,23 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-@EqualsAndHashCode(of = {"commonTags", "commonResource"})
+@EqualsAndHashCode(of = { "commonTags", "commonResource" })
 public class Batch {
 
-    private final Map<String, String> commonTags;
-    private final Map<String, String> commonResource;
-    private final List<Metric> points;
+  private final Map<String, String> commonTags;
+  private final Map<String, String> commonResource;
+  private final List<Metric> points;
 
-    /**
-     * JSON creator.
-     */
-    @JsonCreator
-    public static Batch create(
-        @JsonProperty("commonTags") final Optional<Map<String, String>> commonTags,
-        @JsonProperty("commonResource") final Optional<Map<String, String>> commonResource,
-        @JsonProperty("points") final List<Metric> points
-    ) {
-        return new Batch(commonTags.orElseGet(ImmutableMap::of),
-            commonResource.orElseGet(ImmutableMap::of), points);
-    }
+  /**
+   * JSON creator.
+   */
+  @JsonCreator
+  public static Batch create(
+      @JsonProperty("commonTags") final Optional<Map<String, String>> commonTags,
+      @JsonProperty("commonResource") final Optional<Map<String, String>> commonResource,
+      @JsonProperty("points") final List<Metric> points
+  ) {
+    return new Batch(commonTags.orElseGet(ImmutableMap::of),
+        commonResource.orElseGet(ImmutableMap::of), points);
+  }
 }

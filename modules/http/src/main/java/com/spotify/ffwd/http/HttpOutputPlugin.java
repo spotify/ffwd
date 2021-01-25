@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -42,53 +42,54 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class HttpOutputPlugin extends OutputPlugin {
-    public static final Long DEFAULT_FLUSH_INTERVAL = 500L;
 
-    private final HttpDiscovery discovery;
+  public static final Long DEFAULT_FLUSH_INTERVAL = 500L;
 
-    @JsonCreator
-    public HttpOutputPlugin(
-        @JsonProperty("id") String id,
-        @JsonProperty("flushInterval") Optional<Long> flushInterval,
-        @JsonProperty("batching") Optional<Batching> batching,
-        @JsonProperty("discovery") HttpDiscovery discovery,
-        @JsonProperty("filter") Optional<Filter> filter
+  private final HttpDiscovery discovery;
 
-    ) {
-        super(filter, Batching.from(flushInterval.orElse(DEFAULT_FLUSH_INTERVAL), batching));
-        this.discovery = Optional.ofNullable(discovery).orElseGet(HttpDiscovery::supplyDefault);
-    }
+  @JsonCreator
+  public HttpOutputPlugin(
+      @JsonProperty("id") String id,
+      @JsonProperty("flushInterval") Optional<Long> flushInterval,
+      @JsonProperty("batching") Optional<Batching> batching,
+      @JsonProperty("discovery") HttpDiscovery discovery,
+      @JsonProperty("filter") Optional<Filter> filter
 
-    @Override
-    public Module module(final Key<PluginSink> key, final String id) {
-        return new OutputPluginModule(id) {
-            @Provides
-            @Singleton
-            @Named("http")
-            public ExecutorService threadPool() {
-                return Executors.newCachedThreadPool(
-                    new ThreadFactoryBuilder().setNameFormat("ffwd-okhttp-async-%d").build());
-            }
+  ) {
+    super(filter, Batching.from(flushInterval.orElse(DEFAULT_FLUSH_INTERVAL), batching));
+    this.discovery = Optional.ofNullable(discovery).orElseGet(HttpDiscovery::supplyDefault);
+  }
 
-            @Provides
-            @Singleton
-            public ILoadBalancer setupRibbonClient(
-                HttpPing httpPing, @Named("searchDomain") final Optional<String> searchDomain
-            ) {
-                return discovery
-                    .apply(LoadBalancerBuilder.newBuilder(), searchDomain)
-                    .withPing(httpPing)
-                    .buildDynamicServerListLoadBalancer();
-            }
+  @Override
+  public Module module(final Key<PluginSink> key, final String id) {
+    return new OutputPluginModule(id) {
+      @Provides
+      @Singleton
+      @Named("http")
+      public ExecutorService threadPool() {
+        return Executors.newCachedThreadPool(
+            new ThreadFactoryBuilder().setNameFormat("ffwd-okhttp-async-%d").build());
+      }
 
-            @Override
-            protected void configure() {
-                final Key<HttpPluginSink> sinkKey =
-                    Key.get(HttpPluginSink.class, Names.named("httpSink"));
-                bind(sinkKey).to(HttpPluginSink.class).in(Scopes.SINGLETON);
-                install(wrapPluginSink(sinkKey, key));
-                expose(key);
-            }
-        };
-    }
+      @Provides
+      @Singleton
+      public ILoadBalancer setupRibbonClient(
+          HttpPing httpPing, @Named("searchDomain") final Optional<String> searchDomain
+      ) {
+        return discovery
+            .apply(LoadBalancerBuilder.newBuilder(), searchDomain)
+            .withPing(httpPing)
+            .buildDynamicServerListLoadBalancer();
+      }
+
+      @Override
+      protected void configure() {
+        final Key<HttpPluginSink> sinkKey =
+            Key.get(HttpPluginSink.class, Names.named("httpSink"));
+        bind(sinkKey).to(HttpPluginSink.class).in(Scopes.SINGLETON);
+        install(wrapPluginSink(sinkKey, key));
+        expose(key);
+      }
+    };
+  }
 }
