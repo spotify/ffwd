@@ -1,11 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.spotify.ffwd</groupId>
   <artifactId>ffwd-parent</artifactId>
-  <version>0.8.3-SNAPSHOT</version>
+  <version>0.8.3</version>
   <packaging>pom</packaging>
 
   <name>FastForward Parent</name>
@@ -48,7 +46,7 @@
     <connection>scm:git:git@github.com:spotify/ffwd</connection>
     <developerConnection>scm:git:git@github.com:spotify/ffwd</developerConnection>
     <url>https://github.com/spotify/ffwd</url>
-    <tag>0.4.0</tag>
+    <tag>0.8.3</tag>
   </scm>
 
   <developers>
@@ -614,7 +612,7 @@
             <id>enforce</id>
             <configuration>
               <rules>
-                <requireUpperBoundDeps/>
+                <requireUpperBoundDeps />
               </rules>
             </configuration>
           </execution>
