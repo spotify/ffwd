@@ -104,8 +104,7 @@ public class HttpDecoder extends MessageToMessageDecoder<FullHttpRequest> {
 
   private Object convertToBatch(final FullHttpRequest in) {
     final String endPoint = in.uri();
-    final ByteBuf content = in.content();
-    try (final InputStream inputStream = new ByteBufInputStream(content.copy())) {
+    try (final InputStream inputStream = new ByteBufInputStream(in.content())) {
       if ("/v2/batch".equals(endPoint)) {
         return mapper.readValue(inputStream, Batch.class);
       } else {
@@ -115,10 +114,7 @@ public class HttpDecoder extends MessageToMessageDecoder<FullHttpRequest> {
       }
     } catch (final IOException e) {
       log.error(
-          "HTTP Bad Request. uri: {}, content: {}",
-          endPoint,
-          content.toString(StandardCharsets.UTF_8),
-          e);
+          "HTTP Bad Request. uri: {}", endPoint, e);
       throw new HttpException(HttpResponseStatus.BAD_REQUEST);
     }
   }
