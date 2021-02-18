@@ -24,6 +24,7 @@ import com.google.inject.Inject;
 import com.spotify.ffwd.model.v2.Batch;
 import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.output.PluginSink;
+import com.spotify.ffwd.util.BatchMetricConverter;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import io.grpc.ManagedChannel;
@@ -106,7 +107,10 @@ public class OpenTelemetryPluginSink implements PluginSink {
 
   @Override
   public void sendBatch(Batch batch) {
-    throw new RuntimeException("Batches are unsupported");
+    // TODO(hexedpackets): The batch point iteration is temporary.
+    //  Multiple metrics can be more efficiently sent in a single protobuf
+    batch.getPoints().forEach(point ->
+        sendMetric(BatchMetricConverter.convertBatchMetric(batch, point)));
   }
 
   @Override
