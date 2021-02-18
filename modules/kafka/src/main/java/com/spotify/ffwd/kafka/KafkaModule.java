@@ -25,7 +25,7 @@ import com.spotify.ffwd.module.FastForwardModule;
 import com.spotify.ffwd.module.PluginContext;
 import lombok.ToString;
 
-@ToString(of = {})
+@ToString()
 public class KafkaModule implements FastForwardModule {
 
   @Inject

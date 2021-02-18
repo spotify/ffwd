@@ -20,13 +20,11 @@
 
 package com.spotify.ffwd.noop;
 
-import com.google.inject.Inject;
 import com.spotify.ffwd.model.v2.Batch;
 import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.output.BatchablePluginSink;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,13 +37,6 @@ public class NoopPluginSink implements BatchablePluginSink {
   private final AtomicLong last = new AtomicLong();
   private final AtomicLong total = new AtomicLong();
 
-  @Inject
-  private AsyncFramework async;
-
-  @Override
-  public void init() {
-  }
-
   @Override
   public void sendMetric(Metric metric) {
   }
@@ -55,16 +46,16 @@ public class NoopPluginSink implements BatchablePluginSink {
   }
 
   @Override
-  public AsyncFuture<Void> sendMetrics(Collection<Metric> metrics) {
+  public CompletableFuture<Void> sendMetrics(Collection<Metric> metrics) {
     return count(metrics.size());
   }
 
   @Override
-  public AsyncFuture<Void> sendBatches(final Collection<Batch> batches) {
+  public CompletableFuture<Void> sendBatches(final Collection<Batch> batches) {
     return count(batches.size());
   }
 
-  private AsyncFuture<Void> count(int size) {
+  private CompletableFuture<Void> count(int size) {
     final long now = System.currentTimeMillis();
     final long then = this.date.getAndSet(now);
     final long total = this.total.addAndGet(size);
@@ -81,17 +72,7 @@ public class NoopPluginSink implements BatchablePluginSink {
     }
 
     log.info("{} things/s (total: {})", rate, total);
-    return async.resolved();
-  }
-
-  @Override
-  public AsyncFuture<Void> start() {
-    return async.resolved(null);
-  }
-
-  @Override
-  public AsyncFuture<Void> stop() {
-    return async.resolved(null);
+    return CompletableFuture.completedFuture(null);
   }
 
   @Override

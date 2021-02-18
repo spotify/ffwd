@@ -20,12 +20,12 @@
 
 package com.spotify.ffwd.protocol;
 
-import eu.toolchain.async.AsyncFuture;
+import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 
 public interface ProtocolClients {
 
-  public AsyncFuture<ProtocolConnection> connect(
+  CompletableFuture<ProtocolConnection> connect(
       Logger log, Protocol protocol, ProtocolClient client, RetryPolicy policy
   );
 }

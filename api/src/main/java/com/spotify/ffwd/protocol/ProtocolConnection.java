@@ -20,16 +20,16 @@
 
 package com.spotify.ffwd.protocol;
 
-import eu.toolchain.async.AsyncFuture;
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 
 public interface ProtocolConnection {
 
-  public void send(Object message);
+  void send(Object message);
 
-  public AsyncFuture<Void> stop();
+  CompletableFuture<Void> stop();
 
-  public AsyncFuture<Void> sendAll(Collection<? extends Object> batch);
+  CompletableFuture<Void> sendAll(Collection<? extends Object> batch);
 
-  public boolean isConnected();
+  boolean isConnected();
 }

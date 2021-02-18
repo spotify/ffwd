@@ -25,21 +25,15 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
 import com.signalfx.metrics.flush.AggregateMetricSender;
 import com.signalfx.metrics.protobuf.SignalFxProtocolBuffers.DataPoint;
 import com.signalfx.metrics.protobuf.SignalFxProtocolBuffers.Dimension;
 import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.model.v2.Value;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.TinyAsync;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
 import org.junit.Before;
@@ -54,12 +48,7 @@ public class SignalFxPluginSinkTest {
 
   private SignalFxPluginSink sink;
 
-  private AsyncFramework async;
   private Supplier<AggregateMetricSender> senderSupplier;
-
-  private final int threadCount = Runtime.getRuntime().availableProcessors();
-
-  private final ExecutorService executor = Executors.newFixedThreadPool(threadCount);
 
   @Mock
   private AggregateMetricSender sender;
@@ -82,9 +71,7 @@ public class SignalFxPluginSinkTest {
   @Before
   public void setup() {
     sink = new SignalFxPluginSink();
-    async = TinyAsync.builder().executor(executor).build();
     senderSupplier = () -> sender;
-    sink.async = async;
     sink.senderSupplier = senderSupplier;
   }
 

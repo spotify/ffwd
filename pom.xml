@@ -61,7 +61,6 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <skip.findbugs>true</skip.findbugs>
     <guice.version>4.2.2</guice.version>
-    <tiny-async.version>1.11.0</tiny-async.version>
     <log4j.version>2.13.3</log4j.version>
     <slf4j.version>1.7.25</slf4j.version>
     <jackson.version>2.10.0</jackson.version>
@@ -82,7 +81,7 @@
         <jdk>1.8</jdk>
       </activation>
       <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
       </properties>
     </profile>
@@ -95,7 +94,7 @@
         <!-- Javac introduced the "release" option only in Java 9+.  It
 			properly sets up source, target and boot classpath for the best
 			compatibility with different versions of Java. -->
-        <maven.compiler.release>8</maven.compiler.release>
+        <maven.compiler.release>11</maven.compiler.release>
       </properties>
 
       <build>
@@ -384,17 +383,6 @@
         <groupId>com.google.inject.extensions</groupId>
         <artifactId>guice-multibindings</artifactId>
         <version>${guice.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>eu.toolchain.async</groupId>
-        <artifactId>tiny-async-api</artifactId>
-        <version>${tiny-async.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>eu.toolchain.async</groupId>
-        <artifactId>tiny-async-core</artifactId>
-        <version>${tiny-async.version}</version>
       </dependency>
 
       <dependency>

@@ -51,11 +51,6 @@
     </dependency>
 
     <dependency>
-      <groupId>eu.toolchain.async</groupId>
-      <artifactId>tiny-async-api</artifactId>
-    </dependency>
-
-    <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-all</artifactId>
     </dependency>
@@ -99,11 +94,6 @@
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>eu.toolchain.async</groupId>
-      <artifactId>tiny-async-core</artifactId>
     </dependency>
   </dependencies>
 </project>

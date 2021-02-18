@@ -20,8 +20,6 @@
 
 package com.spotify.ffwd.qlog;
 
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.TinyAsync;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
@@ -37,9 +35,8 @@ public class TestQLogManager {
   @Ignore
   public void testBasic() throws InterruptedException, ExecutionException, IOException {
     final ExecutorService executor = Executors.newFixedThreadPool(1);
-    final AsyncFramework async = TinyAsync.builder().executor(executor).build();
 
-    final QLogManager log = new QLogManagerImpl(Paths.get("./qlogtest"), async, 1024 * 10);
+    final QLogManager log = new QLogManagerImpl(Paths.get("./qlogtest"), executor, 1024 * 10);
 
     log.start().get();
 

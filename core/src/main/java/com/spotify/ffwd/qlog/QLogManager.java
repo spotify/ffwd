@@ -20,28 +20,26 @@
 
 package com.spotify.ffwd.qlog;
 
-import eu.toolchain.async.AsyncFuture;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.CompletableFuture;
 
 public interface QLogManager {
 
-  public long position();
+  long position();
 
   /**
    * Trim the head of the on-disk log (if necessary).
    *
    * @param position The position to trim to.
    */
-  public void trim(long position);
+  void trim(long position);
+  void trim();
 
-  public void trim();
+  long write(ByteBuffer buffer) throws IOException;
 
-  public long write(ByteBuffer buffer) throws IOException;
+  void update(String id, long position);
 
-  public void update(String id, long position);
-
-  public AsyncFuture<Void> start();
-
-  public AsyncFuture<Void> stop();
+  CompletableFuture<Void> start();
+  CompletableFuture<Void> stop();
 }

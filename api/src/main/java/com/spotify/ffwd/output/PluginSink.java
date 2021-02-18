@@ -23,7 +23,7 @@ package com.spotify.ffwd.output;
 import com.spotify.ffwd.Initializable;
 import com.spotify.ffwd.model.v2.Batch;
 import com.spotify.ffwd.model.v2.Metric;
-import eu.toolchain.async.AsyncFuture;
+import java.util.concurrent.CompletableFuture;
 
 public interface PluginSink extends Initializable {
 
@@ -45,9 +45,15 @@ public interface PluginSink extends Initializable {
    */
   void sendBatch(Batch batch);
 
-  AsyncFuture<Void> start();
+  default CompletableFuture<Void> start() {
+    return CompletableFuture.completedFuture(null);
+  }
 
-  AsyncFuture<Void> stop();
+  default CompletableFuture<Void> stop() {
+    return CompletableFuture.completedFuture(null);
+  }
 
-  boolean isReady();
+  default boolean isReady() {
+    return true;
+  }
 }

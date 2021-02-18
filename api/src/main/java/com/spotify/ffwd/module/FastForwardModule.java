@@ -35,5 +35,5 @@ public interface FastForwardModule {
    * The intention is for the module to inject and setup the hooks which it needs to perform
    * its operation.
    */
-  public void setup() throws Exception;
+  void setup() throws Exception;
 }

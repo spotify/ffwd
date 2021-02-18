@@ -23,8 +23,8 @@ package com.spotify.ffwd.output;
 
 import com.spotify.ffwd.model.v2.Batch;
 import com.spotify.ffwd.model.v2.Metric;
-import eu.toolchain.async.AsyncFuture;
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 
 public interface BatchablePluginSink extends PluginSink {
 
@@ -35,7 +35,7 @@ public interface BatchablePluginSink extends PluginSink {
    *
    * @return A future that will be resolved when the metrics have been sent.
    */
-  AsyncFuture<Void> sendMetrics(Collection<Metric> metrics);
+  CompletableFuture<Void> sendMetrics(Collection<Metric> metrics);
 
   /**
    * Send the given collection of batches.
@@ -44,5 +44,5 @@ public interface BatchablePluginSink extends PluginSink {
    *
    * @return A future that will be resolved when the batches have been sent.
    */
-  AsyncFuture<Void> sendBatches(Collection<Batch> batches);
+  CompletableFuture<Void> sendBatches(Collection<Batch> batches);
 }

@@ -24,12 +24,11 @@ import com.google.inject.Inject;
 import com.spotify.ffwd.filter.Filter;
 import com.spotify.ffwd.model.v2.Batch;
 import com.spotify.ffwd.model.v2.Metric;
-import eu.toolchain.async.AsyncFuture;
+import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FilteringPluginSink implements PluginSink {
-
   private static final Logger log = LoggerFactory.getLogger(FilteringPluginSink.class);
 
   @Inject
@@ -38,7 +37,7 @@ public class FilteringPluginSink implements PluginSink {
 
   protected Filter filter;
 
-  public FilteringPluginSink(final Filter filter) {
+  FilteringPluginSink(final Filter filter) {
     this.filter = filter;
   }
 
@@ -62,13 +61,13 @@ public class FilteringPluginSink implements PluginSink {
   }
 
   @Override
-  public AsyncFuture<Void> start() {
+  public CompletableFuture<Void> start() {
     log.info("Starting filtering sink {}", filter);
     return sink.start();
   }
 
   @Override
-  public AsyncFuture<Void> stop() {
+  public CompletableFuture<Void> stop() {
     return sink.stop();
   }
 

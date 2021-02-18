@@ -22,7 +22,6 @@ package com.spotify.ffwd.statistics;
 
 import com.codahale.metrics.Metric;
 import com.spotify.metrics.core.MetricId;
-import eu.toolchain.async.FutureFinished;
 import java.util.Collections;
 import java.util.Map;
 
@@ -97,7 +96,7 @@ public class NoopCoreStatistics implements CoreStatistics {
     }
 
     @Override
-    public FutureFinished monitorWrite() {
+    public Runnable monitorWrite() {
       return () -> {
       };
     }

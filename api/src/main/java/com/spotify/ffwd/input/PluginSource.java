@@ -21,11 +21,10 @@
 package com.spotify.ffwd.input;
 
 import com.spotify.ffwd.Initializable;
-import eu.toolchain.async.AsyncFuture;
+import java.util.concurrent.CompletableFuture;
 
 public interface PluginSource extends Initializable {
+  CompletableFuture<Void> start();
 
-  public AsyncFuture<Void> start();
-
-  public AsyncFuture<Void> stop();
+  CompletableFuture<Void> stop();
 }

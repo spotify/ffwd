@@ -27,18 +27,14 @@ import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.statistics.BatchingStatistics;
 import com.spotify.ffwd.statistics.OutputPluginStatistics;
 import com.spotify.ffwd.util.HighFrequencyDetector;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
-import eu.toolchain.async.FutureFinished;
-import eu.toolchain.async.LazyTransform;
-import eu.toolchain.async.Transform;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -59,8 +55,7 @@ public class BatchingPluginSink implements PluginSink {
   public static final long DEFAULT_BATCH_SIZE_LIMIT = 10000;
   public static final long DEFAULT_MAX_PENDING_FLUSHES = 10;
 
-  @Inject
-  AsyncFramework async;
+  @Inject private ExecutorService executor;
 
   @Inject
   @BatchingDelegate
@@ -105,7 +100,7 @@ public class BatchingPluginSink implements PluginSink {
   /**
    * a pending set of futures, all access has to be synchronized on {@link #pendingLock}
    */
-  final Set<AsyncFuture<Void>> pending = new HashSet<>();
+  final Set<CompletableFuture<Void>> pending = new HashSet<>();
 
   /**
    * The default flush interval in milliseconds.
@@ -135,7 +130,8 @@ public class BatchingPluginSink implements PluginSink {
   volatile boolean stopped = false;
 
   public BatchingPluginSink(
-      final long flushInterval, final Optional<Long> batchSizeLimit,
+      final long flushInterval,
+      final Optional<Long> batchSizeLimit,
       final Optional<Long> maxPendingFlushes
   ) {
     this(flushInterval, batchSizeLimit.orElse(DEFAULT_BATCH_SIZE_LIMIT),
@@ -197,54 +193,32 @@ public class BatchingPluginSink implements PluginSink {
   }
 
   @Override
-  public AsyncFuture<Void> start() {
-    return sink.start().transform((Transform<Void, Void>) result -> {
-      scheduleNext();
-      return null;
-    });
+  public CompletableFuture<Void> start() {
+    return sink.start().thenRunAsync(this::scheduleNext, executor);
   }
 
   @Override
-  public AsyncFuture<Void> stop() {
+  public CompletableFuture<Void> stop() {
     stopped = true;
 
     // stop scheduler -> flush remaining items -> stop sink.
-    return async.call(new Callable<Void>() {
-      @Override
-      public Void call() throws Exception {
-        if (flushInterval > 0) {
-          ScheduledFuture<?> next = nextFlush.getAndSet(null);
-          next.cancel(false);
-        }
-
-        return null;
+    return CompletableFuture.runAsync(() -> {
+      if (flushInterval > 0) {
+        ScheduledFuture<?> next = nextFlush.getAndSet(null);
+        next.cancel(false);
       }
-    }).lazyTransform(new LazyTransform<Void, Void>() {
-      /**
-       * Wait for all pending tasks to finish, stop accepting events and metrics.
-       */
-      @Override
-      public AsyncFuture<Void> transform(Void result) {
-        final ArrayList<AsyncFuture<Void>> pending = new ArrayList<>();
+    }, executor).thenComposeAsync(result -> {
+      // Wait for all pending tasks to finish, stop accepting events and metrics.
+      final ArrayList<CompletableFuture<Void>> pending = new ArrayList<>();
+      pending.add(doLastFlush());
 
-        pending.add(doLastFlush());
-
-        synchronized (pendingLock) {
-          pending.addAll(BatchingPluginSink.this.pending);
-          BatchingPluginSink.this.pending.clear();
-        }
-
-        return async.collectAndDiscard(pending);
+      synchronized (pendingLock) {
+        pending.addAll(BatchingPluginSink.this.pending);
+        BatchingPluginSink.this.pending.clear();
       }
-    }).lazyTransform(new LazyTransform<Void, Void>() {
-      /**
-       * Stop the underlying sink.
-       */
-      @Override
-      public AsyncFuture<Void> transform(Void result) {
-        return sink.stop();
-      }
-    });
+
+      return CompletableFuture.allOf(pending.toArray(CompletableFuture[]::new));
+    }, executor).thenComposeAsync(result -> sink.stop(), executor);
   }
 
   @Override
@@ -258,7 +232,7 @@ public class BatchingPluginSink implements PluginSink {
    * Maintains the set of pending tasks.
    */
   void flushNowThenScheduleNext() {
-    final AsyncFuture<Void> flush = doFlush(newBatch());
+    final CompletableFuture<Void> flush = doFlush(newBatch());
 
     // Shutting down.
     if (flush == null) {
@@ -274,24 +248,16 @@ public class BatchingPluginSink implements PluginSink {
         pending.add(flush);
       }
       // when future is done, remove this as a pending task.
-      flush.on(new FutureFinished() {
-        @Override
-        public void finished() throws Exception {
-          synchronized (pendingLock) {
-            log.debug("Removing pending flush (size: {})", pending.size());
-            pending.remove(flush);
-          }
+      flush.thenRunAsync(() -> {
+        synchronized (pendingLock) {
+          log.debug("Removing pending flush (size: {})", pending.size());
+          pending.remove(flush);
         }
-      });
+      }, executor);
     }
 
     // this is the last batch, don't bother scheduling flush of another one.
-    flush.on(new FutureFinished() {
-      @Override
-      public void finished() throws Exception {
-        scheduleNext();
-      }
-    });
+    flush.thenRunAsync(this::scheduleNext, executor);
   }
 
   /**
@@ -306,12 +272,7 @@ public class BatchingPluginSink implements PluginSink {
       return;
     }
 
-    final Runnable flusher = new Runnable() {
-      @Override
-      public void run() {
-        flushNowThenScheduleNext();
-      }
-    };
+    final Runnable flusher = this::flushNowThenScheduleNext;
 
     if (log.isDebugEnabled()) {
       log.debug("Scheduling next flush at {}",
@@ -331,7 +292,7 @@ public class BatchingPluginSink implements PluginSink {
   /**
    * Perform the last flush, setting the nextBatch to null, indicating that we are shutting down.
    */
-  AsyncFuture<Void> doLastFlush() {
+  CompletableFuture<Void> doLastFlush() {
     return doFlush(null);
   }
 
@@ -345,7 +306,7 @@ public class BatchingPluginSink implements PluginSink {
    *
    * @return A future associated with the current flush, or {@code null} if we are stopping.
    */
-  AsyncFuture<Void> doFlush(Batch newBatch) {
+  CompletableFuture<Void> doFlush(Batch newBatch) {
     final Batch batch;
 
     synchronized (nextBatchLock) {
@@ -359,7 +320,7 @@ public class BatchingPluginSink implements PluginSink {
     }
 
     if (batch.isEmpty()) {
-      return async.resolved();
+      return CompletableFuture.completedFuture(null);
     }
 
     if (maxPendingFlushes > 0) {
@@ -370,33 +331,38 @@ public class BatchingPluginSink implements PluginSink {
               pending.size(), batch.size());
           statistics.reportDropped(batch.size());
           batchingStatistics.reportQueueSizeDec(batch.size());
-          return async.resolved();
+          return CompletableFuture.completedFuture(null);
         }
       }
     }
 
-    final List<AsyncFuture<Void>> futures = new ArrayList<>();
-    final FutureFinished writeMonitor = batchingStatistics.monitorWrite();
+    final List<CompletableFuture<Void>> futures = new ArrayList<>();
+    final Runnable writeMonitor = batchingStatistics.monitorWrite();
 
     if (!batch.metrics.isEmpty()) {
       futures.add(sink
           .sendMetrics(highFrequencyDetector.detect(batch.metrics))
-          .onFinished(() -> batchingStatistics.reportSentMetrics(batch.metrics.size())));
+          .thenRunAsync(() -> {
+            batchingStatistics.reportSentMetrics(batch.metrics.size());
+          }, executor));
     }
 
     // TODO finish batches
     if (!batch.batches.isEmpty()) {
       futures.add(sink
           .sendBatches(batch.batches)
-          .onFinished(() -> batchingStatistics.reportSentBatches(batch.batches.size(),
-              batch.size())));
+          .thenRunAsync(() -> {
+            batchingStatistics.reportSentBatches(batch.batches.size(), batch.size());
+          }, executor));
     }
 
     // chain into batch future.
-    return async.collectAndDiscard(futures).onFinished(writeMonitor).onFinished(() -> {
-      batchingStatistics.reportQueueSizeDec(batch.size());
-      batchingStatistics.reportInternalBatchWrite(batch.size());
-    });
+    return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
+        .thenRunAsync(writeMonitor, executor)
+        .thenRunAsync(() -> {
+          batchingStatistics.reportQueueSizeDec(batch.size());
+          batchingStatistics.reportInternalBatchWrite(batch.size());
+        }, executor);
   }
 
   /**

@@ -27,59 +27,28 @@ import com.netflix.loadbalancer.reactive.LoadBalancerCommand;
 import com.spotify.ffwd.model.v2.Batch;
 import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.output.BatchablePluginSink;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
-import eu.toolchain.async.FutureDone;
-import eu.toolchain.async.ResolvableFuture;
-import eu.toolchain.async.StreamCollector;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import javax.inject.Inject;
 import rx.Observable;
 import rx.Observer;
 
 public class HttpPluginSink implements BatchablePluginSink {
 
-  public static final StreamCollector<Void, Void> VOID_COLLECTOR =
-      new StreamCollector<Void, Void>() {
-        @Override
-        public void resolved(final Void aVoid) throws Exception {
-
-        }
-
-        @Override
-        public void failed(final Throwable throwable) throws Exception {
-
-        }
-
-        @Override
-        public void cancelled() throws Exception {
-
-        }
-
-        @Override
-        public Void end(final int i, final int i1, final int i2) throws Exception {
-          return null;
-        }
-      };
-
   private static final int PARALLELISM = 10;
-
-  @Inject
-  private AsyncFramework async;
+  private static ExecutorService EXECUTOR = Executors.newFixedThreadPool(PARALLELISM);
 
   @Inject
   private HttpClientFactory clientFactory;
 
   @Inject
   private ILoadBalancer loadBalancer;
-
-  @Override
-  public void init() {
-  }
 
   @Override
   public void sendMetric(final Metric metric) {
@@ -91,7 +60,7 @@ public class HttpPluginSink implements BatchablePluginSink {
   }
 
   @Override
-  public AsyncFuture<Void> sendMetrics(final Collection<Metric> metrics) {
+  public CompletableFuture<Void> sendMetrics(final Collection<Metric> metrics) {
     final List<Metric> out = new ArrayList<>(metrics);
 
     // creates a new batch _without_ common tags, prefer using sendBatches instead.
@@ -101,83 +70,71 @@ public class HttpPluginSink implements BatchablePluginSink {
   }
 
   @Override
-  public AsyncFuture<Void> sendBatches(final Collection<Batch> batches) {
-    final List<Callable<AsyncFuture<Void>>> callables = new ArrayList<>();
+  public CompletableFuture<Void> sendBatches(final Collection<Batch> batches) {
+    List<CompletableFuture<Void>> futures = new ArrayList<>();
 
     for (final Batch b : batches) {
-      callables.add(() -> {
-        final Observable<Void> observable = LoadBalancerCommand.<Void>builder()
-            .withLoadBalancer(loadBalancer)
-            .build()
-            .submit(server -> toObservable(clientFactory.newClient(server).sendBatch(b)));
+      CompletableFuture<Void> future =
+          CompletableFuture.supplyAsync(() -> {
+            return LoadBalancerCommand.<Void>builder()
+                .withLoadBalancer(loadBalancer)
+                .build()
+                .submit(server -> toObservable(clientFactory.newClient(server).sendBatch(b)));
+          }, EXECUTOR).thenCompose(this::fromObservable);
 
-        return fromObservable(observable);
-      });
+      futures.add(future);
     }
 
-    return async.eventuallyCollect(callables, VOID_COLLECTOR, PARALLELISM);
+    CompletableFuture<Void> collected =
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+    futures.forEach(f -> f.exceptionally(e -> {
+      collected.completeExceptionally(e);
+      return null;
+    }));
+
+    return collected;
   }
 
 
-  private <T> AsyncFuture<T> fromObservable(final Observable<T> observable) {
-    final ResolvableFuture<T> future = async.future();
+  private <T> CompletableFuture<T> fromObservable(final Observable<T> observable) {
+    CompletableFuture<T> future = new CompletableFuture<>();
 
     observable.subscribe(new Observer<T>() {
       @Override
       public void onCompleted() {
-        if (future.cancel()) {
+        if (future.cancel(true)) {
           throw new IllegalStateException();
         }
       }
 
       @Override
       public void onError(final Throwable e) {
-        future.fail(e);
+        future.completeExceptionally(e);
       }
 
       @Override
       public void onNext(final T v) {
-        future.resolve(v);
+        future.complete(v);
       }
     });
 
     return future;
   }
 
-  private <T> Observable<T> toObservable(final AsyncFuture<T> future) {
+  private <T> Observable<T> toObservable(final CompletableFuture<T> future) {
     return Observable.create(observer -> {
-      future.onDone(new FutureDone<T>() {
-        @Override
-        public void failed(final Throwable throwable) throws Exception {
-          observer.onError(throwable);
+      future.handle((result, error) -> {
+        if (error == null) {
+          observer.onNext(result);
+          observer.onCompleted();
+        } else if (error instanceof CancellationException) {
+          observer.onCompleted();
+        } else {
+          observer.onError(error);
         }
 
-        @Override
-        public void resolved(final T v) throws Exception {
-          observer.onNext(v);
-          observer.onCompleted();
-        }
-
-        @Override
-        public void cancelled() throws Exception {
-          observer.onCompleted();
-        }
+        return result;
       });
     });
-  }
-
-  @Override
-  public AsyncFuture<Void> start() {
-    return async.resolved();
-  }
-
-  @Override
-  public AsyncFuture<Void> stop() {
-    return async.resolved();
-  }
-
-  @Override
-  public boolean isReady() {
-    return true;
   }
 }

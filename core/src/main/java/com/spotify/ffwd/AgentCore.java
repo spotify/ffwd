@@ -61,11 +61,6 @@ import com.spotify.ffwd.serializer.ToStringSerializer;
 import com.spotify.ffwd.statistics.CoreStatistics;
 import com.spotify.ffwd.statistics.NoopCoreStatistics;
 import com.uchuhimo.konf.Config;
-import eu.toolchain.async.AsyncCaller;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
-import eu.toolchain.async.DirectAsyncCaller;
-import eu.toolchain.async.TinyAsync;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.HashedWheelTimer;
@@ -74,11 +69,11 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -163,16 +158,12 @@ public class AgentCore {
     final OutputManager output = primary.getInstance(OutputManager.class);
     final DebugServer debug = primary.getInstance(DebugServer.class);
 
-    final AsyncFramework async = primary.getInstance(AsyncFramework.class);
-    final ArrayList<AsyncFuture<Void>> startup = Lists.newArrayList();
-
     log.info("Waiting for all components to start...");
 
-    startup.add(output.start());
-    startup.add(input.start());
-    startup.add(debug.start());
+    CompletableFuture<Void> startup = CompletableFuture.allOf(
+        debug.start(), output.start(), input.start());
 
-    async.collectAndDiscard(startup).get(10, TimeUnit.SECONDS);
+    startup.get(10, TimeUnit.SECONDS);
 
     input.init();
     output.init();
@@ -183,22 +174,17 @@ public class AgentCore {
     final OutputManager output = primary.getInstance(OutputManager.class);
     final DebugServer debug = primary.getInstance(DebugServer.class);
 
-    final AsyncFramework async = primary.getInstance(AsyncFramework.class);
-    final ArrayList<AsyncFuture<Void>> shutdown = Lists.newArrayList();
 
     log.info("Waiting for all components to stop...");
 
-    shutdown.add(input.stop());
-    shutdown.add(output.stop());
-    shutdown.add(debug.stop());
-
-    AsyncFuture<Void> all = async.collectAndDiscard(shutdown);
+    CompletableFuture<Void> shutdown = CompletableFuture.allOf(
+        input.stop(), output.stop(), debug.stop());
 
     try {
-      all.get(10, TimeUnit.SECONDS);
+      shutdown.get(10, TimeUnit.SECONDS);
     } catch (final Exception e) {
       log.error("All components did not stop in a timely fashion", e);
-      all.cancel();
+      shutdown.cancel(true);
     }
   }
 
@@ -305,19 +291,6 @@ public class AgentCore {
         final ThreadFactory factory =
             new ThreadFactoryBuilder().setNameFormat("ffwd-scheduler-%d").build();
         return Executors.newScheduledThreadPool(config.getSchedulerThreads(), factory);
-      }
-
-      @Singleton
-      @Provides
-      private AsyncFramework async(ExecutorService executor) {
-        final AsyncCaller caller = new DirectAsyncCaller() {
-          @Override
-          protected void internalError(String what, Throwable e) {
-            log.error("Async call '{}' failed", what, e);
-          }
-        };
-
-        return TinyAsync.builder().executor(executor).caller(caller).build();
       }
 
       @Singleton

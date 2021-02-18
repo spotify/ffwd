@@ -22,7 +22,7 @@ package com.spotify.ffwd.debug;
 
 import com.spotify.ffwd.model.v2.Batch;
 import com.spotify.ffwd.model.v2.Metric;
-import eu.toolchain.async.AsyncFuture;
+import java.util.concurrent.CompletableFuture;
 
 public interface DebugServer {
 
@@ -31,7 +31,7 @@ public interface DebugServer {
   void inspectBatch(String id, Batch batch);
 
 
-  AsyncFuture<Void> start();
+  CompletableFuture<Void> start();
 
-  AsyncFuture<Void> stop();
+  CompletableFuture<Void> stop();
 }

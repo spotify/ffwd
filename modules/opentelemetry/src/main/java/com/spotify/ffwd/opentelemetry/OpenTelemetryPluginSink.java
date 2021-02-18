@@ -20,12 +20,9 @@
 
 package com.spotify.ffwd.opentelemetry;
 
-import com.google.inject.Inject;
 import com.spotify.ffwd.model.v2.Batch;
 import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.output.PluginSink;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Metadata;
@@ -40,6 +37,7 @@ import io.opentelemetry.proto.metrics.v1.ResourceMetrics;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -49,7 +47,6 @@ public class OpenTelemetryPluginSink implements PluginSink {
 
   private static final Logger log = LoggerFactory.getLogger(OpenTelemetryPluginSink.class);
 
-  @Inject private AsyncFramework async;
   private String endpoint;
   private Map<String, String> headers;
   private ManagedChannel channel;
@@ -110,7 +107,7 @@ public class OpenTelemetryPluginSink implements PluginSink {
   }
 
   @Override
-  public AsyncFuture<Void> start() {
+  public CompletableFuture<Void> start() {
     channel = ManagedChannelBuilder.forTarget(this.endpoint)
         .useTransportSecurity()
         .build();
@@ -125,19 +122,19 @@ public class OpenTelemetryPluginSink implements PluginSink {
     });
     this.stub = MetadataUtils.attachHeaders(stub, extraHeaders);
 
-    return async.resolved();
+    return CompletableFuture.completedFuture(null);
   }
 
   @Override
-  public AsyncFuture<Void> stop() {
+  public CompletableFuture<Void> stop() {
     channel.shutdown();
     try {
       channel.awaitTermination(30, TimeUnit.SECONDS);
     } catch (InterruptedException e) {
       log.error("Channel termination interrupted: ", e);
-      return async.failed(e);
+      return CompletableFuture.failedFuture(e);
     }
-    return async.resolved();
+    return CompletableFuture.completedFuture(null);
   }
 
   @Override

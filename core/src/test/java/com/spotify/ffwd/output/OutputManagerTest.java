@@ -45,13 +45,13 @@ import com.spotify.ffwd.model.v2.Batch;
 import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.model.v2.Value;
 import com.spotify.ffwd.statistics.OutputManagerStatistics;
-import eu.toolchain.async.AsyncFramework;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,7 +71,7 @@ public class OutputManagerTest {
   private PluginSink sink;
 
   @Mock
-  private AsyncFramework async;
+  private ExecutorService executor;
 
   private Map<String, String> tags = new HashMap<>();
   private Map<String, String> tagsToResource = new HashMap<>();
@@ -120,7 +120,7 @@ public class OutputManagerTest {
       protected void configure() {
         bind(new TypeLiteral<List<PluginSink>>() {
         }).toInstance(ImmutableList.of(sink));
-        bind(AsyncFramework.class).toInstance(async);
+        bind(ExecutorService.class).toInstance(executor);
         bind(new TypeLiteral<Map<String, String>>() {
         }).annotatedWith(Names.named("tags")).toInstance(tags);
         bind(new TypeLiteral<Map<String, String>>() {

@@ -20,7 +20,6 @@
 
 package com.spotify.ffwd.input;
 
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.spotify.ffwd.debug.DebugServer;
 import com.spotify.ffwd.filter.Filter;
@@ -28,10 +27,8 @@ import com.spotify.ffwd.model.v2.Batch;
 import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.output.OutputManager;
 import com.spotify.ffwd.statistics.InputManagerStatistics;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import lombok.ToString;
 
 /**
@@ -41,14 +38,10 @@ import lombok.ToString;
  */
 @ToString(of = { "sources" })
 public class CoreInputManager implements InputManager {
-
   private static final String DEBUG_ID = "core.input";
 
   @Inject
   private List<PluginSource> sources;
-
-  @Inject
-  private AsyncFramework async;
 
   @Inject
   private OutputManager output;
@@ -90,24 +83,20 @@ public class CoreInputManager implements InputManager {
   }
 
   @Override
-  public AsyncFuture<Void> start() {
-    final ArrayList<AsyncFuture<Void>> futures = Lists.newArrayList();
+  public CompletableFuture<Void> start() {
+    CompletableFuture[] futures = sources.stream()
+        .map(PluginSource::start)
+        .toArray(CompletableFuture[]::new);
 
-    for (final PluginSource s : sources) {
-      futures.add(s.start());
-    }
-
-    return async.collectAndDiscard(futures);
+    return CompletableFuture.allOf(futures);
   }
 
   @Override
-  public AsyncFuture<Void> stop() {
-    final ArrayList<AsyncFuture<Void>> futures = Lists.newArrayList();
+  public CompletableFuture<Void> stop() {
+    CompletableFuture[] futures = sources.stream()
+        .map(PluginSource::stop)
+        .toArray(CompletableFuture[]::new);
 
-    for (final PluginSource s : sources) {
-      futures.add(s.stop());
-    }
-
-    return async.collectAndDiscard(futures);
+    return CompletableFuture.allOf(futures);
   }
 }

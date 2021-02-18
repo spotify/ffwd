@@ -27,16 +27,15 @@ import com.spotify.ffwd.filter.TrueFilter;
 import com.spotify.ffwd.model.v2.Batch;
 import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.output.BatchablePluginSink;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 
 public class ProtocolPluginSink implements BatchablePluginSink {
-
   @Inject
-  private AsyncFramework async;
+  private ExecutorService executor;
 
   @Inject
   private ProtocolClients clients;
@@ -59,10 +58,6 @@ public class ProtocolPluginSink implements BatchablePluginSink {
 
   public ProtocolPluginSink(RetryPolicy retry) {
     this.retry = retry;
-  }
-
-  @Override
-  public void init() {
   }
 
   @Override
@@ -92,22 +87,24 @@ public class ProtocolPluginSink implements BatchablePluginSink {
   }
 
   @Override
-  public AsyncFuture<Void> sendMetrics(Collection<Metric> metrics) {
+  public CompletableFuture<Void> sendMetrics(Collection<Metric> metrics) {
     final ProtocolConnection c = connection.get();
 
     if (c == null) {
-      return async.failed(new IllegalStateException("not connected to " + protocol));
+      return CompletableFuture.failedFuture(
+          new IllegalStateException("not connected to " + protocol));
     }
 
     return c.sendAll(filterMetrics(metrics));
   }
 
   @Override
-  public AsyncFuture<Void> sendBatches(final Collection<Batch> batches) {
+  public CompletableFuture<Void> sendBatches(final Collection<Batch> batches) {
     final ProtocolConnection c = connection.get();
 
     if (c == null) {
-      return async.failed(new IllegalStateException("not connected to " + protocol));
+      return CompletableFuture.failedFuture(
+          new IllegalStateException("not connected to " + protocol));
     }
 
     return c.sendAll(batches);
@@ -131,24 +128,24 @@ public class ProtocolPluginSink implements BatchablePluginSink {
   }
 
   @Override
-  public AsyncFuture<Void> start() {
+  public CompletableFuture<Void> start() {
     return clients
         .connect(log, protocol, client, retry)
-        .lazyTransform(result -> {
+        .thenComposeAsync(result -> {
           if (!connection.compareAndSet(null, result)) {
             return result.stop();
           }
 
-          return async.resolved(null);
-        });
+          return CompletableFuture.completedFuture(null);
+        }, executor);
   }
 
   @Override
-  public AsyncFuture<Void> stop() {
+  public CompletableFuture<Void> stop() {
     final ProtocolConnection c = connection.getAndSet(null);
 
     if (c == null) {
-      return async.resolved(null);
+      return CompletableFuture.completedFuture(null);
     }
 
     return c.stop();

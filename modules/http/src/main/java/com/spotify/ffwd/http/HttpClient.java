@@ -23,10 +23,8 @@ package com.spotify.ffwd.http;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spotify.ffwd.model.v2.Batch;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
-import eu.toolchain.async.ResolvableFuture;
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -40,20 +38,17 @@ public class HttpClient {
   private static final String V2_BATCH_ENDPOINT = "v2/batch";
   private static final String PING_ENDPOINT = "ping";
 
-  private final AsyncFramework async;
   private final ObjectMapper mapper;
   private final OkHttpClient httpClient;
   private final String baseUrl;
 
-  public HttpClient(AsyncFramework async, ObjectMapper mapper, OkHttpClient httpClient,
-                    String baseUrl) {
-    this.async = async;
+  public HttpClient(ObjectMapper mapper, OkHttpClient httpClient, String baseUrl) {
     this.mapper = mapper;
     this.httpClient = httpClient;
     this.baseUrl = baseUrl;
   }
 
-  public AsyncFuture<Void> sendBatch(final Batch batch) {
+  public CompletableFuture<Void> sendBatch(final Batch batch) {
     final byte[] body;
 
     try {
@@ -70,7 +65,7 @@ public class HttpClient {
     return execute(request);
   }
 
-  public AsyncFuture<Void> ping() {
+  public CompletableFuture<Void> ping() {
     final Request.Builder request = new Request.Builder();
 
     request.url(baseUrl + "/" + PING_ENDPOINT);
@@ -79,21 +74,21 @@ public class HttpClient {
     return execute(request);
   }
 
-  private AsyncFuture<Void> execute(final Request.Builder request) {
-    final ResolvableFuture<Void> future = async.future();
+  private CompletableFuture<Void> execute(final Request.Builder request) {
+    CompletableFuture<Void> future = new CompletableFuture<>();
 
     httpClient.newCall(request.build()).enqueue(new Callback() {
       @Override
       public void onFailure(final Call call, final IOException e) {
-        future.fail(e);
+        future.completeExceptionally(e);
       }
 
       @Override
-      public void onResponse(final Call call, final Response response) throws IOException {
+      public void onResponse(final Call call, final Response response) {
         if (response.isSuccessful()) {
-          future.resolve(null);
+          future.complete(null);
         } else {
-          future.fail(new RuntimeException(
+          future.completeExceptionally(new RuntimeException(
               "HTTP request failed: " + response.code() + ": " + response.message()));
         }
 

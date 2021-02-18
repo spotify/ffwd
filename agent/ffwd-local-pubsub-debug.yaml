@@ -7,31 +7,21 @@ input:
       protocol:
         type: udp
         receiveBufferSize: 26214400
-    - type: protobuf
-      protocol:
-        type: udp
-        receiveBufferSize: 26214400
-    - type: protobuf
-      protocol:
-        type: tcp
     - type: http
-      protocol:
-        type: tcp
+
 
 output:
   plugins:
     - type: debug
+    - type: opentelemetry
+      endpoint: ingest.lightstep.com:443
+      headers:
+        Lightstep-Access-Token: CaEYTnoKsSZxBcI2iXYP3de8mz61aqPYyrAZN4eRR/JCdziUaAqooI9ZmIeW/4Bs+roMwk6ZB0Sp6J6eFng=
     - type: pubsub
       serializer:
         type: spotify100proto
-
       batching:
         flushInterval: 10000
-        batchSizeLimit: 10000  # Default: 10000
-        maxPendingFlushes: 10 # Default: 10
-
-      project: google-test-project
-      topic: test-topic
-      requestBytesThreshold: 25000 # Default: 5000
-      messageCountBatchSize: 10 # Default: 1000
-      publishDelayThresholdMs: 200 # Default: 200
+      project: xpn-heroic-1
+      topic: metadata-proto-guc3
+      writeCacheDurationMinutes: 360

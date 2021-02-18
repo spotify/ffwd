@@ -50,11 +50,6 @@
     </dependency>
 
     <dependency>
-      <groupId>eu.toolchain.async</groupId>
-      <artifactId>tiny-async-core</artifactId>
-    </dependency>
-
-    <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-yaml</artifactId>
     </dependency>

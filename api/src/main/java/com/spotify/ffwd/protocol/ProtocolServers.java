@@ -20,12 +20,12 @@
 
 package com.spotify.ffwd.protocol;
 
-import eu.toolchain.async.AsyncFuture;
+import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 
 public interface ProtocolServers {
-
-  public AsyncFuture<ProtocolConnection> bind(
+  // TODO: Why is this log being passed into bind?
+  CompletableFuture<ProtocolConnection> bind(
       Logger log, Protocol protocol, ProtocolServer server, RetryPolicy policy
   );
 }

@@ -29,7 +29,6 @@ import com.codahale.metrics.SlidingTimeWindowReservoir;
 import com.spotify.metrics.core.MetricId;
 import com.spotify.metrics.core.SemanticMetricBuilder;
 import com.spotify.metrics.core.SemanticMetricRegistry;
-import eu.toolchain.async.FutureFinished;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -45,7 +44,7 @@ public class SemanticCoreStatistics implements CoreStatistics {
   /* Builds a Histogram with a Reservoir that remembers values for a maximum of x minutes, so that
    * slow rate doesn't cause long-lingering values in the Histogram. */
   private static final SemanticMetricBuilder<Histogram> HISTOGRAM_BUILDER =
-      new SemanticMetricBuilder<Histogram>() {
+      new SemanticMetricBuilder<>() {
 
         @Override
         public Histogram newMetric() {
@@ -227,7 +226,7 @@ public class SemanticCoreStatistics implements CoreStatistics {
       }
 
       @Override
-      public FutureFinished monitorWrite() {
+      public Runnable monitorWrite() {
         pendingWrites.inc();
         final long startTime = System.nanoTime();
 

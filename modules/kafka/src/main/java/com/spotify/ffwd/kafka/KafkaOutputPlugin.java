@@ -43,8 +43,8 @@ import kafka.producer.ProducerConfig;
 
 public class KafkaOutputPlugin extends OutputPlugin {
 
-  public static final int DEFAULT_BATCH_SIZE = 1000;
-  public static final boolean DEFAULT_COMPRESSION = true;
+  private static final int DEFAULT_BATCH_SIZE = 1000;
+  private static final boolean DEFAULT_COMPRESSION = true;
 
   private final KafkaRouter router;
   private final KafkaPartitioner partitioner;

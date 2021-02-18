@@ -41,13 +41,11 @@ import com.spotify.ffwd.statistics.BatchingStatistics;
 import com.spotify.ffwd.statistics.HighFrequencyDetectorStatistics;
 import com.spotify.ffwd.statistics.NoopCoreStatistics;
 import com.spotify.ffwd.statistics.OutputPluginStatistics;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.ResolvableFuture;
-import eu.toolchain.async.TinyAsync;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -89,7 +87,6 @@ public class BatchingPluginSinkIntegrationTest {
   private ArgumentCaptor<Collection<Metric>> metricsCaptor;
 
   private BatchingPluginSink sink;
-  private AsyncFramework async;
 
   private final ExecutorService executor =
       Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
@@ -100,11 +97,10 @@ public class BatchingPluginSinkIntegrationTest {
   @Before
   public void setup() {
     // flush every second, limiting the batch sizes to 1000, with 5 max pending flushes.
-    async = TinyAsync.builder().executor(executor).build();
     sink = createBatchingPluginSink();
 
-    doReturn(async.resolved()).when(childSink).start();
-    doReturn(async.resolved()).when(childSink).stop();
+    doReturn(CompletableFuture.completedFuture(null)).when(childSink).start();
+    doReturn(CompletableFuture.completedFuture(null)).when(childSink).stop();
 
     metric = new Metric("KEY", Value.DoubleValue.create(42.0), System.currentTimeMillis(),
         Collections.singletonMap("tag1", "value1"), ImmutableMap.of());
@@ -121,7 +117,7 @@ public class BatchingPluginSinkIntegrationTest {
       @Override
       protected void configure() {
         bind(BatchingPluginSink.class).toInstance(new BatchingPluginSink(0, BATCH_SIZE, 0));
-        bind(AsyncFramework.class).toInstance(async);
+        bind(ExecutorService.class).toInstance(executor);
         bind(BatchablePluginSink.class).annotatedWith(BatchingDelegate.class)
             .toInstance(new NoopPluginSink());
         bind(Boolean.class).annotatedWith(Names.named("dropHighFrequencyMetric"))
@@ -161,7 +157,7 @@ public class BatchingPluginSinkIntegrationTest {
    */
   @Test
   public void testSizeLimitedFlushing() throws InterruptedException, ExecutionException {
-    final ResolvableFuture<Void> sendFuture = async.future();
+    final CompletableFuture<Void> sendFuture = new CompletableFuture<>();
 
     // when sending any metrics, invoke the send future.
     doReturn(sendFuture).when(childSink).sendMetrics(anyCollection());
@@ -183,7 +179,7 @@ public class BatchingPluginSinkIntegrationTest {
     }
 
     // a very late flush resolve.
-    sendFuture.resolve(null);
+    sendFuture.complete(null);
 
     // all pending batches should have been marked as sent.
     synchronized (sink.pendingLock) {
@@ -214,19 +210,16 @@ public class BatchingPluginSinkIntegrationTest {
 
     // hammer time.
     for (int i = 0; i < threadCount; i++) {
-      threads.submit(new Callable<Void>() {
-        @Override
-        public Void call() throws Exception {
-          try {
-            while (count.getAndIncrement() < metricCount) {
-              sink.sendMetric(metric);
-            }
-          } finally {
-            latch.countDown();
+      threads.submit((Callable<Void>) () -> {
+        try {
+          while (count.getAndIncrement() < metricCount) {
+            sink.sendMetric(metric);
           }
-
-          return null;
+        } finally {
+          latch.countDown();
         }
+
+        return null;
       });
     }
 

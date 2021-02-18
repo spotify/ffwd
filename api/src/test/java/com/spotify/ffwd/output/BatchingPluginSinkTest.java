@@ -46,15 +46,13 @@ import com.spotify.ffwd.statistics.BatchingStatistics;
 import com.spotify.ffwd.statistics.HighFrequencyDetectorStatistics;
 import com.spotify.ffwd.statistics.NoopCoreStatistics;
 import com.spotify.ffwd.statistics.OutputPluginStatistics;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
-import eu.toolchain.async.TinyAsync;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -99,12 +97,11 @@ public class BatchingPluginSinkTest {
   private final ExecutorService executor = Executors.newFixedThreadPool(2);
 
   @Mock
-  private AsyncFuture<Void> future;
+  private CompletableFuture<Void> future;
 
   @Mock
   private HighFrequencyDetectorStatistics statistics;
 
-  AsyncFramework asyncFramework = TinyAsync.builder().executor(executor).build();
   BatchablePluginSink batchablePluginSink;
 
   @Before
@@ -112,7 +109,9 @@ public class BatchingPluginSinkTest {
     batchablePluginSink = spy(new NoopPluginSink());
     log = LoggerFactory.getLogger(getClass());
     sink = createBatchingPluginSink();
-    when(future.onFinished(any())).thenReturn(null);
+    when(future.thenRunAsync(any(), any())).thenReturn(null);
+    when(future.thenComposeAsync(any(), any())).thenReturn(null);
+    when(future.thenApplyAsync(any(), any())).thenReturn(null);
     metric = new Metric("KEY", value, System.currentTimeMillis(), Collections.singletonMap("tag",
         "value"),
         ImmutableMap.of());
@@ -127,7 +126,7 @@ public class BatchingPluginSinkTest {
         bind(BatchingPluginSink.class).toInstance(
             spy(new BatchingPluginSink(flushInterval, batchSizeLimit, maxPendingFlushes)));
         bind(Logger.class).toInstance(log);
-        bind(AsyncFramework.class).toInstance(asyncFramework);
+        bind(ExecutorService.class).toInstance(executor);
         bind(BatchablePluginSink.class).annotatedWith(BatchingDelegate.class)
             .toInstance(batchablePluginSink);
         bind(Boolean.class).annotatedWith(Names.named("dropHighFrequencyMetric"))

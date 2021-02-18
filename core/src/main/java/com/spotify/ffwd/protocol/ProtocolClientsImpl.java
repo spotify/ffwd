@@ -22,20 +22,16 @@ package com.spotify.ffwd.protocol;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.Timer;
+import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 
 public class ProtocolClientsImpl implements ProtocolClients {
-
-  @Inject
-  private AsyncFramework async;
 
   @Inject
   @Named("worker")
@@ -45,7 +41,7 @@ public class ProtocolClientsImpl implements ProtocolClients {
   private Timer timer;
 
   @Override
-  public AsyncFuture<ProtocolConnection> connect(
+  public CompletableFuture<ProtocolConnection> connect(
       Logger log, Protocol protocol, ProtocolClient client, RetryPolicy policy
   ) {
     if (protocol.getType() == ProtocolType.UDP) {
@@ -59,7 +55,7 @@ public class ProtocolClientsImpl implements ProtocolClients {
     throw new IllegalArgumentException("Unsupported protocol: " + protocol);
   }
 
-  private AsyncFuture<ProtocolConnection> connectTCP(
+  private CompletableFuture<ProtocolConnection> connectTCP(
       Logger log, Protocol protocol, ProtocolClient client, RetryPolicy policy
   ) {
     final Bootstrap b = new Bootstrap();
@@ -74,7 +70,7 @@ public class ProtocolClientsImpl implements ProtocolClients {
     final int port = protocol.getAddress().getPort();
 
     final ProtocolConnection connection =
-        new RetryingProtocolConnection(async, timer, log, policy, new ProtocolChannelSetup() {
+        new RetryingProtocolConnection(timer, log, policy, new ProtocolChannelSetup() {
           @Override
           public ChannelFuture setup() {
             return b.connect(host, port);
@@ -86,12 +82,12 @@ public class ProtocolClientsImpl implements ProtocolClients {
           }
         });
 
-    return async.resolved(connection);
+    return CompletableFuture.completedFuture(connection);
   }
 
-  private AsyncFuture<ProtocolConnection> connectUDP(
+  private CompletableFuture<ProtocolConnection> connectUDP(
       Protocol protocol, ProtocolClient client, RetryPolicy policy
   ) {
-    return async.failed(new RuntimeException("not implemented"));
+    return CompletableFuture.failedFuture(new RuntimeException("not implemented"));
   }
 }

@@ -21,21 +21,18 @@
 
 package com.spotify.ffwd.opencensus;
 
-import com.google.inject.Inject;
 import com.spotify.ffwd.model.v2.Batch;
 import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.output.PluginSink;
 import com.spotify.ffwd.util.BatchMetricConverter;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
 import io.opencensus.exporter.stats.stackdriver.StackdriverStatsConfiguration;
 import io.opencensus.exporter.stats.stackdriver.StackdriverStatsExporter;
 import io.opencensus.stats.Aggregation.LastValue;
 import io.opencensus.stats.Measure.MeasureDouble;
 import io.opencensus.stats.Stats;
 import io.opencensus.stats.StatsRecorder;
-import io.opencensus.stats.View.Name;
 import io.opencensus.stats.View;
+import io.opencensus.stats.View.Name;
 import io.opencensus.tags.TagContext;
 import io.opencensus.tags.TagContextBuilder;
 import io.opencensus.tags.TagKey;
@@ -48,8 +45,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.commons.text.StringSubstitutor;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,10 +64,7 @@ import org.slf4j.LoggerFactory;
  package-summary.html
  */
 public class OpenCensusPluginSink implements PluginSink {
-
   private static final Logger log = LoggerFactory.getLogger(OpenCensusPluginSink.class);
-  @Inject
-  private AsyncFramework async;
 
   private Map<String, MeasureDouble> measures;
 
@@ -80,18 +75,23 @@ public class OpenCensusPluginSink implements PluginSink {
   private int maxViews;
   private String outputMetricNamePattern;
 
+  @Override
   public void init() {
     // Is this actually needed, not sure. Better safe than sorry!
-    measures = new ConcurrentHashMap<String, MeasureDouble>();
+    measures = new ConcurrentHashMap<>();
   }
 
-  public OpenCensusPluginSink(Optional<String> gcpProject, Optional<Integer> maxViews,
-                              Optional<String> outputMetricNamePattern) {
+  OpenCensusPluginSink(
+      Optional<String> gcpProject,
+      Optional<Integer> maxViews,
+      Optional<String> outputMetricNamePattern
+  ) {
     this.gcpProject = gcpProject;
     this.maxViews = maxViews.orElse(500);
     this.outputMetricNamePattern = outputMetricNamePattern.orElse("${key}_${what}");
   }
 
+  @Override
   public void sendMetric(Metric metric) {
     if (metric.hasDistribution()) {
       return;
@@ -141,6 +141,7 @@ public class OpenCensusPluginSink implements PluginSink {
     }
   }
 
+  @Override
   public void sendBatch(Batch batch) {
     // NB: Unfortunately batches and measureMaps are not the same.
     batch.getPoints().forEach(point -> {
@@ -148,7 +149,8 @@ public class OpenCensusPluginSink implements PluginSink {
     });
   }
 
-  public AsyncFuture<Void> start() {
+  @Override
+  public CompletableFuture<Void> start() {
     // NB using Application Default Credentials here:
     // See https://developers.google.com/identity/protocols/application-default-credentials
     try {
@@ -160,24 +162,14 @@ public class OpenCensusPluginSink implements PluginSink {
 
       // This can also be done by setting enviroment variables but it'll be frequently
       // be used so let's make it easy.
-      if (gcpProject.isPresent()) {
-        builder.setProjectId(gcpProject.get());
-      }
+      gcpProject.ifPresent(builder::setProjectId);
 
       StackdriverStatsExporter.createAndRegister(builder.build());
     } catch (IOException ex) {
       log.error("Couldn't connect to Stackdriver");
-      return async.failed(ex);
+      return CompletableFuture.failedFuture(ex);
     }
-    return async.resolved();
-  }
-
-  public AsyncFuture<Void> stop() {
-    return async.resolved();
-  }
-
-  public boolean isReady() {
-    return true;
+    return CompletableFuture.completedFuture(null);
   }
 
   private String getOutputMetricName(Metric metric) {

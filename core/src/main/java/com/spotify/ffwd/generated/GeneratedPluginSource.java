@@ -26,23 +26,20 @@ import com.spotify.ffwd.input.InputManager;
 import com.spotify.ffwd.input.PluginSource;
 import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.model.v2.Value;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class GeneratedPluginSource implements PluginSource {
+  @Inject private ExecutorService executor;
+  @Inject private InputManager input;
 
-  @Inject
-  private AsyncFramework async;
-  @Inject
-  private InputManager input;
-
-  private volatile AsyncFuture<Void> task;
+  private volatile CompletableFuture<Void> task;
   private volatile List<Metric> metrics;
   private volatile boolean stopped = false;
 
@@ -59,18 +56,20 @@ public class GeneratedPluginSource implements PluginSource {
 
   @Override
   public void init() {
-    task = async.call(() -> {
-      generate();
-      return null;
+    task = CompletableFuture.runAsync(() -> {
+      try {
+        generate();
+      } catch (InterruptedException e) {
+        throw new CompletionException(e);
+      }
     }, single);
   }
 
   @Override
-  public AsyncFuture<Void> start() {
-    return async.call(() -> {
+  public CompletableFuture<Void> start() {
+    return CompletableFuture.runAsync(() -> {
       metrics = generateMetrics();
-      return null;
-    });
+    }, executor);
   }
 
   private List<Metric> generateMetrics() {
@@ -101,7 +100,7 @@ public class GeneratedPluginSource implements PluginSource {
   }
 
   @Override
-  public AsyncFuture<Void> stop() {
+  public CompletableFuture<Void> stop() {
     stopped = true;
     return task;
   }

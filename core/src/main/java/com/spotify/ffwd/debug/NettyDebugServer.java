@@ -21,14 +21,10 @@
 package com.spotify.ffwd.debug;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.spotify.ffwd.model.v2.Batch;
 import com.spotify.ffwd.model.v2.Metric;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
-import eu.toolchain.async.ResolvableFuture;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -43,6 +39,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.Data;
 import org.slf4j.Logger;
@@ -54,12 +51,9 @@ public class NettyDebugServer implements DebugServer {
   private static final String LINE_ENDING = "\n";
   private static final Charset UTF8 = Charset.forName("UTF-8");
 
-  final AtomicReference<Channel> server = new AtomicReference<>();
+  private final AtomicReference<Channel> server = new AtomicReference<>();
 
   private final InetSocketAddress localAddress;
-
-  @Inject
-  private AsyncFramework async;
 
   @Inject
   @Named("boss")
@@ -112,8 +106,8 @@ public class NettyDebugServer implements DebugServer {
         connected.iterator().next().writeAndFlush(Unpooled.wrappedBuffer(buf));
   }
 
-  public AsyncFuture<Void> start() {
-    final ResolvableFuture<Void> future = async.future();
+  public CompletableFuture<Void> start() {
+    CompletableFuture<Void> future = new CompletableFuture<>();
 
     final ServerBootstrap s = new ServerBootstrap();
 
@@ -135,7 +129,7 @@ public class NettyDebugServer implements DebugServer {
 
     s.bind(localAddress).addListener((ChannelFutureListener) f -> {
       if (!f.isSuccess()) {
-        future.fail(f.cause());
+        future.completeExceptionally(f.cause());
         return;
       }
 
@@ -143,47 +137,46 @@ public class NettyDebugServer implements DebugServer {
 
       if (!server.compareAndSet(null, f.channel())) {
         f.channel().close();
-        future.fail(new IllegalStateException("server already started"));
+        future.completeExceptionally(new IllegalStateException("server already started"));
         return;
       }
 
-      future.resolve(null);
+      future.complete(null);
     });
 
     return future;
   }
 
-  public AsyncFuture<Void> stop() {
+  public CompletableFuture<Void> stop() {
     final Channel server = this.server.getAndSet(null);
 
     if (server == null) {
       throw new IllegalStateException("server not started");
     }
 
-    final ResolvableFuture<Void> serverClose = async.future();
+    CompletableFuture<Void> serverClose = new CompletableFuture<>();
 
     server.close().addListener((ChannelFutureListener) f -> {
       if (!f.isSuccess()) {
-        serverClose.fail(f.cause());
+        serverClose.completeExceptionally(f.cause());
         return;
       }
 
-      serverClose.resolve(null);
+      serverClose.complete(null);
     });
 
-    final ResolvableFuture<Void> channelGroupClose = async.future();
+    CompletableFuture<Void> channelGroupClose = new CompletableFuture<>();
 
     connected.close().addListener((ChannelGroupFutureListener) f -> {
       if (!f.isSuccess()) {
-        channelGroupClose.fail(f.cause());
+        channelGroupClose.completeExceptionally(f.cause());
         return;
       }
 
-      channelGroupClose.resolve(null);
+      channelGroupClose.complete(null);
     });
 
-    return async.collectAndDiscard(
-        ImmutableList.<AsyncFuture<Void>>of(serverClose, channelGroupClose));
+    return CompletableFuture.allOf(serverClose, channelGroupClose);
   }
 
   public String toString() {
@@ -191,7 +184,7 @@ public class NettyDebugServer implements DebugServer {
   }
 
   @Data
-  public static class WriteMetricEvent {
+  private static class WriteMetricEvent {
 
     private final String type = "metric";
     private final String id;
@@ -199,7 +192,7 @@ public class NettyDebugServer implements DebugServer {
   }
 
   @Data
-  public static class WriteBatchEvent {
+  private static class WriteBatchEvent {
 
     private final String type = "batch";
     private final String id;

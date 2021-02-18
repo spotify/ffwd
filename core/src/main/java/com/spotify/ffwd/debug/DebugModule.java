@@ -30,7 +30,7 @@ public class DebugModule implements FastForwardModule {
   private PluginContext context;
 
   @Override
-  public void setup() throws Exception {
+  public void setup() {
     context.registerOutput("debug", DebugOutputPlugin.class);
   }
 }

@@ -30,7 +30,7 @@ public class HttpModule implements FastForwardModule {
   private PluginContext context;
 
   @Override
-  public void setup() throws Exception {
+  public void setup() {
     context.registerInput("http", HttpInputPlugin.class);
     context.registerOutput("http", HttpOutputPlugin.class);
   }

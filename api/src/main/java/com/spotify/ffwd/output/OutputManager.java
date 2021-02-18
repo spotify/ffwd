@@ -23,7 +23,7 @@ package com.spotify.ffwd.output;
 import com.spotify.ffwd.Initializable;
 import com.spotify.ffwd.model.v2.Batch;
 import com.spotify.ffwd.model.v2.Metric;
-import eu.toolchain.async.AsyncFuture;
+import java.util.concurrent.CompletableFuture;
 
 public interface OutputManager extends Initializable {
 
@@ -38,7 +38,7 @@ public interface OutputManager extends Initializable {
    */
   void sendBatch(Batch batch);
 
-  AsyncFuture<Void> start();
+  CompletableFuture<Void> start();
 
-  AsyncFuture<Void> stop();
+  CompletableFuture<Void> stop();
 }

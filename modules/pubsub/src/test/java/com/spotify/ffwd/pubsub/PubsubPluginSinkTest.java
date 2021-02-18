@@ -35,8 +35,6 @@ import com.spotify.ffwd.cache.NoopCache;
 import com.spotify.ffwd.model.v2.Batch;
 import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.serializer.Spotify100ProtoSerializer;
-import eu.toolchain.async.AsyncFramework;
-import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,10 +45,6 @@ import org.slf4j.LoggerFactory;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PubsubPluginSinkTest {
-
-  @Mock
-  private AsyncFramework async;
-
   @Mock
   private Publisher publisher;
 
@@ -61,7 +55,6 @@ public class PubsubPluginSinkTest {
   @Before
   public void setUp() {
     sink = new PubsubPluginSink();
-    sink.async = async;
     sink.publisher = publisher;
     sink.serializer = new Spotify100ProtoSerializer();
     sink.writeCache = new NoopCache();

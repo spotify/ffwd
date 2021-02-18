@@ -22,16 +22,14 @@ package com.spotify.ffwd.protocol;
 
 import com.google.inject.Inject;
 import com.spotify.ffwd.input.PluginSource;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
-import eu.toolchain.async.Transform;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 
 public class ProtocolPluginSource implements PluginSource {
-
   @Inject
-  private AsyncFramework async;
+  private ExecutorService executor;
 
   @Inject
   private ProtocolServers servers;
@@ -55,27 +53,24 @@ public class ProtocolPluginSource implements PluginSource {
   }
 
   @Override
-  public AsyncFuture<Void> start() {
+  public CompletableFuture<Void> start() {
     return servers
         .bind(log, protocol, server, retry)
-        .transform(new Transform<ProtocolConnection, Void>() {
-          @Override
-          public Void transform(ProtocolConnection c) throws Exception {
-            if (!connection.compareAndSet(null, c)) {
-              c.stop();
-            }
-
-            return null;
+        .thenApplyAsync(c -> {
+          if (!connection.compareAndSet(null, c)) {
+            c.stop();
           }
-        });
+
+          return null;
+        }, executor);
   }
 
   @Override
-  public AsyncFuture<Void> stop() {
+  public CompletableFuture<Void> stop() {
     final ProtocolConnection c = connection.getAndSet(null);
 
     if (c == null) {
-      return async.resolved(null);
+      return CompletableFuture.completedFuture(null);
     }
 
     return c.stop();

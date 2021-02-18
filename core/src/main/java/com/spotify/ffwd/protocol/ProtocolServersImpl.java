@@ -22,8 +22,6 @@ package com.spotify.ffwd.protocol;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -32,12 +30,10 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.Timer;
+import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 
 public class ProtocolServersImpl implements ProtocolServers {
-
-  @Inject
-  private AsyncFramework async;
 
   @Inject
   @Named("boss")
@@ -51,7 +47,7 @@ public class ProtocolServersImpl implements ProtocolServers {
   private Timer timer;
 
   @Override
-  public AsyncFuture<ProtocolConnection> bind(
+  public CompletableFuture<ProtocolConnection> bind(
       Logger log, Protocol protocol, ProtocolServer server, RetryPolicy policy
   ) {
     if (protocol.getType() == ProtocolType.UDP) {
@@ -65,7 +61,7 @@ public class ProtocolServersImpl implements ProtocolServers {
     throw new IllegalArgumentException("Unsupported protocol: " + protocol);
   }
 
-  private AsyncFuture<ProtocolConnection> bindTCP(
+  private CompletableFuture<ProtocolConnection> bindTCP(
       final Logger log, final Protocol protocol, ProtocolServer server, RetryPolicy policy
   ) {
     final ServerBootstrap b = new ServerBootstrap();
@@ -86,7 +82,7 @@ public class ProtocolServersImpl implements ProtocolServers {
     final int port = protocol.getAddress().getPort();
 
     final RetryingProtocolConnection connection =
-        new RetryingProtocolConnection(async, timer, log, policy, new ProtocolChannelSetup() {
+        new RetryingProtocolConnection(timer, log, policy, new ProtocolChannelSetup() {
           @Override
           public ChannelFuture setup() {
             return b.bind(host, port);
@@ -101,7 +97,7 @@ public class ProtocolServersImpl implements ProtocolServers {
     return connection.getInitialFuture();
   }
 
-  private AsyncFuture<ProtocolConnection> bindUDP(
+  private CompletableFuture<ProtocolConnection> bindUDP(
       final Logger log, final Protocol protocol, ProtocolServer server, RetryPolicy policy
   ) {
     final Bootstrap b = new Bootstrap();
@@ -118,7 +114,7 @@ public class ProtocolServersImpl implements ProtocolServers {
     final int port = protocol.getAddress().getPort();
 
     final RetryingProtocolConnection connection =
-        new RetryingProtocolConnection(async, timer, log, policy, new ProtocolChannelSetup() {
+        new RetryingProtocolConnection(timer, log, policy, new ProtocolChannelSetup() {
           @Override
           public ChannelFuture setup() {
             return b.bind(host, port);

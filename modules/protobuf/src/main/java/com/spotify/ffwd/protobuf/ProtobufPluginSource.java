@@ -27,17 +27,17 @@ import com.spotify.ffwd.protocol.ProtocolConnection;
 import com.spotify.ffwd.protocol.ProtocolServer;
 import com.spotify.ffwd.protocol.ProtocolServers;
 import com.spotify.ffwd.protocol.RetryPolicy;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
-import eu.toolchain.async.Transform;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class ProtobufPluginSource implements PluginSource {
+  private static final Logger log = LoggerFactory.getLogger(ProtobufPluginSource.class);
 
   @Inject
-  private AsyncFramework async;
+  private ExecutorService executor;
 
   @Inject
   private ProtocolServers servers;
@@ -58,27 +58,24 @@ public class ProtobufPluginSource implements PluginSource {
   }
 
   @Override
-  public AsyncFuture<Void> start() {
+  public CompletableFuture<Void> start() {
     return servers
         .bind(log, protocol, server, policy)
-        .transform(new Transform<ProtocolConnection, Void>() {
-          @Override
-          public Void transform(ProtocolConnection c) throws Exception {
-            if (!connection.compareAndSet(null, c)) {
-              c.stop();
-            }
-
-            return null;
+        .thenApplyAsync(c -> {
+          if (!connection.compareAndSet(null, c)) {
+            c.stop();
           }
-        });
+
+          return null;
+        }, executor);
   }
 
   @Override
-  public AsyncFuture<Void> stop() {
+  public CompletableFuture<Void> stop() {
     final ProtocolConnection c = connection.getAndSet(null);
 
     if (c == null) {
-      return async.resolved(null);
+      return CompletableFuture.completedFuture(null);
     }
 
     return c.stop();

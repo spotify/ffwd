@@ -39,13 +39,12 @@ import com.spotify.ffwd.serializer.Serializer;
 import com.spotify.ffwd.statistics.OutputPluginStatistics;
 import com.spotify.ffwd.statistics.SemanticCacheStatistics;
 import com.spotify.ffwd.util.BatchMetricConverter;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import org.slf4j.Logger;
 
@@ -59,8 +58,6 @@ import org.slf4j.Logger;
 public class PubsubPluginSink implements BatchablePluginSink {
 
   private final Executor executorService = MoreExecutors.directExecutor();
-  @Inject
-  AsyncFramework async;
   @Inject
   Publisher publisher;
   @Inject
@@ -83,10 +80,6 @@ public class PubsubPluginSink implements BatchablePluginSink {
     return true;
   }
 
-  @Override
-  public void init() {
-  }
-
   private void publishPubSub(final ByteString bytes) {
     // don't publish "\000" - indicates all the metrics are in the writeCache
     if (bytes.size() <= 1) {
@@ -96,7 +89,7 @@ public class PubsubPluginSink implements BatchablePluginSink {
     final ApiFuture<String> publish =
         publisher.publish(PubsubMessage.newBuilder().setData(bytes).build());
 
-    ApiFutures.addCallback(publish, new ApiFutureCallback<String>() {
+    ApiFutures.addCallback(publish, new ApiFutureCallback<>() {
       @Override
       public void onFailure(Throwable t) {
         logger.error("Failed sending metrics {}", t.getMessage());
@@ -111,20 +104,24 @@ public class PubsubPluginSink implements BatchablePluginSink {
 
   // The pubsub plugin only supports sending batches of metrics.
   @Override
-  public AsyncFuture<Void> sendMetrics(Collection<Metric> metrics) {
+  public CompletableFuture<Void> sendMetrics(Collection<Metric> metrics) {
+    CompletableFuture<Void> future = new CompletableFuture<>();
     logger.debug("Sending {} metrics", metrics.size());
 
     try {
       final ByteString m = ByteString.copyFrom(serializer.serialize(metrics, writeCache));
       publishPubSub(m);
+      future.complete(null);
     } catch (Exception e) {
       logger.error("Failed to serialize batch of metrics: ", e);
+      future.completeExceptionally(e);
     }
-    return async.resolved();
+
+    return future;
   }
 
   @Override
-  public AsyncFuture<Void> sendBatches(Collection<Batch> batches) {
+  public CompletableFuture<Void> sendBatches(Collection<Batch> batches) {
     final List<Metric> metrics = BatchMetricConverter.convertBatchesToMetrics(batches);
     return sendMetrics(metrics);
   }
@@ -144,7 +141,7 @@ public class PubsubPluginSink implements BatchablePluginSink {
    * creation is handled outside of this plugin as to limit the privileges given to the producer.
    */
   @Override
-  public AsyncFuture<Void> start() {
+  public CompletableFuture<Void> start() {
     logger.info("Connecting to topic {}", topicName);
     try {
       topicAdmin.getClient().getTopic(topicName);
@@ -160,14 +157,11 @@ public class PubsubPluginSink implements BatchablePluginSink {
       statistics.registerCacheStats(stats);
     });
 
-    return async.resolved();
+    return CompletableFuture.completedFuture(null);
   }
 
   @Override
-  public AsyncFuture<Void> stop() {
-    return async.call(() -> {
-      publisher.shutdown();
-      return null;
-    });
+  public CompletableFuture<Void> stop() {
+    return CompletableFuture.runAsync(() -> publisher.shutdown());
   }
 }

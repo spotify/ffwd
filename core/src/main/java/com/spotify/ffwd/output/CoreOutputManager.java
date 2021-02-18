@@ -32,8 +32,6 @@ import com.spotify.ffwd.model.v2.Batch;
 import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.statistics.OutputManagerStatistics;
 import com.spotify.ffwd.util.BatchMetricConverter;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -46,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -80,9 +79,6 @@ public class CoreOutputManager implements OutputManager {
   public List<PluginSink> getSinks() {
     return this.sinks;
   }
-
-  @Inject
-  private AsyncFramework async;
 
   @Inject
   @Named("tags")
@@ -134,9 +130,6 @@ public class CoreOutputManager implements OutputManager {
   @Inject
   private Filter filter;
 
-  @Inject
-  private String dynamicTagsFile;
-
   private AtomicReference<HLL> hyperLog;
   private AtomicLong hyperLogSwapTS;
   private AtomicBoolean hyperLogSwapLock;
@@ -159,10 +152,12 @@ public class CoreOutputManager implements OutputManager {
   }
 
   @Inject
-  CoreOutputManager(@Named("rateLimit") @Nullable Integer rateLimit,
-                    @Named("cardinalityLimit") @Nullable Long cardinalityLimit,
-                    @Named("hyperLogLogPlusSwapPeriodMS") @Nullable Long hyperLogLogPlusSwapPeriodMS,
-                    @Named("dynamicTagsFile") @Nullable String dynamicTagsFile) {
+  CoreOutputManager(
+      @Named("rateLimit") @Nullable Integer rateLimit,
+      @Named("cardinalityLimit") @Nullable Long cardinalityLimit,
+      @Named("hyperLogLogPlusSwapPeriodMS") @Nullable Long hyperLogLogPlusSwapPeriodMS,
+      @Named("dynamicTagsFile") @Nullable String dynamicTagsFile
+  ) {
 
     if (rateLimit != null && rateLimit > 0) {
       // Create a rate limiter with a configurable QPS, and
@@ -286,21 +281,21 @@ public class CoreOutputManager implements OutputManager {
   }
 
   @Override
-  public AsyncFuture<Void> start() {
-    List<AsyncFuture<Void>> futures = sinks.stream()
+  public CompletableFuture<Void> start() {
+    CompletableFuture[] futures = sinks.stream()
         .map(PluginSink::start)
-        .collect(Collectors.toList());
+        .toArray(CompletableFuture[]::new);
 
-    return async.collectAndDiscard(futures);
+    return CompletableFuture.allOf(futures);
   }
 
   @Override
-  public AsyncFuture<Void> stop() {
-    List<AsyncFuture<Void>> futures = sinks.stream()
+  public CompletableFuture<Void> stop() {
+    CompletableFuture[] futures = sinks.stream()
         .map(PluginSink::stop)
-        .collect(Collectors.toList());
+        .toArray(CompletableFuture[]::new);
 
-    return async.collectAndDiscard(futures);
+    return CompletableFuture.allOf(futures);
   }
 
   private boolean rateLimitAllowed(int permits) {

@@ -25,5 +25,5 @@ import io.netty.channel.ChannelInitializer;
 
 public interface ProtocolServer {
 
-  public ChannelInitializer<Channel> initializer();
+  ChannelInitializer<Channel> initializer();
 }

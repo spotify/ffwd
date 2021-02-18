@@ -20,8 +20,6 @@
 
 package com.spotify.ffwd.statistics;
 
-import eu.toolchain.async.FutureFinished;
-
 public interface BatchingStatistics {
 
   /**
@@ -72,9 +70,9 @@ public interface BatchingStatistics {
    * Helper to monitor the completion of a write. This can be used to know the latency of writes
    * and the number of outstanding writes.
    *
-   * @return A FutureFinished object to be registered with a write completion future
+   * @return A Runnable object to be registered with a write completion future
    */
-  FutureFinished monitorWrite();
+  Runnable monitorWrite();
 
   /**
    * Reported that the given number of metrics were dropped.

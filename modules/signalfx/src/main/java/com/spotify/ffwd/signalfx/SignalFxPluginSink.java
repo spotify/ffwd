@@ -30,14 +30,14 @@ import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.model.v2.Value;
 import com.spotify.ffwd.output.BatchablePluginSink;
 import com.spotify.ffwd.util.BatchMetricConverter;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
-import eu.toolchain.async.FutureFailed;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
@@ -45,11 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SignalFxPluginSink implements BatchablePluginSink {
-
   private static final Logger log = LoggerFactory.getLogger(SignalFxPluginSink.class);
-
-  @Inject
-  AsyncFramework async;
 
   @Inject
   Supplier<AggregateMetricSender> senderSupplier;
@@ -62,10 +58,6 @@ public class SignalFxPluginSink implements BatchablePluginSink {
       new ThreadFactoryBuilder().setNameFormat("ffwd-signalfx-async-%d").build());
 
   @Override
-  public void init() {
-  }
-
-  @Override
   public void sendMetric(final Metric metric) {
     sendMetrics(Collections.singletonList(metric));
   }
@@ -76,15 +68,15 @@ public class SignalFxPluginSink implements BatchablePluginSink {
   }
 
   @Override
-  public AsyncFuture<Void> sendBatches(final Collection<Batch> batches) {
+  public CompletableFuture<Void> sendBatches(final Collection<Batch> batches) {
     final List<Metric> metrics = BatchMetricConverter.convertBatchesToMetrics(batches);
     return sendMetrics(metrics);
   }
 
 
   @Override
-  public AsyncFuture<Void> sendMetrics(final Collection<Metric> metrics) {
-    final AsyncFuture<Void> future = async.call(() -> {
+  public CompletableFuture<Void> sendMetrics(final Collection<Metric> metrics) {
+    final CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
       try (AggregateMetricSender.Session i = senderSupplier.get().createSession()) {
         for (Metric metric : metrics) {
           if (metric.hasDistribution()) {
@@ -136,11 +128,15 @@ public class SignalFxPluginSink implements BatchablePluginSink {
               datapointBuilder.build();
           i.setDatapoint(dataPoint);
         }
+      } catch (IOException e) {
+        throw new CompletionException(e);
       }
-      return null;
     }, executorService);
 
-    future.on((FutureFailed) throwable -> log.error("Failed to send metrics", throwable));
+    future.exceptionally(throwable -> {
+      log.error("Failed to send metrics", throwable);
+      return null;
+    });
 
     return future;
   }
@@ -195,20 +191,5 @@ public class SignalFxPluginSink implements BatchablePluginSink {
 
     return dimensionVal.length() > CHAR_LIMIT ? dimensionVal.substring(0, CHAR_LIMIT)
                                               : dimensionVal;
-  }
-
-  @Override
-  public AsyncFuture<Void> start() {
-    return async.resolved();
-  }
-
-  @Override
-  public AsyncFuture<Void> stop() {
-    return async.resolved();
-  }
-
-  @Override
-  public boolean isReady() {
-    return true;
   }
 }

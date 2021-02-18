@@ -23,8 +23,6 @@ package com.spotify.ffwd.qlog;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -41,13 +39,15 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 
-@Slf4j
 public class QLogManagerImpl implements QLogManager {
+  private static final Logger log = org.slf4j.LoggerFactory.getLogger(QLogManagerImpl.class);
 
   private static final Charset UTF8 = Charset.forName("UTF-8");
   private static final int MINIMUM_MAX_LOG_SIZE = 10000;
@@ -62,7 +62,7 @@ public class QLogManagerImpl implements QLogManager {
   private static final int CURRENT_VERSION = 0;
 
   private final Path path;
-  private final AsyncFramework async;
+  private final ExecutorService executor;
   private final int maxLogSize;
 
   private final Object lock = new Object();
@@ -75,17 +75,17 @@ public class QLogManagerImpl implements QLogManager {
   private ByteBuffer tail;
 
   @Inject
-  public QLogManagerImpl(@Named("path") final Path path, final AsyncFramework async) {
-    this(path, async, DEFAULT_MAX_LOG_SIZE);
+  public QLogManagerImpl(@Named("path") final Path path, final ExecutorService executor) {
+    this(path, executor, DEFAULT_MAX_LOG_SIZE);
   }
 
-  public QLogManagerImpl(final Path path, final AsyncFramework async, int maxLogSize) {
+  public QLogManagerImpl(final Path path, final ExecutorService executor, int maxLogSize) {
     if (maxLogSize < MINIMUM_MAX_LOG_SIZE) {
       throw new IllegalArgumentException("maxLogSize");
     }
 
     this.path = path;
-    this.async = async;
+    this.executor = executor;
     this.maxLogSize = maxLogSize;
   }
 
@@ -186,7 +186,7 @@ public class QLogManagerImpl implements QLogManager {
   }
 
   @Override
-  public AsyncFuture<Void> start() {
+  public CompletableFuture<Void> start() {
     if (setup) {
       throw new IllegalStateException("already setup");
     }
@@ -195,44 +195,42 @@ public class QLogManagerImpl implements QLogManager {
       throw new IllegalStateException("log path is not a directory: " + path);
     }
 
-    return async.call(new Callable<Void>() {
-      @Override
-      public Void call() throws Exception {
-        synchronized (lock) {
-          if (setup) {
-            return null;
-          }
-
-          start0();
-          setup = true;
+    return CompletableFuture.runAsync(() -> {
+      synchronized (lock) {
+        if (setup) {
+          return;
         }
 
-        return null;
+        try {
+          start0();
+        } catch (IOException e) {
+          throw new CompletionException(e);
+        }
+        setup = true;
       }
-    });
+    }, executor);
   }
 
   @Override
-  public AsyncFuture<Void> stop() {
+  public CompletableFuture<Void> stop() {
     if (!setup) {
       throw new IllegalStateException("not setup");
     }
 
-    return async.call(new Callable<Void>() {
-      @Override
-      public Void call() throws Exception {
-        synchronized (lock) {
-          if (!setup) {
-            return null;
-          }
-
-          stop0();
-          setup = false;
+    return CompletableFuture.runAsync(() -> {
+      synchronized (lock) {
+        if (!setup) {
+          return;
         }
 
-        return null;
+        try {
+          stop0();
+        } catch (IOException e) {
+          throw new CompletionException(e);
+        }
+        setup = false;
       }
-    });
+    }, executor);
   }
 
   private long maxOffset() {

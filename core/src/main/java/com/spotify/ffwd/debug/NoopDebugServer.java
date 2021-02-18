@@ -20,17 +20,11 @@
 
 package com.spotify.ffwd.debug;
 
-import com.google.inject.Inject;
 import com.spotify.ffwd.model.v2.Batch;
 import com.spotify.ffwd.model.v2.Metric;
-import eu.toolchain.async.AsyncFramework;
-import eu.toolchain.async.AsyncFuture;
+import java.util.concurrent.CompletableFuture;
 
 public class NoopDebugServer implements DebugServer {
-
-  @Inject
-  private AsyncFramework async;
-
   @Override
   public void inspectMetric(String id, Metric metric) {
   }
@@ -41,12 +35,12 @@ public class NoopDebugServer implements DebugServer {
   }
 
   @Override
-  public AsyncFuture<Void> start() {
-    return async.resolved();
+  public CompletableFuture<Void> start() {
+    return CompletableFuture.completedFuture(null);
   }
 
   @Override
-  public AsyncFuture<Void> stop() {
-    return async.resolved();
+  public CompletableFuture<Void> stop() {
+    return CompletableFuture.completedFuture(null);
   }
 }
