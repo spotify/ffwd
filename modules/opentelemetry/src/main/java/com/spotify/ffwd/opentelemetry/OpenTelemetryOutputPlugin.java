@@ -41,6 +41,7 @@ public class OpenTelemetryOutputPlugin extends OutputPlugin {
 
   private final Map<String, String> headers;
   private final String endpoint;
+  private final String compression;
 
   @JsonCreator
   public OpenTelemetryOutputPlugin(
@@ -48,11 +49,13 @@ public class OpenTelemetryOutputPlugin extends OutputPlugin {
       @JsonProperty("flushInterval") @Nullable Long flushInterval,
       @JsonProperty("batching") Optional<Batching> batching,
       @JsonProperty("headers") Optional<Map<String, String>> headers,
-      @JsonProperty("endpoint") @Nullable String endpoint
+      @JsonProperty("endpoint") @Nullable String endpoint,
+      @JsonProperty("compression") @Nullable String compression
   ) {
     super(filter, Batching.from(flushInterval, batching));
     this.headers = headers.orElse(new HashMap<>());
     this.endpoint = Objects.requireNonNull(endpoint, "endpoint must be set");
+    this.compression = compression;
   }
 
   @Override
@@ -62,7 +65,7 @@ public class OpenTelemetryOutputPlugin extends OutputPlugin {
       protected void configure() {
         bind(Logger.class).toInstance(LoggerFactory.getLogger(id));
         bind(key).toInstance(
-            new OpenTelemetryPluginSink(endpoint, headers));
+            new OpenTelemetryPluginSink(endpoint, headers, compression));
         expose(key);
       }
     };

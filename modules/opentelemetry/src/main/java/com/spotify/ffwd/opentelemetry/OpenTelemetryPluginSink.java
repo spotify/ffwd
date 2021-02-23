@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,13 +56,16 @@ public class OpenTelemetryPluginSink implements PluginSink {
   private Map<String, String> headers;
   private ManagedChannel channel;
   private MetricsServiceGrpc.MetricsServiceBlockingStub stub;
+  @Nullable private String compression;
 
   OpenTelemetryPluginSink(
       String endpoint,
-      Map<String, String> headers
+      Map<String, String> headers,
+      @Nullable String compression
   ) {
     this.endpoint = endpoint;
     this.headers = headers;
+    this.compression = compression;
   }
 
 
@@ -121,6 +125,10 @@ public class OpenTelemetryPluginSink implements PluginSink {
 
     MetricsServiceGrpc.MetricsServiceBlockingStub stub =
         MetricsServiceGrpc.newBlockingStub(channel);
+
+    if (compression != null) {
+        stub = stub.withCompression(compression);
+    }
 
     Metadata extraHeaders = new Metadata();
     headers.forEach((key, value) -> {
