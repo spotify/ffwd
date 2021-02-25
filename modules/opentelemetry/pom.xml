@@ -4,12 +4,12 @@
   <parent>
     <groupId>com.spotify.ffwd</groupId>
     <artifactId>ffwd-parent</artifactId>
-    <version>0.8.7</version>
+    <version>0.8.8-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
   <artifactId>ffwd-module-opentelemetry</artifactId>
-  <version>0.8.7</version>
+  <version>0.8.8-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>FastForward OpenTelemetry Module</name>
 
