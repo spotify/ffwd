@@ -26,6 +26,7 @@ import com.google.api.core.ApiFutures;
 import com.google.api.gax.rpc.NotFoundException;
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.common.cache.Cache;
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
@@ -42,6 +43,7 @@ import com.spotify.ffwd.util.BatchMetricConverter;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -57,6 +59,9 @@ import org.slf4j.Logger;
  * `collectAndDiscard` on the futures anyway.
  */
 public class PubsubPluginSink implements BatchablePluginSink {
+
+  // Pubsub publish request limit is 10MB
+  private final static double MAX_BATCH_SIZE_BYTES = 10_000_000.0;
 
   private final Executor executorService = MoreExecutors.directExecutor();
   @Inject
@@ -116,7 +121,18 @@ public class PubsubPluginSink implements BatchablePluginSink {
 
     try {
       final ByteString m = ByteString.copyFrom(serializer.serialize(metrics, writeCache));
-      publishPubSub(m);
+
+      if (m.size() > MAX_BATCH_SIZE_BYTES) {
+        logger.debug("Above byte limit, resizing batch");
+        int times = (int)Math.ceil(m.size()/MAX_BATCH_SIZE_BYTES);
+        List<List<Metric>> collections = Lists.partition(new ArrayList<>(metrics), m.size()/times);
+        for (List<Metric> l: collections) {
+          final ByteString mResize = ByteString.copyFrom(serializer.serialize(l, writeCache));
+          publishPubSub(mResize);
+        }
+      } else {
+        publishPubSub(m);
+      }
     } catch (Exception e) {
       logger.error("Failed to serialize batch of metrics: ", e);
     }
