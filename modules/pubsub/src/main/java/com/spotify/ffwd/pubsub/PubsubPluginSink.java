@@ -60,6 +60,9 @@ import org.slf4j.Logger;
  */
 public class PubsubPluginSink implements BatchablePluginSink {
 
+  // Limit amount of input metrics to serialize
+  private final static int MAX_INPUT_METRICS = 10_000;
+
   // Pubsub publish request limit is 10MB
   private final static double MAX_BATCH_SIZE_BYTES = 10_000_000.0;
 
@@ -119,22 +122,32 @@ public class PubsubPluginSink implements BatchablePluginSink {
   public AsyncFuture<Void> sendMetrics(Collection<Metric> metrics) {
     logger.debug("Sending {} metrics", metrics.size());
 
-    try {
-      final ByteString m = ByteString.copyFrom(serializer.serialize(metrics, writeCache));
-
-      if (m.size() > MAX_BATCH_SIZE_BYTES) {
-        logger.info("Above byte limit, resizing batch");
-        int times = (int)Math.ceil(m.size()/MAX_BATCH_SIZE_BYTES);
-        List<List<Metric>> collections = Lists.partition(new ArrayList<>(metrics), metrics.size()/times);
-        for (List<Metric> l: collections) {
-          final ByteString mResize = ByteString.copyFrom(serializer.serialize(l, writeCache));
-          publishPubSub(mResize);
+    if (metrics.size() < MAX_INPUT_METRICS) {
+      try {
+        final ByteString m = ByteString.copyFrom(serializer.serialize(metrics, writeCache));
+        if (m.size() > MAX_BATCH_SIZE_BYTES) {
+          logger.info("Above byte limit {}, size was {}; resizing batch", MAX_BATCH_SIZE_BYTES,
+              m.size());
+          int times = (int) Math.ceil(m.size() / MAX_BATCH_SIZE_BYTES);
+          List<List<Metric>> collections =
+              Lists.partition(new ArrayList<>(metrics), metrics.size() / times);
+          for (List<Metric> l : collections) {
+            try {
+              final ByteString mResize = ByteString.copyFrom(serializer.serialize(l, writeCache));
+              publishPubSub(mResize);
+            } catch (Exception e) {
+              logger.error("Failed to serialize batch of metrics: ", e);
+            }
+          }
+        } else {
+          publishPubSub(m);
         }
-      } else {
-        publishPubSub(m);
+      } catch (Exception e) {
+        logger.error("Failed to serialize batch of metrics: ", e);
       }
-    } catch (Exception e) {
-      logger.error("Failed to serialize batch of metrics: ", e);
+    } else {
+      logger.info("Above input metric limit {}, size was {}; dropping metrics", MAX_INPUT_METRICS,
+       metrics.size());
     }
     return async.resolved();
   }
