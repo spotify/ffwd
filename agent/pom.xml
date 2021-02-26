@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>ffwd-agent</artifactId>
-  <version>0.8.9</version>
+  <version>0.8.10-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>FastForward Agent</name>
@@ -10,7 +10,7 @@
   <parent>
     <groupId>com.spotify.ffwd</groupId>
     <artifactId>ffwd-parent</artifactId>
-    <version>0.8.9</version>
+    <version>0.8.10-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
 
