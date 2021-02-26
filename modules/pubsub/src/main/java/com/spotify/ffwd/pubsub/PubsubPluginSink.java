@@ -123,7 +123,7 @@ public class PubsubPluginSink implements BatchablePluginSink {
       final ByteString m = ByteString.copyFrom(serializer.serialize(metrics, writeCache));
 
       if (m.size() > MAX_BATCH_SIZE_BYTES) {
-        logger.warn("Above byte limit, resizing batch");
+        logger.info("Above byte limit, resizing batch");
         int times = (int)Math.ceil(m.size()/MAX_BATCH_SIZE_BYTES);
         List<List<Metric>> collections = Lists.partition(new ArrayList<>(metrics), metrics.size()/times);
         for (List<Metric> l: collections) {

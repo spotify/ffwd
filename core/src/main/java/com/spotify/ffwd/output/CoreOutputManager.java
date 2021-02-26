@@ -274,8 +274,10 @@ public class CoreOutputManager implements OutputManager {
 
     statistics.reportMetricsCardinality(hyperLog.get().cardinality());
 
-    if (isDroppable(batchSize, batch.getPoints().get(0).getKey())) {
-      return;
+    if (batch.getPoints().size() > 0) {
+      if (isDroppable(batchSize, batch.getPoints().get(0).getKey())) {
+        return;
+      }
     }
 
     sinks.stream()
