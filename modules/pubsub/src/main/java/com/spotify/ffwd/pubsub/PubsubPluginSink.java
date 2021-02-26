@@ -146,8 +146,12 @@ public class PubsubPluginSink implements BatchablePluginSink {
         logger.error("Failed to serialize batch of metrics: ", e);
       }
     } else {
-      logger.info("Above input metric limit {}, size was {}; dropping metrics", MAX_INPUT_METRICS,
-       metrics.size());
+      logger.info("Above input metric limit {}, size was {}, sample key: {}, sample tags: {}; "
+      + "dropping metrics",
+       MAX_INPUT_METRICS,
+       metrics.size(),
+       metrics.iterator().next().getKey(),
+       metrics.iterator().next().getTags());
     }
     return async.resolved();
   }
