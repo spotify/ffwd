@@ -139,9 +139,11 @@ public class HttpDecoder extends MessageToMessageDecoder<FullHttpRequest> {
       return Collections.singletonList(batch);
     }
     List<Metric> points = batch.getPoints();
+    int numBatches = points.size() / MAX_BATCH_SIZE + 1;
+    log.info("Splitting input into {} batches.", numBatches);
     AtomicInteger counter = new AtomicInteger();
     return points.stream()
-        .collect(Collectors.groupingBy(it -> counter.getAndIncrement() / MAX_BATCH_SIZE))
+        .collect(Collectors.groupingBy(it -> counter.getAndIncrement() / numBatches))
         .values()
         .stream()
         .map(
