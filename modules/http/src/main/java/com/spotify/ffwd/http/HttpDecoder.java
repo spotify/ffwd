@@ -27,7 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spotify.ffwd.model.v2.Batch;
 import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.model.v2.Value;
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -39,8 +38,10 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -49,6 +50,7 @@ import org.slf4j.LoggerFactory;
 
 @Sharable
 public class HttpDecoder extends MessageToMessageDecoder<FullHttpRequest> {
+  private final int MAX_BATCH_SIZE = 100_000;
 
   private static final Logger log = LoggerFactory.getLogger(HttpDecoder.class);
 
@@ -94,29 +96,48 @@ public class HttpDecoder extends MessageToMessageDecoder<FullHttpRequest> {
   private void postBatch(
       final ChannelHandlerContext ctx, final FullHttpRequest in, final List<Object> out
   ) {
-    final Object batch = convertToBatch(in);
-    out.add(batch);
+    final List<Object> batches = convertToBatches(in);
+    out.addAll(batches);
     ctx
         .channel()
         .writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK))
         .addListener((ChannelFutureListener) future -> future.channel().close());
   }
 
-  private Object convertToBatch(final FullHttpRequest in) {
+  private List<Object> convertToBatches(final FullHttpRequest in) {
     final String endPoint = in.uri();
     try (final InputStream inputStream = new ByteBufInputStream(in.content())) {
       if ("/v2/batch".equals(endPoint)) {
-        return mapper.readValue(inputStream, Batch.class);
+        return splitBatch(mapper.readValue(inputStream, Batch.class));
       } else {
         com.spotify.ffwd.model.Batch batch =
             mapper.readValue(inputStream, com.spotify.ffwd.model.Batch.class);
-        return convert(batch);
+        return splitBatch(convert(batch));
       }
     } catch (final IOException e) {
       log.error(
           "HTTP Bad Request. uri: {}", endPoint, e);
       throw new HttpException(HttpResponseStatus.BAD_REQUEST);
     }
+  }
+
+  private List<Object> splitBatch(Batch batch) {
+    if (batch.getPoints().size() <= MAX_BATCH_SIZE) {
+      return Collections.singletonList(batch);
+    }
+    List<Metric> points = batch.getPoints();
+    AtomicInteger counter = new AtomicInteger();
+    return points.stream()
+        .collect(Collectors.groupingBy(it -> counter.getAndIncrement() / MAX_BATCH_SIZE))
+        .values()
+        .stream()
+        .map(
+            batchedPoints ->
+                Batch.create(
+                    Optional.of(batch.getCommonTags()),
+                    Optional.of(batch.getCommonResource()),
+                    batchedPoints))
+        .collect(Collectors.toList());
   }
 
   private Batch convert(final com.spotify.ffwd.model.Batch batch) {
