@@ -25,6 +25,7 @@ import static io.netty.handler.codec.http.HttpMethod.POST;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spotify.ffwd.model.v2.Batch;
+import com.spotify.ffwd.model.v2.BatchMetadata;
 import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.model.v2.Value;
 import io.netty.buffer.ByteBufInputStream;
@@ -51,6 +52,7 @@ import org.slf4j.LoggerFactory;
 @Sharable
 public class HttpDecoder extends MessageToMessageDecoder<FullHttpRequest> {
   private final int MAX_BATCH_SIZE = 100_000;
+  private final int MAX_INPUT_MB = 800;
 
   private static final Logger log = LoggerFactory.getLogger(HttpDecoder.class);
 
@@ -107,6 +109,17 @@ public class HttpDecoder extends MessageToMessageDecoder<FullHttpRequest> {
   private List<Object> convertToBatches(final FullHttpRequest in) {
     final String endPoint = in.uri();
     try (final InputStream inputStream = new ByteBufInputStream(in.content())) {
+      int inputSizeMb = inputStream.available() / 1000000;
+      if (inputSizeMb > MAX_INPUT_MB) {
+        BatchMetadata metadata = mapper.readValue(inputStream, BatchMetadata.class);
+        log.error(
+            "Input size is {}mb which is over the limit of {}mb. commonTags: {}, commonResource: {}",
+            inputSizeMb,
+            MAX_BATCH_SIZE,
+            metadata.getCommonTags(),
+            metadata.getCommonResource());
+        throw new HttpException(HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE);
+      }
       if ("/v2/batch".equals(endPoint)) {
         return splitBatch(mapper.readValue(inputStream, Batch.class));
       } else {
