@@ -58,6 +58,8 @@ public class OutputManagerModule {
   private static final Integer DEFAULT_MIN_FREQUENCY_MS_ALLOWED = 1000;
   private static final Integer DEFAULT_MIN_NUMBER_OF_TRIGGERS = 5;
   private static final Long DEFAULT_HIGH_FREQUENCY_DATA_RECYCLE_MS = 3_600_000L;
+  // Limit amount of input metrics to serialize
+  public static final Integer DEFAULT_MAX_INPUT_METRICS = 500_000;
 
   private final List<OutputPlugin> plugins;
   private final Filter filter;
@@ -69,6 +71,7 @@ public class OutputManagerModule {
   private final int minNumberOfTriggers;
   private final long highFrequencyDataRecycleMS;
   @Nullable private final String dynamicTagsFile;
+  @Nullable private final int maxInputMetrics;
 
   @JsonCreator
   public OutputManagerModule(
@@ -81,7 +84,8 @@ public class OutputManagerModule {
       @JsonProperty("minFrequencyMillisAllowed") @Nullable Integer minFrequencyMillisAllowed,
       @JsonProperty("minNumberOfTriggers") @Nullable Integer minNumberOfTriggers,
       @JsonProperty("highFrequencyDataRecycleMS") @Nullable Long highFrequencyDataRecycleMS,
-      @JsonProperty("dynamicTagsFile") @Nullable String dynamicTagsFile) {
+      @JsonProperty("dynamicTagsFile") @Nullable String dynamicTagsFile,
+      @JsonProperty("maxInputMetrics") @Nullable Integer maxInputMetrics) {
     this.plugins = Optional.ofNullable(plugins).orElse(DEFAULT_PLUGINS);
     this.filter = Optional.ofNullable(filter).orElseGet(TrueFilter::new);
     this.rateLimit = rateLimit;
@@ -97,6 +101,7 @@ public class OutputManagerModule {
         Optional.ofNullable(highFrequencyDataRecycleMS)
             .orElse(DEFAULT_HIGH_FREQUENCY_DATA_RECYCLE_MS);
     this.dynamicTagsFile = dynamicTagsFile;
+    this.maxInputMetrics = Optional.ofNullable(maxInputMetrics).orElse(DEFAULT_MAX_INPUT_METRICS);
   }
 
   //CHECKSTYLE:OFF:MethodLength
@@ -249,6 +254,11 @@ public class OutputManagerModule {
         return dynamicTagsFile;
       }
 
+      @Provides
+      @Singleton
+      @Named("maxInputMetrics")
+      public int maxInputMetrics() { return maxInputMetrics; }
+
       @Override
       protected void configure() {
         bind(OutputManager.class).to(CoreOutputManager.class).in(Scopes.SINGLETON);
@@ -326,6 +336,6 @@ public class OutputManagerModule {
 
   public static Supplier<OutputManagerModule> supplyDefault() {
     return () -> new OutputManagerModule(null, null, null, null, null, null, null, null, null,
-        null);
+        null, null);
   }
 }

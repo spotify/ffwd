@@ -21,10 +21,14 @@ based on request size, message count and time since last publish. The client by 
 * `publishDelayThresholdMs` - amount of type to wait for.
 
 
+Amount of metrics allowed on input can be configured using `maxInputMetrics`.
+
+
 Here is an example config of setting up the pubsub plugin.
 
 ```
 output:
+  maxInputMetrics: 50000 # Default: 500_000
   plugins:
     - type: pubsub
       project: google-test-project

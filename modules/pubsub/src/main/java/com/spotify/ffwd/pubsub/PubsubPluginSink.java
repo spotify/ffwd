@@ -29,6 +29,7 @@ import com.google.common.cache.Cache;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.ProjectTopicName;
 import com.google.pubsub.v1.PubsubMessage;
@@ -60,9 +61,6 @@ import org.slf4j.Logger;
  */
 public class PubsubPluginSink implements BatchablePluginSink {
 
-  // Limit amount of input metrics to serialize
-  private final static int MAX_INPUT_METRICS = 10_000;
-
   // Pubsub publish request limit is 10MB
   private final static double MAX_BATCH_SIZE_BYTES = 10_000_000.0;
 
@@ -85,6 +83,10 @@ public class PubsubPluginSink implements BatchablePluginSink {
   OutputPluginStatistics statistics;
   @Inject
   Optional<Cache<String, Boolean>> cache;
+  // Limit amount of input metrics to serialize
+  @Inject
+  @Named("maxInputMetrics")
+  int maxInputMetrics;
 
   @Override
   public boolean isReady() {
@@ -122,7 +124,7 @@ public class PubsubPluginSink implements BatchablePluginSink {
   public AsyncFuture<Void> sendMetrics(Collection<Metric> metrics) {
     logger.debug("Sending {} metrics", metrics.size());
 
-    if (metrics.size() < MAX_INPUT_METRICS) {
+    if (metrics.size() < maxInputMetrics) {
       try {
         final ByteString m = ByteString.copyFrom(serializer.serialize(metrics, writeCache));
         if (m.size() > MAX_BATCH_SIZE_BYTES) {
@@ -148,7 +150,7 @@ public class PubsubPluginSink implements BatchablePluginSink {
     } else {
       logger.info("Above input metric limit {}, size was {}, sample key: {}, sample tags: {}; "
       + "dropping metrics",
-       MAX_INPUT_METRICS,
+       maxInputMetrics,
        metrics.size(),
        metrics.iterator().next().getKey(),
        metrics.iterator().next().getTags());

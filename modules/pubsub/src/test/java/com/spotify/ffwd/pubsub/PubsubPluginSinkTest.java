@@ -36,7 +36,6 @@ import com.spotify.ffwd.model.v2.Batch;
 import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.serializer.Spotify100ProtoSerializer;
 import eu.toolchain.async.AsyncFramework;
-import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -66,6 +65,7 @@ public class PubsubPluginSinkTest {
     sink.serializer = new Spotify100ProtoSerializer();
     sink.writeCache = new NoopCache();
     sink.logger = LoggerFactory.getLogger(PubsubPluginSinkTest.class);
+    sink.maxInputMetrics = 500_000;
 
     metric = makeMetric();
 
