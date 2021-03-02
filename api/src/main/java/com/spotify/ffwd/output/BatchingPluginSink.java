@@ -23,21 +23,19 @@ package com.spotify.ffwd.output;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.spotify.ffwd.filter.Filter;
+import com.spotify.ffwd.model.v2.Batch;
 import com.spotify.ffwd.model.v2.Metric;
 import com.spotify.ffwd.statistics.BatchingStatistics;
 import com.spotify.ffwd.statistics.OutputPluginStatistics;
+import com.spotify.ffwd.util.BatchMetricConverter;
 import com.spotify.ffwd.util.HighFrequencyDetector;
 import eu.toolchain.async.AsyncFramework;
 import eu.toolchain.async.AsyncFuture;
 import eu.toolchain.async.FutureFinished;
 import eu.toolchain.async.LazyTransform;
 import eu.toolchain.async.Transform;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -384,12 +382,13 @@ public class BatchingPluginSink implements PluginSink {
           .onFinished(() -> batchingStatistics.reportSentMetrics(batch.metrics.size())));
     }
 
-    // TODO finish batches
     if (!batch.batches.isEmpty()) {
+      final List<Metric> metrics = BatchMetricConverter.convertBatchesToMetrics(batch.batches);
+
+      final List<Metric> filteredMetrics = highFrequencyDetector.detect(metrics);
       futures.add(sink
-          .sendBatches(batch.batches)
-          .onFinished(() -> batchingStatistics.reportSentBatches(batch.batches.size(),
-              batch.size())));
+          .sendMetrics(filteredMetrics)
+          .onFinished(() -> batchingStatistics.reportSentMetrics(filteredMetrics.size())));
     }
 
     // chain into batch future.
