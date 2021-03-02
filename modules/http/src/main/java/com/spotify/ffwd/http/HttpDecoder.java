@@ -42,8 +42,8 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.slf4j.Logger;
@@ -141,11 +141,8 @@ public class HttpDecoder extends MessageToMessageDecoder<FullHttpRequest> {
     List<Metric> points = batch.getPoints();
     int numBatches = points.size() / MAX_BATCH_SIZE + 1;
     log.info("Splitting input into {} batches.", numBatches);
-    AtomicInteger counter = new AtomicInteger();
-    return points.stream()
-        .collect(Collectors.groupingBy(it -> counter.getAndIncrement() / numBatches))
-        .values()
-        .stream()
+    return IntStream.range(0, numBatches).mapToObj(
+        n -> points.subList(n * MAX_BATCH_SIZE, n == numBatches - 1 ? points.size() : (n + 1) * MAX_BATCH_SIZE))
         .map(
             batchedPoints ->
                 Batch.create(
