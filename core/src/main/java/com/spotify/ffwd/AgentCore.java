@@ -378,10 +378,11 @@ public class AgentCore {
   /**
    * Reads the configuration of the agent from multiple possible sources. In order of precedence,
    * the following sources are loaded:
-   * - System properties
-   * - Environment variables
-   * - YAML file in specified location
-   * - YAML file bundled with JAR
+   *<p></p>
+   * - System properties<p></p>
+   * - Environment variables<p></p>
+   * - YAML file in specified location<p></p>
+   * - YAML file bundled with JAR<p></p>
    *
    * Values are merged, those higher on this list override those that are lower.
    *

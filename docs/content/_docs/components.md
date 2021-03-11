@@ -6,6 +6,8 @@ title: Components
 
 This document covers some of the major components in FastForward.
 
+![Overview of main FFWD components](./images/ffwd-components.svg "Overview of main FFWD components")
+
 ## Module
 
 A [module](https://github.com/spotify/ffwd/blob/master/api/src/main/java/com/spotify/ffwd/module/FastForwardModule.java) is a dynamically loaded component that extends the functionality of FastForward.
