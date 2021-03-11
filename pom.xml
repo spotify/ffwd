@@ -33,6 +33,7 @@
     <module>modules/pubsub</module>
     <module>modules/opencensus</module>
     <module>modules/opentelemetry</module>
+    <module>grafana-dashboard-watcher</module>
   </modules>
 
   <licenses>
