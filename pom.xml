@@ -34,7 +34,6 @@
     <module>modules/opencensus</module>
     <module>modules/opentelemetry</module>
     <module>grafana-dashboard-watcher</module>
-    <module>grafana-dashboard-watcher2</module>
   </modules>
 
   <licenses>
