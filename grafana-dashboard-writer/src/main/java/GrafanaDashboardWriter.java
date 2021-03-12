@@ -20,11 +20,14 @@
 
 package com.spotify.metrics.dashboard.writer;
 
+import static com.spotify.ffwd.grafana.common.Consts.bucketName;
+
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.BucketInfo;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
+import com.spotify.ffwd.grafana.common.Consts;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -38,7 +41,6 @@ import java.util.Set;
  */
 public class GrafanaDashboardWriter {
     public static final int NUM_UNIQUE_TAG_PAIRINGS_GUESSTIMATE = 10_000;
-    private static String bucketName = "ffwd-grafana-dashboard-used-tag-pairs";
     private static Storage storage = StorageOptions.getDefaultInstance().getService();
 
 
@@ -74,7 +76,7 @@ public class GrafanaDashboardWriter {
 
             return true;
         } catch (Exception err) {
-            // do something sensible
+            // TODO do something sensible
             return false;
         }
     }

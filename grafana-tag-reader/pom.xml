@@ -9,7 +9,8 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>grafana-dashboard-watcher</artifactId>
+  <artifactId>grafana-tag-reader</artifactId>
+
   <dependencies>
     <dependency>
       <groupId>com.google.cloud</groupId>
