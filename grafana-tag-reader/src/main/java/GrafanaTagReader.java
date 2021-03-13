@@ -33,6 +33,10 @@ import java.io.ObjectInputStream;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -42,14 +46,19 @@ import java.util.concurrent.atomic.AtomicReference;
  * 2. parsing it into a Set<String><p></p>
  * 3. stores it as a public static, atomic reference for easy access by client
  * code<p></p>
+ *
+ * This class will be used directly in ffwd
  */
 public class GrafanaTagReader {
     private static Storage storage = StorageOptions.getDefaultInstance().getService();
     private static String projectId = getGcpProject();
+    private static String THREAD_NAME = "ffwd-grafana-tag-reader-thread";
 
     private static boolean isStarted = false;
 
-    private static Object lock = new Object();
+    // Effectively stores a reference to the background thread that is periodically
+    // fetching new tags from Cloud Storage.
+    private static ScheduledFuture<?> workFuture;
 
     /**
      * needs to be called during ffwd init
@@ -60,15 +69,42 @@ public class GrafanaTagReader {
 
         isStarted = true;
 
-        doWork();
+        periodicallyRefreshGrafanaTags();
 
         return true;
     }
 
-    private static void doWork() {
+    public synchronized static void stop() {
+        if (!isStarted)
+            return;
 
-        // TODO spin up a single thread to wake up every 10 mins and refresh
-        // usedGrafanaTags
+        isStarted = false;
+
+        try {
+            workFuture.cancel(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            // do something sensible
+        }
+    }
+
+    private static void periodicallyRefreshGrafanaTags() {
+
+        Runnable target = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    updateGrafanaTags();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    // do something sensible
+                }
+            }
+        };
+
+        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+        workFuture = executorService.scheduleAtFixedRate(target, 5, 10,
+                TimeUnit.MINUTES);
 
         return;
     }
@@ -122,8 +158,6 @@ public class GrafanaTagReader {
 
     private static Blob downloadNewGrafanaTagFile() {
         try {
-            Storage storage =
-                    StorageOptions.newBuilder().setProjectId(projectId).build().getService();
             Bucket bucket = storage.get(bucketName);
             Page<Blob> blobs = bucket.list();
 
@@ -152,7 +186,9 @@ public class GrafanaTagReader {
         return latestBlob;
     }
 
-    public static AtomicReference<Set<String>> getUsedGrafanaTags() {
-        return usedGrafanaTags;
+    public static boolean areUsedTags(String what, String role) {
+        String pair = what + "-" + role;
+
+        return usedGrafanaTags.get().contains(pair);
     }
 }

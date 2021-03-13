@@ -50,31 +50,14 @@ public class GrafanaDashboardWatcher {
         }
     }
 
-    private static Date getLastRunTimestamp() {
-        try {
-            conn.createStatement().executeQuery(
-                    "CREATE TABLE IF NOT EXISTS grafana_dashboard_watcher(last_run TIMESTAMP)");
-            ResultSet lastRun = conn.createStatement().executeQuery(
-                    "SELECT MAX(last_run) FROM grafana_dashboard_watcher");
-
-            // TODO extract timestamp from result set
-            return new Date();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-            // TODO do something sensible
-            return null;
-        }
-    }
 
     // TODO decide whether we instead just always read all the dashboards. That
     // would lead a a much simpler implementation - always just writing out all
     // the role-what tag pairs found.
     private static Set<String> buildTagStrings() {
-        Date lastRun = getLastRunTimestamp();
         try {
             ResultSet data = conn.createStatement().executeQuery(
-                    "SELECT data FROM dashboard d " +
-                    "WHERE d.updated < " + lastRun + " OR d.created < " + lastRun);
+                    "SELECT data FROM dashboard d");
 
             // TODO extract the `what` and `role` from each dashboard.data cell and compile
             // into Set
