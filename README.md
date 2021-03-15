@@ -1,4 +1,8 @@
-# ffwd-java &#187;
+# DEPRECATION NOTICE
+
+This repo is no longer actively maintained. While it should continue to work and there are no major known bugs, we will not be improving ffwd or releasing new versions.
+
+# ffwd &#187;
 [![Build Status](https://circleci.com/gh/spotify/ffwd.svg?style=svg)](https://circleci.com/gh/spotify/ffwd)
 [![License](https://img.shields.io/github/license/spotify/ffwd.svg)](LICENSE)
 
